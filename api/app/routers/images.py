@@ -4,7 +4,7 @@ import hashlib
 import uuid
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import RedirectResponse
+from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -12,7 +12,7 @@ from ..database import check_database, get_session
 from ..models import Discovery, ImageContribution
 from ..services.catalog import wc_id
 from ..services.rate_limit import enforce
-from ..services.storage import prepare_upload, put_pending, signed_review_url
+from ..services.storage import prepare_upload, put_pending, read_first_object
 
 router = APIRouter(prefix="/images", tags=["images"])
 
@@ -109,27 +109,33 @@ def approved_image_content(
     image_id: str,
     session: Session = Depends(get_session),
 ):
-    """Deliver an approved image through a fresh signed Spaces URL.
-
-    The database status remains the public-access gate.  The short-lived URL
-    avoids relying on bucket/CDN ACL propagation and avoids proxying the full
-    image through the API process.
-    """
+    """Return approved image bytes directly from private Spaces storage."""
     row = session.get(ImageContribution, image_id)
     if not row or row.status != "approved":
         raise HTTPException(status_code=404, detail="Approved image not found.")
-    if not row.object_key:
-        raise HTTPException(status_code=404, detail="Approved image file is unavailable.")
 
-    signed_url = signed_review_url(row.object_key, expires_seconds=3600)
-    return RedirectResponse(
-        url=signed_url,
-        status_code=307,
-        headers={
-            "Cache-Control": "private, no-store",
-            "X-Content-Type-Options": "nosniff",
-        },
-    )
+    candidates = [
+        row.object_key,
+        f"approved/{row.discovery_id}/{row.id}.webp",
+        f"pending/{row.discovery_id}/{row.id}.webp",
+    ]
+    stored = read_first_object(candidates)
+
+    # Repair an old/mismatched object key after a successful fallback lookup.
+    if stored.object_key != row.object_key:
+        row.object_key = stored.object_key
+        session.commit()
+
+    headers = {
+        "Cache-Control": "public, max-age=3600",
+        "Content-Disposition": f'inline; filename="wonder-{row.discovery_id}-{row.id}.webp"',
+        "Content-Length": str(stored.content_length),
+        "X-Content-Type-Options": "nosniff",
+        "X-Wonder-Image-Version": "1.3.4",
+    }
+    if stored.etag:
+        headers["ETag"] = stored.etag
+    return Response(content=stored.body, media_type=stored.content_type, headers=headers)
 
 
 @router.get("/{image_id}")

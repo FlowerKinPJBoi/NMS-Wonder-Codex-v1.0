@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import logging
 from dataclasses import dataclass
+from typing import Iterable
 
 import boto3
 from botocore.client import Config
@@ -27,10 +28,11 @@ class PreparedImage:
 
 @dataclass(frozen=True)
 class StoredObject:
-    body: object
+    body: bytes
     content_type: str
-    content_length: int | None
+    content_length: int
     etag: str
+    object_key: str
 
 
 def _client():
@@ -43,7 +45,10 @@ def _client():
         endpoint_url=settings.spaces_endpoint,
         aws_access_key_id=settings.spaces_access_key,
         aws_secret_access_key=settings.spaces_secret_key,
-        config=Config(signature_version="s3v4"),
+        config=Config(
+            signature_version="s3v4",
+            s3={"addressing_style": "path"},
+        ),
     )
 
 
@@ -118,46 +123,79 @@ def signed_review_url(key: str, expires_seconds: int = 900) -> str:
         raise HTTPException(status_code=502, detail="Could not create a temporary review link.") from exc
 
 
-def publish_object(source_key: str, destination_key: str) -> str:
-    settings = get_settings()
-    client = _client()
-    try:
-        client.copy_object(
-            Bucket=settings.spaces_bucket,
-            Key=destination_key,
-            CopySource={"Bucket": settings.spaces_bucket, "Key": source_key},
-            ACL="public-read",
-            ContentType="image/webp",
-            CacheControl="public, max-age=31536000, immutable",
-            MetadataDirective="REPLACE",
-        )
-        client.delete_object(Bucket=settings.spaces_bucket, Key=source_key)
-    except (BotoCoreError, ClientError) as exc:
-        logger.exception("Could not publish Spaces object")
-        raise HTTPException(status_code=502, detail="Could not publish the approved image.") from exc
-    return f"{settings.spaces_cdn_url.rstrip('/')}/{destination_key}"
-
-
-def get_object(key: str) -> StoredObject:
+def verify_object(key: str) -> None:
+    """Confirm a private Spaces object exists before approving its DB row."""
     settings = get_settings()
     try:
-        response = _client().get_object(Bucket=settings.spaces_bucket, Key=key)
+        _client().head_object(Bucket=settings.spaces_bucket, Key=key)
     except ClientError as exc:
         code = str(exc.response.get("Error", {}).get("Code", ""))
         if code in {"NoSuchKey", "404", "NotFound"}:
-            raise HTTPException(status_code=404, detail="Approved image file was not found.") from exc
-        logger.exception("Could not read Spaces object %s", key)
-        raise HTTPException(status_code=502, detail="Could not retrieve the approved image.") from exc
+            raise HTTPException(status_code=404, detail="The submitted image file was not found in storage.") from exc
+        logger.exception("Could not verify Spaces object %s", key)
+        raise HTTPException(status_code=502, detail="Could not verify the submitted image file.") from exc
     except BotoCoreError as exc:
-        logger.exception("Could not read Spaces object %s", key)
-        raise HTTPException(status_code=502, detail="Could not retrieve the approved image.") from exc
+        logger.exception("Could not verify Spaces object %s", key)
+        raise HTTPException(status_code=502, detail="Could not verify the submitted image file.") from exc
 
-    return StoredObject(
-        body=response["Body"],
-        content_type=response.get("ContentType") or "image/webp",
-        content_length=response.get("ContentLength"),
-        etag=str(response.get("ETag") or "").strip(),
-    )
+
+def publish_object(source_key: str, destination_key: str) -> str:
+    """Legacy compatibility helper.
+
+    v1.3.4 keeps approved originals private and serves them only through the
+    Wonder Codex API. New approvals therefore no longer need an ACL-changing
+    copy. Existing approved rows that already point at approved/... continue
+    to work through read_first_object().
+    """
+    verify_object(source_key)
+    return ""
+
+
+def read_first_object(keys: Iterable[str]) -> StoredObject:
+    """Read the first existing object into memory.
+
+    Normalized uploads are capped at 15 MB before storage, so a complete read
+    is intentionally used here. It avoids redirect/signature/streaming proxy
+    differences between browsers and App Platform while keeping pending files
+    private.
+    """
+    settings = get_settings()
+    client = _client()
+    unique_keys: list[str] = []
+    for key in keys:
+        cleaned = (key or "").strip().lstrip("/")
+        if cleaned and cleaned not in unique_keys:
+            unique_keys.append(cleaned)
+
+    last_error: Exception | None = None
+    for key in unique_keys:
+        try:
+            response = client.get_object(Bucket=settings.spaces_bucket, Key=key)
+            stream = response["Body"]
+            try:
+                body = stream.read()
+            finally:
+                stream.close()
+            return StoredObject(
+                body=body,
+                content_type=response.get("ContentType") or "image/webp",
+                content_length=len(body),
+                etag=str(response.get("ETag") or "").strip(),
+                object_key=key,
+            )
+        except ClientError as exc:
+            code = str(exc.response.get("Error", {}).get("Code", ""))
+            if code in {"NoSuchKey", "404", "NotFound"}:
+                last_error = exc
+                continue
+            logger.exception("Could not read Spaces object %s", key)
+            raise HTTPException(status_code=502, detail="Could not retrieve the approved image.") from exc
+        except BotoCoreError as exc:
+            logger.exception("Could not read Spaces object %s", key)
+            raise HTTPException(status_code=502, detail="Could not retrieve the approved image.") from exc
+
+    logger.warning("Approved image was not found under any candidate key: %s", unique_keys)
+    raise HTTPException(status_code=404, detail="Approved image file was not found.") from last_error
 
 
 def delete_object(key: str) -> None:

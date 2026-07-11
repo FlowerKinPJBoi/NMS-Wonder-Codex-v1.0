@@ -169,6 +169,10 @@ def get_discovery(discovery_id: int, session: Session = Depends(get_session)):
         "is_primary": image.is_primary,
     } for image in approved_images]
     payload["primary_image_url"] = image_delivery_url(next((image for image in approved_images if image.is_primary), approved_images[0] if approved_images else None))
+    if approved_images:
+        # Keep the public badge accurate even for an image approved before a
+        # historical status-update bug was repaired.
+        payload["image_status"] = "available"
     payload["verification_counts"] = {
         "approved": approved_verifications,
         "pending": pending_verifications,

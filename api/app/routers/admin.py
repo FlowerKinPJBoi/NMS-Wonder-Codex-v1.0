@@ -22,7 +22,7 @@ from ..schemas import CatalogUpdate, ImageReviewAction, ReviewAction, Verificati
 from ..services.catalog import serialize_discovery, wc_id
 from ..services.bulk import insert_conflict_safe
 from ..services.security import require_admin_key
-from ..services.storage import delete_object, publish_object, signed_review_url
+from ..services.storage import delete_object, signed_review_url, verify_object
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin_key)])
 
@@ -592,8 +592,10 @@ def approve_image(image_id: str, action: ImageReviewAction, session: Session = D
     if not discovery:
         raise HTTPException(status_code=404, detail="Linked Wonder record not found.")
 
-    destination_key = f"approved/{discovery.id}/{row.id}.webp"
-    public_url = publish_object(row.object_key, destination_key)
+    # Keep approved files private. Public delivery is gated by the database
+    # status and served through /api/images/{id}/content.
+    verify_object(row.object_key)
+    public_url = ""
     if action.approval_role == "primary":
         session.execute(
             update(ImageContribution)
@@ -609,7 +611,6 @@ def approve_image(image_id: str, action: ImageReviewAction, session: Session = D
         ))
         row.is_primary = existing_primary is None
 
-    row.object_key = destination_key
     row.public_url = public_url
     row.status = "approved"
     row.reviewed_at = datetime.now(timezone.utc)
