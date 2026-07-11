@@ -24,7 +24,7 @@ function csv(rows){if(!rows.length)return '';const heads=Object.keys(rows[0]);co
 function download(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 function build(root,scanResult){const saveName=root?.CommonStateData?.SaveName||root?.SaveName||'Unknown Save';const platform=root?.Platform||'';const index=new Map();for(const d of scanResult.discoveries){const k=discoveryKey(d.record);if(k){if(!index.has(k))index.set(k,[]);index.get(k).push(d)}}const matches=[],issues=[];for(const p of scanResult.pets){const pet=p.record,k=petKey(pet),candidates=index.get(k)||[];if(candidates.length===1){const d=candidates[0].record.DD;const secondary=seedPair(pet.CreatureSecondarySeed),vp4=d.VP.length>4?big(d.VP[4]):null;matches.push({CreatureID:String(pet.CreatureID).replace(/^\^/,''),CreatureType:pet.CreatureType?.CreatureType||'',UA:hx(d.UA),VP0:hx(d.VP[0]),VP1:hx(d.VP[1]),VP2:hx(d.VP[2]),VP3:hx(d.VP[3]),VP4:d.VP[4]!==undefined?hx(d.VP[4]):'',SecondarySeed:hx(secondary),SecondaryCheck:(secondary??0n)===(vp4??0n)?'Match':'Different',MessageID:messageId('Animal',d.UA,d.VP),PetPath:p.path,DiscoveryPath:candidates[0].path})}else issues.push({Severity:candidates.length?'Warning':'Info',RecordType:'Pet',CreatureID:String(pet.CreatureID).replace(/^\^/,''),UA:hx(pet.UA),Issue:candidates.length?'Multiple exact discovery candidates':'No exact DiscoveryData match',Path:p.path})}
 const discoveries=scanResult.discoveries.map(x=>{const d=x.record.DD,v=d.VP||[],o=x.record.OWS||{};return{DT:d.DT,UA:hx(d.UA),VP0:v[0]!==undefined?hx(v[0]):'',VP1:v[1]!==undefined?hx(v[1]):'',VP2:v[2]!==undefined?hx(v[2]):'',VP3:v[3]!==undefined?hx(v[3]):'',VP4:v[4]!==undefined?hx(v[4]):'',MessageID:messageId(d.DT,d.UA,v),Owner:o.USN||'',Platform:o.PTK||'',Path:x.path}});
-const counts={Animal:0,Flora:0,Mineral:0,Other:0};discoveries.forEach(d=>counts[d.DT]!==undefined?counts[d.DT]++:counts.Other++);return{version:'Wonder Web Importer 0.2',createdUTC:new Date().toISOString(),contributor:$('#contributor').value.trim(),saveName,platform,summary:{pets:scanResult.pets.length,discoveries:discoveries.length,generations:scanResult.generations.length,matches:matches.length,unmatchedPets:issues.filter(i=>i.RecordType==='Pet').length,...counts},matches,discoveries,issues}}
+const counts={Animal:0,Flora:0,Mineral:0,Other:0};discoveries.forEach(d=>counts[d.DT]!==undefined?counts[d.DT]++:counts.Other++);return{version:'Wonder Web Importer 0.3',createdUTC:new Date().toISOString(),contributor:$('#contributor').value.trim(),saveName,platform,summary:{pets:scanResult.pets.length,discoveries:discoveries.length,generations:scanResult.generations.length,matches:matches.length,unmatchedPets:issues.filter(i=>i.RecordType==='Pet').length,...counts},matches,discoveries,issues}}
 analyzeButton.onclick=async()=>{try{$('#errorBox').hidden=true;$('#results').hidden=true;progress(8,'Reading character JSON…');await new Promise(r=>setTimeout(r,20));let text=await selectedFile.text();progress(28,'Parsing save…');let root;try{root=JSON.parse(text)}catch{root=JSON.parse(repair(text))}progress(50,'Finding pets, discoveries, and Wonder records…');await new Promise(r=>setTimeout(r,20));const s=scan(root);progress(72,'Matching Pet data to DiscoveryData…');report=build(root,s);progress(100,'Analysis complete.');render();}catch(e){$('#errorBox').hidden=false;$('#errorBox').textContent='Unable to analyze this file: '+e.message;$('#progressWrap').hidden=true}}
 function render(){$('#results').hidden=false;$('#saveTitle').textContent=report.saveName;const s=report.summary;const stats=[['Pets',s.pets],['Discoveries',s.discoveries],['Exact pet matches',s.matches],['Generation records',s.generations],['Animals',s.Animal],['Flora',s.Flora],['Minerals',s.Mineral],['Unmatched pets',s.unmatchedPets]];$('#statGrid').innerHTML=stats.map(([a,b])=>`<div class="stat"><strong>${b.toLocaleString()}</strong><span>${a}</span></div>`).join('');renderTable();$('#results').scrollIntoView({behavior:'smooth'})}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');currentTab=t.dataset.tab;renderTable()});
@@ -35,12 +35,22 @@ $('#downloadDiscoveries').onclick=()=>download(`${report.saveName.replace(/[^a-z
 $('#downloadMatches').onclick=()=>download(`${report.saveName.replace(/[^a-z0-9_-]+/gi,'_')}_pet_matches.csv`,csv(report.matches),'text/csv');
 
 
-const API_ENDPOINT = '/api/imports';
+const API_ENDPOINT = '/api/submissions';
+
+function updateContributorDisplay() {
+  const name = ($('#contributor').value || '').trim();
+  const target = $('#contributorDisplay');
+  if (!target) return;
+  target.innerHTML = name
+    ? `Contributor: <strong>${escapeHtml(name)}</strong><br>Your normalized records will enter the pending review queue.`
+    : 'Enter your contributor name above, then analyze the save.';
+}
+
+$('#contributor').addEventListener('input', updateContributorDisplay);
 
 async function submitToDatabase() {
   const status = $('#submitStatus');
   const button = $('#submitDatabase');
-  const key = $('#submissionKey').value.trim();
 
   status.hidden = false;
   status.className = 'submit-status';
@@ -55,23 +65,17 @@ async function submitToDatabase() {
     status.classList.add('error');
     return;
   }
-  if (!key) {
-    status.textContent = 'Enter the contributor submission key.';
-    status.classList.add('error');
-    return;
-  }
+
+  report.website = ($('#websiteField')?.value || '');
 
   button.disabled = true;
   button.textContent = 'Submitting…';
-  status.textContent = `Sending ${report.discoveries.length.toLocaleString()} normalized discoveries…`;
+  status.textContent = `Sending ${report.discoveries.length.toLocaleString()} normalized discoveries to the review queue…`;
 
   try {
     const response = await fetch(API_ENDPOINT, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Wonder-Import-Key': key
-      },
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(report)
     });
 
@@ -82,16 +86,17 @@ async function submitToDatabase() {
       throw new Error(result.detail || `Server returned ${response.status}.`);
     }
 
-    const a = result.added;
-    const d = result.duplicates;
+    const queued = result.queued_records || {discoveries: 0, pet_matches: 0};
+    const dupes = result.duplicates_skipped || {discoveries: 0, pet_matches: 0};
+
     status.classList.add('success');
     status.innerHTML =
-      `<strong>Import complete!</strong><br>` +
-      `${a.discoveries.toLocaleString()} discoveries added; ` +
-      `${d.discoveries.toLocaleString()} duplicates skipped.<br>` +
-      `${a.pet_matches.toLocaleString()} exact pet matches added; ` +
-      `${d.pet_matches.toLocaleString()} duplicates skipped.<br>` +
-      `Import reference: <code>${result.batch_id}</code>`;
+      `<strong>Submission received!</strong><br>` +
+      `${queued.discoveries.toLocaleString()} discoveries queued for review; ` +
+      `${dupes.discoveries.toLocaleString()} duplicates skipped.<br>` +
+      `${queued.pet_matches.toLocaleString()} exact pet matches queued; ` +
+      `${dupes.pet_matches.toLocaleString()} duplicates skipped.<br>` +
+      `Submission reference: <code>${result.submission_id}</code>`;
     button.textContent = 'Submitted ✓';
   } catch (error) {
     status.classList.add('error');
@@ -102,3 +107,4 @@ async function submitToDatabase() {
 }
 
 $('#submitDatabase').onclick = submitToDatabase;
+updateContributorDisplay();

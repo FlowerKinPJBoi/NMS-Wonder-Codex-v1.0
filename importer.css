@@ -59,3 +59,5 @@
 @media (max-width: 900px) {
   .submission-panel { grid-template-columns: 1fr; align-items: stretch; }
 }
+
+.honeypot{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;opacity:0!important;}

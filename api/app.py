@@ -2,11 +2,13 @@
 import hashlib
 import json
 import os
+import time
 import uuid
-from datetime import datetime, timezone
+from collections import defaultdict, deque
+from datetime import datetime
 from typing import Any
 
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import (
@@ -24,17 +26,17 @@ from sqlalchemy.dialects.postgresql import JSONB, insert
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
 
-APP_VERSION = "0.2.0"
+APP_VERSION = "0.3.0"
 MAX_DISCOVERIES = 20_000
 MAX_MATCHES = 2_000
 MAX_ISSUES = 5_000
+MAX_REQUESTS_PER_HOUR = int(os.environ.get("MAX_REQUESTS_PER_HOUR", "5"))
 
 
 def database_url() -> str:
     value = os.environ.get("DATABASE_URL", "").strip()
     if not value:
         raise RuntimeError("DATABASE_URL is not configured.")
-    # SQLAlchemy/psycopg expects the explicit driver name.
     if value.startswith("postgres://"):
         value = "postgresql+psycopg://" + value[len("postgres://"):]
     elif value.startswith("postgresql://"):
@@ -46,8 +48,8 @@ class Base(DeclarativeBase):
     pass
 
 
-class ImportBatch(Base):
-    __tablename__ = "import_batches"
+class SubmissionBatch(Base):
+    __tablename__ = "submission_batches"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     created_at: Mapped[datetime] = mapped_column(
@@ -57,19 +59,22 @@ class ImportBatch(Base):
     save_name: Mapped[str] = mapped_column(String(200), nullable=False)
     platform: Mapped[str] = mapped_column(String(40), default="", nullable=False)
     client_version: Mapped[str] = mapped_column(String(80), default="", nullable=False)
+    status: Mapped[str] = mapped_column(String(30), default="pending", nullable=False)
     source_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
     summary: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    submitter_ip_hash: Mapped[str] = mapped_column(String(64), default="", nullable=False)
+    user_agent: Mapped[str] = mapped_column(Text, default="", nullable=False)
 
 
-class Discovery(Base):
-    __tablename__ = "discoveries"
+class SubmittedDiscovery(Base):
+    __tablename__ = "submitted_discoveries"
     __table_args__ = (
-        UniqueConstraint("record_hash", name="uq_discoveries_record_hash"),
+        UniqueConstraint("record_hash", name="uq_submitted_discovery_hash"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    import_batch_id: Mapped[str] = mapped_column(
-        ForeignKey("import_batches.id", ondelete="CASCADE"), nullable=False
+    submission_batch_id: Mapped[str] = mapped_column(
+        ForeignKey("submission_batches.id", ondelete="CASCADE"), nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -88,18 +93,19 @@ class Discovery(Base):
     platform: Mapped[str] = mapped_column(String(40), default="", nullable=False)
     source_path: Mapped[str] = mapped_column(Text, default="", nullable=False)
     record_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    review_status: Mapped[str] = mapped_column(String(30), default="pending", nullable=False)
     raw_record: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
 
 
-class PetDiscoveryMatch(Base):
-    __tablename__ = "pet_discovery_matches"
+class SubmittedPetMatch(Base):
+    __tablename__ = "submitted_pet_matches"
     __table_args__ = (
-        UniqueConstraint("record_hash", name="uq_pet_matches_record_hash"),
+        UniqueConstraint("record_hash", name="uq_submitted_pet_match_hash"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    import_batch_id: Mapped[str] = mapped_column(
-        ForeignKey("import_batches.id", ondelete="CASCADE"), nullable=False
+    submission_batch_id: Mapped[str] = mapped_column(
+        ForeignKey("submission_batches.id", ondelete="CASCADE"), nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -120,15 +126,16 @@ class PetDiscoveryMatch(Base):
     pet_path: Mapped[str] = mapped_column(Text, default="", nullable=False)
     discovery_path: Mapped[str] = mapped_column(Text, default="", nullable=False)
     record_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    review_status: Mapped[str] = mapped_column(String(30), default="pending", nullable=False)
     raw_record: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
 
 
-class ImportIssue(Base):
-    __tablename__ = "import_issues"
+class SubmissionIssue(Base):
+    __tablename__ = "submission_issues"
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    import_batch_id: Mapped[str] = mapped_column(
-        ForeignKey("import_batches.id", ondelete="CASCADE"), nullable=False
+    submission_batch_id: Mapped[str] = mapped_column(
+        ForeignKey("submission_batches.id", ondelete="CASCADE"), nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
@@ -144,11 +151,7 @@ class ImportIssue(Base):
     raw_record: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
 
 
-class FlexibleRow(BaseModel):
-    model_config = ConfigDict(extra="allow")
-
-
-class ImportPayload(BaseModel):
+class SubmissionPayload(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     version: str = ""
@@ -160,12 +163,13 @@ class ImportPayload(BaseModel):
     matches: list[dict[str, Any]] = Field(default_factory=list)
     discoveries: list[dict[str, Any]] = Field(default_factory=list)
     issues: list[dict[str, Any]] = Field(default_factory=list)
+    website: str = ""  # Honeypot. Real users never see or fill this.
 
 
 engine = create_engine(database_url(), pool_pre_ping=True, pool_recycle=300)
 Base.metadata.create_all(engine)
 
-app = FastAPI(title="Wonder Codex Import API", version=APP_VERSION)
+app = FastAPI(title="Wonder Codex Submission API", version=APP_VERSION)
 
 allowed_origins = [
     x.strip()
@@ -180,8 +184,33 @@ app.add_middleware(
     allow_origins=allowed_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "X-Wonder-Import-Key"],
+    allow_headers=["Content-Type"],
 )
+
+_rate_windows: dict[str, deque[float]] = defaultdict(deque)
+
+
+def client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def enforce_rate_limit(request: Request) -> str:
+    ip = client_ip(request)
+    now = time.time()
+    window = _rate_windows[ip]
+    while window and window[0] < now - 3600:
+        window.popleft()
+    if len(window) >= MAX_REQUESTS_PER_HOUR:
+        raise HTTPException(
+            status_code=429,
+            detail="Submission limit reached. Please try again later.",
+        )
+    window.append(now)
+    salt = os.environ.get("IP_HASH_SALT", "wonder-codex-alpha")
+    return hashlib.sha256(f"{salt}:{ip}".encode()).hexdigest()
 
 
 def canonical_hash(record: dict[str, Any], keys: list[str]) -> str:
@@ -190,62 +219,60 @@ def canonical_hash(record: dict[str, Any], keys: list[str]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
-def require_submission_key(value: str | None) -> None:
-    configured = os.environ.get("IMPORT_SUBMISSION_KEY", "").strip()
-    if not configured:
-        raise HTTPException(status_code=503, detail="Submission key is not configured.")
-    if not value or not hashlib.compare_digest(value, configured):
-        raise HTTPException(status_code=401, detail="Invalid submission key.")
-
-
 @app.get("/api/health")
 def health() -> dict[str, Any]:
     with Session(engine) as session:
         session.execute(select(1))
-    return {"ok": True, "service": "Wonder Codex Import API", "version": APP_VERSION}
+    return {
+        "ok": True,
+        "service": "Wonder Codex Submission API",
+        "version": APP_VERSION,
+        "mode": "review-queue",
+    }
 
 
 @app.get("/api/stats")
 def stats() -> dict[str, Any]:
     with Session(engine) as session:
-        discoveries = session.scalar(select(func.count()).select_from(Discovery)) or 0
-        matches = session.scalar(select(func.count()).select_from(PetDiscoveryMatch)) or 0
-        imports = session.scalar(select(func.count()).select_from(ImportBatch)) or 0
-        animals = session.scalar(
-            select(func.count()).select_from(Discovery).where(Discovery.discovery_type == "Animal")
-        ) or 0
-        flora = session.scalar(
-            select(func.count()).select_from(Discovery).where(Discovery.discovery_type == "Flora")
-        ) or 0
-        minerals = session.scalar(
-            select(func.count()).select_from(Discovery).where(Discovery.discovery_type == "Mineral")
+        batches = session.scalar(select(func.count()).select_from(SubmissionBatch)) or 0
+        discoveries = session.scalar(select(func.count()).select_from(SubmittedDiscovery)) or 0
+        matches = session.scalar(select(func.count()).select_from(SubmittedPetMatch)) or 0
+        pending_batches = session.scalar(
+            select(func.count()).select_from(SubmissionBatch).where(
+                SubmissionBatch.status == "pending"
+            )
         ) or 0
     return {
-        "imports": imports,
-        "discoveries": discoveries,
-        "pet_matches": matches,
-        "animals": animals,
-        "flora": flora,
-        "minerals": minerals,
+        "submission_batches": batches,
+        "pending_batches": pending_batches,
+        "submitted_discoveries": discoveries,
+        "submitted_pet_matches": matches,
     }
 
 
-@app.post("/api/imports")
-def submit_import(
-    payload: ImportPayload,
-    x_wonder_import_key: str | None = Header(default=None),
+@app.post("/api/submissions")
+def submit_to_review_queue(
+    payload: SubmissionPayload,
+    request: Request,
 ) -> dict[str, Any]:
-    require_submission_key(x_wonder_import_key)
+    if payload.website:
+        # Quietly accept bot honeypot submissions without storing them.
+        return {"ok": True, "queued": False}
+
+    ip_hash = enforce_rate_limit(request)
 
     if len(payload.discoveries) > MAX_DISCOVERIES:
-        raise HTTPException(status_code=413, detail="Too many discoveries in one import.")
+        raise HTTPException(status_code=413, detail="Too many discoveries in one submission.")
     if len(payload.matches) > MAX_MATCHES:
-        raise HTTPException(status_code=413, detail="Too many pet matches in one import.")
+        raise HTTPException(status_code=413, detail="Too many pet matches in one submission.")
     if len(payload.issues) > MAX_ISSUES:
-        raise HTTPException(status_code=413, detail="Too many issues in one import.")
+        raise HTTPException(status_code=413, detail="Too many issues in one submission.")
 
     contributor = payload.contributor.strip()
     save_name = payload.saveName.strip()
+    if contributor.lower() in {"anonymous", "unknown", "test"}:
+        raise HTTPException(status_code=400, detail="Please enter a recognizable contributor name.")
+
     batch_id = str(uuid.uuid4())
     source_fingerprint = hashlib.sha256(
         json.dumps(
@@ -264,12 +291,11 @@ def submit_import(
     discovery_rows: list[dict[str, Any]] = []
     for row in payload.discoveries:
         record_hash = canonical_hash(
-            row,
-            ["DT", "UA", "VP0", "VP1", "VP2", "VP3", "VP4"],
+            row, ["DT", "UA", "VP0", "VP1", "VP2", "VP3", "VP4"]
         )
         discovery_rows.append(
             {
-                "import_batch_id": batch_id,
+                "submission_batch_id": batch_id,
                 "contributor": contributor,
                 "save_name": save_name,
                 "discovery_type": str(row.get("DT", "") or "")[:40],
@@ -284,6 +310,7 @@ def submit_import(
                 "platform": str(row.get("Platform", "") or "")[:40],
                 "source_path": str(row.get("Path", "") or ""),
                 "record_hash": record_hash,
+                "review_status": "pending",
                 "raw_record": row,
             }
         )
@@ -291,12 +318,11 @@ def submit_import(
     match_rows: list[dict[str, Any]] = []
     for row in payload.matches:
         record_hash = canonical_hash(
-            row,
-            ["CreatureID", "UA", "VP0", "VP1", "VP2", "VP3", "VP4"],
+            row, ["CreatureID", "UA", "VP0", "VP1", "VP2", "VP3", "VP4"]
         )
         match_rows.append(
             {
-                "import_batch_id": batch_id,
+                "submission_batch_id": batch_id,
                 "contributor": contributor,
                 "save_name": save_name,
                 "creature_id": str(row.get("CreatureID", "") or "")[:120],
@@ -313,65 +339,68 @@ def submit_import(
                 "pet_path": str(row.get("PetPath", "") or ""),
                 "discovery_path": str(row.get("DiscoveryPath", "") or ""),
                 "record_hash": record_hash,
+                "review_status": "pending",
                 "raw_record": row,
             }
         )
 
-    issue_rows: list[dict[str, Any]] = []
-    for row in payload.issues:
-        issue_rows.append(
-            {
-                "import_batch_id": batch_id,
-                "contributor": contributor,
-                "save_name": save_name,
-                "severity": str(row.get("Severity", "") or "")[:30],
-                "record_type": str(row.get("RecordType", "") or "")[:50],
-                "creature_id": str(row.get("CreatureID", "") or "")[:120],
-                "ua": str(row.get("UA", "") or "")[:32],
-                "issue": str(row.get("Issue", "") or ""),
-                "source_path": str(row.get("Path", "") or ""),
-                "raw_record": row,
-            }
-        )
+    issue_rows = [
+        {
+            "submission_batch_id": batch_id,
+            "contributor": contributor,
+            "save_name": save_name,
+            "severity": str(row.get("Severity", "") or "")[:30],
+            "record_type": str(row.get("RecordType", "") or "")[:50],
+            "creature_id": str(row.get("CreatureID", "") or "")[:120],
+            "ua": str(row.get("UA", "") or "")[:32],
+            "issue": str(row.get("Issue", "") or ""),
+            "source_path": str(row.get("Path", "") or ""),
+            "raw_record": row,
+        }
+        for row in payload.issues
+    ]
 
     with Session(engine) as session:
         try:
             session.add(
-                ImportBatch(
+                SubmissionBatch(
                     id=batch_id,
                     contributor=contributor,
                     save_name=save_name,
                     platform=payload.platform,
                     client_version=payload.version,
+                    status="pending",
                     source_fingerprint=source_fingerprint,
                     summary=payload.summary,
+                    submitter_ip_hash=ip_hash,
+                    user_agent=request.headers.get("user-agent", "")[:1000],
                 )
             )
             session.flush()
 
-            discovery_added = 0
-            match_added = 0
+            discovery_queued = 0
+            match_queued = 0
 
             if discovery_rows:
                 result = session.execute(
-                    insert(Discovery)
+                    insert(SubmittedDiscovery)
                     .values(discovery_rows)
                     .on_conflict_do_nothing(index_elements=["record_hash"])
-                    .returning(Discovery.id)
+                    .returning(SubmittedDiscovery.id)
                 )
-                discovery_added = len(result.scalars().all())
+                discovery_queued = len(result.scalars().all())
 
             if match_rows:
                 result = session.execute(
-                    insert(PetDiscoveryMatch)
+                    insert(SubmittedPetMatch)
                     .values(match_rows)
                     .on_conflict_do_nothing(index_elements=["record_hash"])
-                    .returning(PetDiscoveryMatch.id)
+                    .returning(SubmittedPetMatch.id)
                 )
-                match_added = len(result.scalars().all())
+                match_queued = len(result.scalars().all())
 
             if issue_rows:
-                session.execute(insert(ImportIssue).values(issue_rows))
+                session.execute(insert(SubmissionIssue).values(issue_rows))
 
             session.commit()
         except Exception:
@@ -380,7 +409,9 @@ def submit_import(
 
     return {
         "ok": True,
-        "batch_id": batch_id,
+        "queued": True,
+        "status": "pending_review",
+        "submission_id": batch_id,
         "contributor": contributor,
         "save_name": save_name,
         "received": {
@@ -388,12 +419,12 @@ def submit_import(
             "pet_matches": len(match_rows),
             "issues": len(issue_rows),
         },
-        "added": {
-            "discoveries": discovery_added,
-            "pet_matches": match_added,
+        "queued_records": {
+            "discoveries": discovery_queued,
+            "pet_matches": match_queued,
         },
-        "duplicates": {
-            "discoveries": len(discovery_rows) - discovery_added,
-            "pet_matches": len(match_rows) - match_added,
+        "duplicates_skipped": {
+            "discoveries": len(discovery_rows) - discovery_queued,
+            "pet_matches": len(match_rows) - match_queued,
         },
     }
