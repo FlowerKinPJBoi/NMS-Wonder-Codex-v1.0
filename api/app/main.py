@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 
 from .config import get_settings
 from .database import check_database, mark_database
-from .routers import admin, health, public, submissions
+from .routers import admin, health, public, submissions, verifications
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -55,7 +55,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
     allow_credentials=False,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
     allow_headers=["Content-Type", "X-Admin-Key"],
 )
 
@@ -87,4 +87,5 @@ def root():
 app.include_router(health.router)
 app.include_router(public.router)
 app.include_router(submissions.router)
+app.include_router(verifications.router)
 app.include_router(admin.router)

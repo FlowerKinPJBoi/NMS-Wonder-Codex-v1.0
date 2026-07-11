@@ -45,11 +45,11 @@ async function loadStats() {
     setText('statAnimals', formatNumber(data.types?.Animal));
     setText('statFlora', formatNumber(data.types?.Flora));
     setText('statMinerals', formatNumber(data.types?.Mineral));
-    setText('statsNote', data.latest_approved_at ? `Last publication ${new Date(data.latest_approved_at).toLocaleString()}.` : 'The first approved records will appear here.');
+    setText('statsNote', data.latest_approved_at ? `${formatNumber(data.verified_locations)} verified locations • last publication ${new Date(data.latest_approved_at).toLocaleString()}.` : 'Approved records and verified locations will appear here.');
     if (status) { status.textContent = 'Online'; status.className = 'console-status online'; }
   } catch (error) {
     if (status) { status.textContent = 'API online • stats pending'; status.className = 'console-status'; }
-    setText('statsNote', 'Live statistics will appear after the v1.1 API deploys.');
+    setText('statsNote', 'Live statistics will appear after the v1.2 API deploys.');
   }
 }
 

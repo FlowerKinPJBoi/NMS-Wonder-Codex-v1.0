@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+import re
+from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class SubmissionPayload(BaseModel):
@@ -30,6 +31,10 @@ class ReviewAction(BaseModel):
     actor: str = Field(default="PJ", max_length=120)
 
 
+class VerificationReviewAction(ReviewAction):
+    apply_location: bool = True
+
+
 class SubmissionListItem(BaseModel):
     id: str
     created_at: str
@@ -40,3 +45,75 @@ class SubmissionListItem(BaseModel):
     discovery_count: int
     pet_match_count: int
     issue_count: int
+
+
+class LocationVerificationPayload(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    discovery_id: int = Field(gt=0)
+    contributor: str = Field(min_length=1, max_length=120)
+    galaxy_number: int | None = Field(default=None, ge=1, le=256)
+    galaxy_name: str = Field(default="", max_length=120)
+    portal_glyphs: str = Field(default="", max_length=12)
+    reached_system: bool = False
+    discovery_present: bool = False
+    projector_confirmed: bool = False
+    notes: str = Field(default="", max_length=4000)
+    website: str = ""  # honeypot
+
+    @field_validator("contributor", "galaxy_name")
+    @classmethod
+    def clean_text(cls, value: str) -> str:
+        return " ".join(value.strip().split())
+
+    @field_validator("portal_glyphs", mode="before")
+    @classmethod
+    def clean_glyphs(cls, value: str) -> str:
+        cleaned = re.sub(r"[^0-9A-F]", "", value.upper())
+        if cleaned and len(cleaned) != 12:
+            raise ValueError("Portal glyph code must contain exactly 12 hexadecimal glyph values.")
+        return cleaned
+
+    @model_validator(mode="after")
+    def require_evidence(self):
+        if not any([
+            self.portal_glyphs,
+            self.galaxy_number,
+            self.reached_system,
+            self.discovery_present,
+            self.projector_confirmed,
+            self.notes.strip(),
+        ]):
+            raise ValueError("Add a location, a verification result, or reviewer notes before submitting.")
+        return self
+
+
+class CatalogUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    actor: str = Field(default="admin", max_length=120)
+    display_name: str | None = Field(default=None, max_length=200)
+    galaxy_number: int | None = Field(default=None, ge=1, le=256)
+    galaxy_name: str | None = Field(default=None, max_length=120)
+    portal_glyphs: str | None = Field(default=None, max_length=12)
+    location_status: str | None = Field(default=None, pattern="^(unverified|pending|verified|disputed)$")
+    projector_status: str | None = Field(default=None, pattern="^(data_available|verified|unverified|disputed)$")
+    image_status: str | None = Field(default=None, pattern="^(needed|pending|available)$")
+    catalog_note: str | None = Field(default=None, max_length=4000)
+
+    @field_validator("display_name", "galaxy_name")
+    @classmethod
+    def clean_optional_text(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        return " ".join(value.strip().split())
+
+    @field_validator("portal_glyphs", mode="before")
+    @classmethod
+    def clean_optional_glyphs(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = re.sub(r"[^0-9A-F]", "", value.upper())
+        if cleaned and len(cleaned) != 12:
+            raise ValueError("Portal glyph code must contain exactly 12 hexadecimal glyph values.")
+        return cleaned

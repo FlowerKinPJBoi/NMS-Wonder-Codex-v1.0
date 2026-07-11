@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Wonder Codex discovery record with projector data, location verification, galaxy, and portal glyphs.">
+  <meta name="theme-color" content="#080b16">
+  <title>Wonder Record | Wonder Codex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=1.2.0">
+  <link rel="stylesheet" href="catalog.css?v=1.2.0">
+</head>
+<body>
+  <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Discovery Record</small></span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
+    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="contribute.html">Contribute</a><a href="index.html#research">Research</a><a href="database.html" class="nav-cta">Back to catalog</a></nav>
+  </header>
+
+  <main>
+    <section class="page-hero"><p class="eyebrow">WONDER CODEX RECORD</p><h1 id="recordHero">Loading <span>record…</span></h1><p id="recordIntro">Connecting to the published Wonder Database.</p></section>
+    <section class="page-shell">
+      <div id="recordError" class="notice error" hidden></div>
+      <div id="recordLayout" class="record-layout" hidden>
+        <article class="record-main surface">
+          <div class="record-heading"><div><span id="wcId" class="wc-id">—</span><h1 id="recordName">—</h1><p id="recordAttribution">—</p></div><span id="recordType" class="type-chip">—</span></div>
+          <div id="recordBadges" class="record-badge-row"></div>
+          <div class="message-box"><span class="kicker">MESSAGE ID</span><code id="messageId">—</code><button id="copyMessage" class="text-button" type="button">Copy Message ID</button></div>
+          <h2>Discovery data</h2>
+          <div id="dataList" class="data-list"></div>
+          <div id="catalogNote" class="notice" hidden></div>
+        </article>
+
+        <aside class="record-side surface">
+          <div id="locationPanel" class="location-panel">
+            <p class="kicker">LOCATION</p>
+            <h2 id="locationTitle">Loading…</h2>
+            <p id="locationCopy"></p>
+            <div id="locationFacts" class="location-facts" hidden></div>
+            <div id="glyphRow"></div>
+            <p id="glyphCode" class="glyph-code"></p>
+            <button id="copyGlyphs" class="text-button" type="button" hidden>Copy glyph code</button>
+          </div>
+          <div class="record-actions">
+            <a id="imageLink" class="button primary" href="contribute.html?mode=image">Contribute an image</a>
+            <a id="verifyLink" class="button secondary" href="contribute.html?mode=verify">Verify this location</a>
+            <button class="button warp-button" type="button" disabled>WARP — Transit research in progress</button>
+          </div>
+          <div class="notice" style="margin-top:16px"><strong>Travel responsibly.</strong><br>Portal glyphs and galaxy are displayed only after review. Multiplayer bot transit will remain disabled until an authorized service is available.</div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Preserve the procedural universe</small></span></a></div><div class="footer-links"><a href="database.html">Database</a><a href="contribute.html">Contribute</a><a href="index.html#roadmap">Roadmap</a></div></footer>
+  <div id="toast" class="toast" hidden></div>
+  <script src="script.js?v=1.2.0"></script>
+  <script src="glyphs.js?v=1.2.0"></script>
+  <script src="record.js?v=1.2.0"></script>
+</body>
+</html>

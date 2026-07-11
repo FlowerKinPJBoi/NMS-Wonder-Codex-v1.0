@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=1.1.0">
+  <link rel="stylesheet" href="styles.css?v=1.2.0">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true">
@@ -26,10 +26,11 @@
     </a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
     <nav id="primaryNav" aria-label="Primary navigation">
-      <a href="#ecosystem">Explore</a>
+      <a href="database.html">Database</a>
+      <a href="contribute.html">Contribute</a>
       <a href="#research">Research</a>
       <a href="#roadmap">Roadmap</a>
-      <a href="import.html" class="nav-cta">Import a Save</a>
+      <a href="contribute.html?mode=verify" class="nav-cta">Verify a find</a>
     </nav>
   </header>
 
@@ -41,8 +42,8 @@
         <h1>A living field guide to the <span>procedural universe.</span></h1>
         <p class="hero-copy">Wonder Codex preserves remarkable discoveries, decodes Wonder Projector data, and turns community research into tools explorers can actually use.</p>
         <div class="hero-actions">
-          <a class="button primary" href="import.html">Contribute your save <span aria-hidden="true">→</span></a>
-          <a class="button secondary" href="#research">See what we have confirmed</a>
+          <a class="button primary" href="database.html">Explore the Database <span aria-hidden="true">→</span></a>
+          <a class="button secondary" href="contribute.html">Contribute to the Codex</a>
         </div>
         <div class="trust-row">
           <span>Raw saves stay on your device</span>
@@ -70,8 +71,8 @@
 
     <section class="milestone-band">
       <div class="shell milestone-inner">
-        <div><span class="kicker">LATEST MILESTONE</span><strong>Live community imports are operational.</strong></div>
-        <p>Character saves are analyzed locally, normalized, deduplicated, and placed into a human review queue before publication.</p>
+        <div><span class="kicker">LATEST MILESTONE</span><strong>The public catalog and location verification workflow are live.</strong></div>
+        <p>Explorers can browse approved records, see reviewed galaxy and glyph information, and submit travel evidence to a dedicated admin queue.</p>
       </div>
     </section>
 
@@ -82,17 +83,17 @@
       </div>
 
       <div class="project-grid">
-        <article class="project-card project-live">
-          <div class="project-head"><span class="project-icon">▦</span><span class="project-status live">Live foundation</span></div>
+        <a class="project-card project-live" href="database.html">
+          <div class="project-head"><span class="project-icon">▦</span><span class="project-status live">Live now</span></div>
           <h3>Wonder Database</h3>
-          <p>The structured home for UAs, VP arrays, Message IDs, locations, contributors, confidence, and verification history.</p>
-          <span class="project-link muted">Public browser in development</span>
-        </article>
-        <a class="project-card project-link-card" href="import.html">
+          <p>Search published UAs, VP arrays, Message IDs, location status, portal glyphs, contributors, and verification history.</p>
+          <span class="project-link">Browse the catalog →</span>
+        </a>
+        <a class="project-card project-link-card" href="contribute.html">
           <div class="project-head"><span class="project-icon">⇩</span><span class="project-status live">Live now</span></div>
-          <h3>Wonder Importer</h3>
-          <p>Analyze a full character save in the browser and submit only normalized Wonder records to the review queue.</p>
-          <span class="project-link">Open the importer →</span>
+          <h3>Contributions Hub</h3>
+          <p>Contribute save data, prepare screenshots, verify locations, and follow each submission into a human review queue.</p>
+          <span class="project-link">Choose a contribution →</span>
         </a>
         <article class="project-card">
           <div class="project-head"><span class="project-icon">⚒</span><span class="project-status active">Active research</span></div>
@@ -126,7 +127,7 @@
           <article class="research-card confirmed"><span class="badge confirmed">Confirmed</span><h3>Mineral projector encoding</h3><p>Mineral DiscoveryData follows the compact two-VP projector structure and can be normalized by the importer.</p></article>
           <article class="research-card active"><span class="badge active">Active</span><h3>Pet-only generation</h3><p>Known seed mappings are strong, but missing archetype VP values still block some egg-hatched companions such as LAND_JELLYFISH.</p></article>
           <article class="research-card active"><span class="badge active">Active</span><h3>Archetype library</h3><p>Stable VP values are being mapped to creature, flora, and mineral families to power randomization and “One More Like This.”</p></article>
-          <article class="research-card planned"><span class="badge planned">Planned</span><h3>Location verification</h3><p>Portal glyphs, galaxies, systems, planets, screenshots, and community visits will connect the Database to the Atlas.</p></article>
+          <article class="research-card confirmed"><span class="badge confirmed">Live workflow</span><h3>Location verification</h3><p>Galaxy and 12-glyph evidence can now be submitted, reviewed, published, and displayed directly on catalog records.</p></article>
         </div>
       </div>
     </section>
@@ -138,7 +139,7 @@
         <div class="process-card"><span>02</span><h3>Review normalized records</h3><p>See pets, discoveries, exact matches, generated projector IDs, and issues before submission.</p></div>
         <div class="process-card"><span>03</span><h3>Human verification</h3><p>Submissions enter a review queue, duplicates are skipped, and approved records become official.</p></div>
       </div>
-      <div class="center-action"><a class="button primary" href="import.html">Open Wonder Importer</a></div>
+      <div class="center-action"><a class="button primary" href="contribute.html">Open Contributions Hub</a></div>
     </section>
 
     <section class="section roadmap-section" id="roadmap">
@@ -146,9 +147,11 @@
         <div class="roadmap-intro"><p class="kicker">PUBLIC ROADMAP</p><h2>The universe is large. We are building in layers.</h2><p>Each milestone adds capability without sacrificing evidence, attribution, or reproducibility.</p></div>
         <div class="roadmap-list">
           <div class="roadmap-item done"><span>01</span><div><strong>Live platform foundation</strong><small>Website, API, PostgreSQL, migrations, importer, review queue</small></div><b>Complete</b></div>
-          <div class="roadmap-item current"><span>02</span><div><strong>Admin review and public database</strong><small>Approve submissions, browse published records, live statistics</small></div><b>Now</b></div>
-          <div class="roadmap-item"><span>03</span><div><strong>Wonder Forge</strong><small>Generator, decoder, randomizer, One More Like This</small></div><b>Next</b></div>
-          <div class="roadmap-item"><span>04</span><div><strong>Wonder Atlas</strong><small>Images, glyphs, galaxies, planets, contributor verification</small></div><b>Planned</b></div>
+          <div class="roadmap-item done"><span>02</span><div><strong>Catalog and location verification</strong><small>Public records, WC IDs, galaxy and glyph display, admin verification queue</small></div><b>Complete</b></div>
+          <div class="roadmap-item current"><span>03</span><div><strong>Image contributions</strong><small>DigitalOcean Spaces, screenshot review, primary and alternate images</small></div><b>Next</b></div>
+          <div class="roadmap-item"><span>04</span><div><strong>Wonder Save Finder</strong><small>Permission-based Steam and Xbox/Game Pass folder and slot selection</small></div><b>Planned</b></div>
+          <div class="roadmap-item"><span>05</span><div><strong>Wonder Forge</strong><small>Generator, decoder, randomizer, One More Like This</small></div><b>Research</b></div>
+          <div class="roadmap-item"><span>06</span><div><strong>Wonder Transit</strong><small>Authorized WARP partner integration for verified finds</small></div><b>Research</b></div>
         </div>
       </div>
     </section>
@@ -163,8 +166,8 @@
 
   <footer>
     <div class="footer-main"><a class="brand footer-brand" href="#top"><span class="brand-mark">✦</span><span class="brand-copy"><strong>Wonder Codex</strong><small>Preserve the procedural universe.</small></span></a><p>Independent community research project. Not affiliated with Hello Games.</p></div>
-    <div class="footer-links"><a href="import.html">Importer</a><a href="#research">Research</a><a href="#roadmap">Roadmap</a><span>Public Alpha • 2026</span></div>
+    <div class="footer-links"><a href="database.html">Database</a><a href="contribute.html">Contribute</a><a href="#research">Research</a><a href="#roadmap">Roadmap</a><span>Public Alpha • 2026</span></div>
   </footer>
-  <script src="script.js?v=1.1.0"></script>
+  <script src="script.js?v=1.2.0"></script>
 </body>
 </html>

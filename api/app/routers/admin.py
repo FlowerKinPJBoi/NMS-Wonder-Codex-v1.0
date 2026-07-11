@@ -11,13 +11,15 @@ from ..database import get_session
 from ..models import (
     AuditEvent,
     Discovery,
+    LocationVerification,
     PetDiscoveryMatch,
     SubmissionBatch,
     SubmissionIssue,
     SubmittedDiscovery,
     SubmittedPetMatch,
 )
-from ..schemas import ReviewAction
+from ..schemas import CatalogUpdate, ReviewAction, VerificationReviewAction
+from ..services.catalog import serialize_discovery, wc_id
 from ..services.security import require_admin_key
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin_key)])
@@ -43,6 +45,18 @@ def admin_summary(session: Session = Depends(get_session)):
         ) or 0,
         "published_discoveries": session.scalar(select(func.count()).select_from(Discovery)) or 0,
         "published_pet_matches": session.scalar(select(func.count()).select_from(PetDiscoveryMatch)) or 0,
+        "pending_verifications": session.scalar(
+            select(func.count()).select_from(LocationVerification).where(LocationVerification.status == "pending")
+        ) or 0,
+        "approved_verifications": session.scalar(
+            select(func.count()).select_from(LocationVerification).where(LocationVerification.status == "approved")
+        ) or 0,
+        "verified_locations": session.scalar(
+            select(func.count()).select_from(Discovery).where(Discovery.location_status == "verified")
+        ) or 0,
+        "images_needed": session.scalar(
+            select(func.count()).select_from(Discovery).where(Discovery.image_status == "needed")
+        ) or 0,
     }
 
 
@@ -309,3 +323,188 @@ def audit_history(
         "limit": limit,
         "offset": offset,
     }
+
+@router.get("/verifications")
+def list_verifications(
+    status: str = Query(default="pending"),
+    limit: int = Query(default=100, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    session: Session = Depends(get_session),
+):
+    rows = session.scalars(
+        select(LocationVerification)
+        .where(LocationVerification.status == status)
+        .order_by(LocationVerification.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    ).all()
+    items = []
+    for row in rows:
+        discovery = session.get(Discovery, row.discovery_id)
+        items.append({
+            "id": row.id,
+            "created_at": row.created_at.isoformat(),
+            "reviewed_at": row.reviewed_at.isoformat() if row.reviewed_at else None,
+            "status": row.status,
+            "contributor": row.contributor,
+            "discovery_id": row.discovery_id,
+            "wc_id": wc_id(discovery) if discovery else f"Record {row.discovery_id}",
+            "display_name": discovery.display_name if discovery and discovery.display_name else "",
+            "galaxy_number": row.galaxy_number,
+            "galaxy_name": row.galaxy_name,
+            "portal_glyphs": row.portal_glyphs,
+            "reached_system": row.reached_system,
+            "discovery_present": row.discovery_present,
+            "projector_confirmed": row.projector_confirmed,
+            "reviewer_note": row.reviewer_note,
+        })
+    return {"items": items, "limit": limit, "offset": offset}
+
+
+@router.get("/verifications/{verification_id}")
+def get_verification(verification_id: str, session: Session = Depends(get_session)):
+    row = session.get(LocationVerification, verification_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Verification submission not found.")
+    discovery = session.get(Discovery, row.discovery_id)
+    if not discovery:
+        raise HTTPException(status_code=404, detail="Linked Wonder record not found.")
+    return {
+        "verification": {
+            "id": row.id,
+            "created_at": row.created_at.isoformat(),
+            "reviewed_at": row.reviewed_at.isoformat() if row.reviewed_at else None,
+            "status": row.status,
+            "contributor": row.contributor,
+            "galaxy_number": row.galaxy_number,
+            "galaxy_name": row.galaxy_name,
+            "portal_glyphs": row.portal_glyphs,
+            "reached_system": row.reached_system,
+            "discovery_present": row.discovery_present,
+            "projector_confirmed": row.projector_confirmed,
+            "notes": row.notes,
+            "reviewer_note": row.reviewer_note,
+        },
+        "discovery": serialize_discovery(discovery, detail=True),
+    }
+
+
+@router.post("/verifications/{verification_id}/approve")
+def approve_verification(
+    verification_id: str,
+    action: VerificationReviewAction,
+    session: Session = Depends(get_session),
+):
+    row = session.get(LocationVerification, verification_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Verification submission not found.")
+    if row.status != "pending":
+        raise HTTPException(status_code=409, detail=f"Verification is already {row.status}.")
+    discovery = session.get(Discovery, row.discovery_id)
+    if not discovery:
+        raise HTTPException(status_code=404, detail="Linked Wonder record not found.")
+
+    location_applied = False
+    if action.apply_location and row.galaxy_number and len(row.portal_glyphs) == 12:
+        discovery.galaxy_number = row.galaxy_number
+        discovery.galaxy_name = row.galaxy_name
+        discovery.portal_glyphs = row.portal_glyphs
+        # A present discovery at a reached system is the strongest location confirmation.
+        discovery.location_status = "verified" if row.reached_system and row.discovery_present else "pending"
+        location_applied = True
+    elif discovery.location_status == "pending" and not discovery.portal_glyphs:
+        discovery.location_status = "unverified"
+
+    if row.projector_confirmed:
+        discovery.projector_status = "verified"
+
+    row.status = "approved"
+    row.reviewed_at = datetime.now(timezone.utc)
+    row.reviewer_note = action.note
+    session.add(AuditEvent(
+        event_type="verification_approved",
+        actor=action.actor,
+        batch_id=verification_id,
+        detail={
+            "discovery_id": discovery.id,
+            "wc_id": wc_id(discovery),
+            "location_applied": location_applied,
+            "location_status": discovery.location_status,
+            "note": action.note,
+        },
+    ))
+    session.commit()
+    return {
+        "ok": True,
+        "status": "approved",
+        "location_applied": location_applied,
+        "discovery": serialize_discovery(discovery, detail=True),
+    }
+
+
+@router.post("/verifications/{verification_id}/reject")
+def reject_verification(
+    verification_id: str,
+    action: VerificationReviewAction,
+    session: Session = Depends(get_session),
+):
+    row = session.get(LocationVerification, verification_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Verification submission not found.")
+    if row.status != "pending":
+        raise HTTPException(status_code=409, detail=f"Verification is already {row.status}.")
+    discovery = session.get(Discovery, row.discovery_id)
+
+    row.status = "rejected"
+    row.reviewed_at = datetime.now(timezone.utc)
+    row.reviewer_note = action.note
+    if discovery and discovery.location_status == "pending" and not discovery.portal_glyphs:
+        discovery.location_status = "unverified"
+    session.add(AuditEvent(
+        event_type="verification_rejected",
+        actor=action.actor,
+        batch_id=verification_id,
+        detail={
+            "discovery_id": row.discovery_id,
+            "wc_id": wc_id(discovery) if discovery else None,
+            "note": action.note,
+        },
+    ))
+    session.commit()
+    return {"ok": True, "status": "rejected"}
+
+
+@router.patch("/discoveries/{discovery_id}")
+def update_discovery_catalog(
+    discovery_id: int,
+    changes: CatalogUpdate,
+    session: Session = Depends(get_session),
+):
+    discovery = session.get(Discovery, discovery_id)
+    if not discovery:
+        raise HTTPException(status_code=404, detail="Wonder record not found.")
+
+    values = changes.model_dump(exclude_unset=True)
+    actor = values.pop("actor", "admin") or "admin"
+    if values.get("location_status") == "verified":
+        glyphs = values.get("portal_glyphs", discovery.portal_glyphs)
+        galaxy_number = values.get("galaxy_number", discovery.galaxy_number)
+        if not galaxy_number or len(glyphs or "") != 12:
+            raise HTTPException(
+                status_code=400,
+                detail="A verified location requires a galaxy number and complete 12-glyph portal address.",
+            )
+
+    for key, value in values.items():
+        setattr(discovery, key, value)
+
+    session.add(AuditEvent(
+        event_type="catalog_record_updated",
+        actor=actor,
+        batch_id=str(discovery.id),
+        detail={"wc_id": wc_id(discovery), "fields": sorted(values.keys())},
+    ))
+    session.commit()
+    session.refresh(discovery)
+    return {"ok": True, "discovery": serialize_discovery(discovery, detail=True)}
+

@@ -1,0 +1,85 @@
+(() => {
+  'use strict';
+  const $ = (selector) => document.querySelector(selector);
+  const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  let record = null;
+
+  function toast(message) {
+    const element = $('#toast');
+    element.textContent = message;
+    element.hidden = false;
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => element.hidden = true, 3000);
+  }
+
+  function badge(label, status) {
+    return `<span class="status-chip ${escapeHtml(status)}">${escapeHtml(label)} ${escapeHtml(status.replaceAll('_',' '))}</span>`;
+  }
+
+  function item(label, value, code = true) {
+    const safe = value || '—';
+    return `<div class="data-item"><span>${escapeHtml(label)}</span>${code ? `<code>${escapeHtml(safe)}</code>` : `<strong>${escapeHtml(safe)}</strong>`}</div>`;
+  }
+
+  function render(data) {
+    record = data;
+    document.title = `${data.wc_id} — ${data.display_name} | Wonder Codex`;
+    $('#recordHero').innerHTML = `${escapeHtml(data.wc_id)} <span>published record.</span>`;
+    $('#recordIntro').textContent = 'Projector data, attribution, verification status, and travel information for this Wonder Codex discovery.';
+    $('#wcId').textContent = data.wc_id;
+    $('#recordName').textContent = data.display_name;
+    $('#recordType').textContent = data.discovery_type === 'Animal' ? 'Fauna' : data.discovery_type;
+    $('#recordAttribution').textContent = `Contributed by ${data.contributor || data.owner || 'Unknown explorer'}${data.save_name ? ` • ${data.save_name}` : ''}`;
+    $('#recordBadges').innerHTML = badge('Location', data.location_status) + badge('Projector', data.projector_status) + badge('Image', data.image_status);
+    $('#messageId').textContent = data.message_id || 'No Message ID available';
+    $('#copyMessage').hidden = !data.message_id;
+    $('#dataList').innerHTML = [
+      item('Universal Address', data.ua), item('VP0', data.vp0), item('VP1', data.vp1), item('VP2', data.vp2), item('VP3', data.vp3), item('VP4', data.vp4),
+      item('Owner', data.owner, false), item('Platform', data.platform, false),
+      item('Approved verifications', data.verification_counts?.approved ?? 0, false), item('Pending verifications', data.verification_counts?.pending ?? 0, false),
+    ].join('');
+    $('#catalogNote').hidden = !data.catalog_note;
+    $('#catalogNote').textContent = data.catalog_note || '';
+
+    const verified = data.has_location;
+    $('#locationPanel').classList.toggle('verified', verified);
+    $('#locationTitle').textContent = verified ? `Galaxy ${data.galaxy_number}${data.galaxy_name ? ` — ${data.galaxy_name}` : ''}` : data.location_status === 'pending' ? 'Location awaiting review' : 'Location not yet verified';
+    $('#locationCopy').textContent = verified ? 'Use this reviewed galaxy and 12-glyph portal address to travel to the system.' : 'This record needs reviewed galaxy and portal evidence before travel directions can be published.';
+    $('#locationFacts').hidden = !verified;
+    if (verified) {
+      $('#locationFacts').innerHTML = `<div><span>Galaxy number</span><strong>${data.galaxy_number}</strong></div><div><span>Galaxy name</span><strong>${escapeHtml(data.galaxy_name || 'Not supplied')}</strong></div>`;
+      WCGlyphs.render('#glyphRow', data.portal_glyphs);
+      $('#glyphCode').textContent = data.portal_glyphs;
+      $('#copyGlyphs').hidden = false;
+    } else {
+      WCGlyphs.render('#glyphRow', '');
+      $('#glyphCode').textContent = '';
+      $('#copyGlyphs').hidden = true;
+    }
+    $('#imageLink').href = `contribute.html?mode=image&record=${data.id}`;
+    $('#verifyLink').href = `contribute.html?mode=verify&record=${data.id}`;
+    $('#recordLayout').hidden = false;
+  }
+
+  async function load() {
+    const id = new URLSearchParams(location.search).get('id');
+    if (!id || !/^\d+$/.test(id)) {
+      $('#recordError').textContent = 'This record link is missing a valid numeric discovery ID.';
+      $('#recordError').hidden = false;
+      return;
+    }
+    try {
+      const response = await fetch(`/api/discoveries/${id}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
+      render(data);
+    } catch (error) {
+      $('#recordError').textContent = error.message;
+      $('#recordError').hidden = false;
+    }
+  }
+
+  $('#copyMessage').addEventListener('click', async () => { if (record?.message_id) { await navigator.clipboard.writeText(record.message_id); toast('Message ID copied.'); } });
+  $('#copyGlyphs').addEventListener('click', async () => { if (record?.portal_glyphs) { await WCGlyphs.copy(record.portal_glyphs); toast('Portal glyph code copied.'); } });
+  load();
+})();

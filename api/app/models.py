@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -107,6 +107,7 @@ class Discovery(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     approved_from_batch_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     contributor: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
     save_name: Mapped[str] = mapped_column(String(200), nullable=False)
@@ -122,6 +123,18 @@ class Discovery(Base):
     platform: Mapped[str] = mapped_column(String(40), default="", nullable=False)
     record_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     raw_record: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+
+    # Catalog curation fields. WC IDs are derived from discovery type + immutable numeric id.
+    display_name: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    galaxy_number: Mapped[int | None] = mapped_column(Integer)
+    galaxy_name: Mapped[str] = mapped_column(String(120), default="", nullable=False)
+    portal_glyphs: Mapped[str] = mapped_column(String(12), default="", nullable=False)
+    location_status: Mapped[str] = mapped_column(String(30), default="unverified", nullable=False, index=True)
+    projector_status: Mapped[str] = mapped_column(String(30), default="data_available", nullable=False, index=True)
+    image_status: Mapped[str] = mapped_column(String(30), default="needed", nullable=False, index=True)
+    catalog_note: Mapped[str] = mapped_column(Text, default="", nullable=False)
+
+    verifications: Mapped[list["LocationVerification"]] = relationship(cascade="all, delete-orphan")
 
 
 class PetDiscoveryMatch(Base):
@@ -146,6 +159,27 @@ class PetDiscoveryMatch(Base):
     message_id: Mapped[str] = mapped_column(Text, default="", nullable=False)
     record_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     raw_record: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+
+
+class LocationVerification(Base):
+    __tablename__ = "location_verifications"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    discovery_id: Mapped[int] = mapped_column(ForeignKey("discoveries.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    contributor: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    galaxy_number: Mapped[int | None] = mapped_column(Integer)
+    galaxy_name: Mapped[str] = mapped_column(String(120), default="", nullable=False)
+    portal_glyphs: Mapped[str] = mapped_column(String(12), default="", nullable=False)
+    reached_system: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    discovery_present: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    projector_confirmed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    status: Mapped[str] = mapped_column(String(30), default="pending", nullable=False, index=True)
+    reviewer_note: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    submitter_ip_hash: Mapped[str] = mapped_column(String(64), default="", nullable=False)
+    user_agent: Mapped[str] = mapped_column(Text, default="", nullable=False)
 
 
 class AuditEvent(Base):
