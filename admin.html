@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#080b16">
+  <title>Admin Review | Wonder Codex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=1.1.0">
+  <link rel="stylesheet" href="admin.css?v=1.1.0">
+</head>
+<body class="admin-body">
+  <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
+  <header class="site-header admin-header">
+    <a class="brand" href="index.html"><span class="brand-mark">✦</span><span class="brand-copy"><strong>Wonder Codex</strong><small>Admin Review Console</small></span></a>
+    <div class="admin-head-actions"><span id="connectionBadge" class="connection-badge">Locked</span><button id="lockButton" class="small-button" type="button" hidden>Lock console</button><a class="small-button" href="index.html">Public site</a></div>
+  </header>
+
+  <main class="admin-shell">
+    <section id="loginPanel" class="login-panel">
+      <div class="login-card">
+        <span class="login-glyph">✦</span>
+        <p class="kicker">RESTRICTED RESEARCH CONSOLE</p>
+        <h1>Review the evidence before it becomes official.</h1>
+        <p>The admin key is sent only in the protected API request header and is remembered for this browser tab only.</p>
+        <form id="loginForm" class="login-form">
+          <label>Reviewer name<input id="actorInput" type="text" autocomplete="name" placeholder="PJ" required></label>
+          <label>Admin API key<input id="adminKeyInput" type="password" autocomplete="current-password" placeholder="Enter the DigitalOcean ADMIN_API_KEY" required></label>
+          <button class="button primary" type="submit">Unlock review queue</button>
+        </form>
+        <div id="loginError" class="inline-alert error" hidden></div>
+      </div>
+    </section>
+
+    <section id="dashboard" class="admin-dashboard" hidden>
+      <div class="admin-title-row">
+        <div><p class="kicker">WONDER DATABASE ADMIN</p><h1>Submission review queue</h1><p>Inspect normalized evidence, publish trusted batches, and retain an auditable decision history.</p></div>
+        <div class="admin-title-actions"><button id="refreshButton" class="button secondary" type="button">Refresh data</button><span id="lastRefresh">Not refreshed</span></div>
+      </div>
+
+      <div id="summaryGrid" class="admin-summary-grid">
+        <div class="admin-stat"><span>Pending batches</span><strong id="sumPending">—</strong></div>
+        <div class="admin-stat"><span>Pending discoveries</span><strong id="sumPendingRecords">—</strong></div>
+        <div class="admin-stat"><span>Published discoveries</span><strong id="sumPublished">—</strong></div>
+        <div class="admin-stat"><span>Published pet matches</span><strong id="sumMatches">—</strong></div>
+        <div class="admin-stat"><span>Approved batches</span><strong id="sumApproved">—</strong></div>
+        <div class="admin-stat"><span>Rejected batches</span><strong id="sumRejected">—</strong></div>
+      </div>
+
+      <div class="admin-workspace">
+        <aside class="queue-panel">
+          <div class="queue-toolbar">
+            <div class="status-tabs" role="tablist" aria-label="Submission status">
+              <button class="status-tab active" data-status="pending" type="button">Pending</button>
+              <button class="status-tab" data-status="approved" type="button">Approved</button>
+              <button class="status-tab" data-status="rejected" type="button">Rejected</button>
+            </div>
+            <input id="queueSearch" type="search" placeholder="Search contributor or save…" aria-label="Search submission queue">
+          </div>
+          <div id="queueList" class="queue-list" aria-live="polite"></div>
+          <div id="queueEmpty" class="empty-state" hidden><span>✦</span><strong>No submissions found</strong><p>Try another status or refresh the queue.</p></div>
+        </aside>
+
+        <section class="review-panel">
+          <div id="reviewPlaceholder" class="review-placeholder"><span>⌁</span><h2>Select a submission</h2><p>Choose a batch from the queue to inspect its normalized discoveries, pet matches, issues, and metadata.</p></div>
+          <div id="reviewContent" hidden>
+            <div class="review-header">
+              <div><div class="review-meta"><span id="detailStatus" class="detail-status">Pending</span><button id="copyIdButton" class="text-button" type="button">Copy submission ID</button></div><h2 id="detailSave">—</h2><p id="detailContributor">—</p></div>
+              <div class="review-header-actions"><button id="exportButton" class="small-button" type="button">Export JSON</button></div>
+            </div>
+            <div class="detail-summary">
+              <div><strong id="detailDiscoveries">0</strong><span>Discoveries</span></div>
+              <div><strong id="detailMatches">0</strong><span>Pet matches</span></div>
+              <div><strong id="detailIssues">0</strong><span>Issues</span></div>
+              <div><strong id="detailCreated">—</strong><span>Submitted</span></div>
+            </div>
+            <div class="review-note-existing" id="existingNote" hidden></div>
+            <div class="record-toolbar">
+              <div class="record-tabs" role="tablist">
+                <button class="record-tab active" data-section="discoveries" type="button">Discoveries</button>
+                <button class="record-tab" data-section="pet_matches" type="button">Pet matches</button>
+                <button class="record-tab" data-section="issues" type="button">Issues</button>
+                <button class="record-tab" data-section="raw" type="button">Raw batch</button>
+              </div>
+              <input id="recordSearch" type="search" placeholder="Filter preview…" aria-label="Filter record preview">
+            </div>
+            <div class="record-preview"><div id="recordTableWrap" class="record-table-wrap"></div><pre id="rawPreview" class="raw-preview" hidden></pre></div>
+            <p id="previewNote" class="preview-note"></p>
+            <div id="reviewActions" class="review-actions">
+              <label>Reviewer note<textarea id="reviewNote" rows="3" placeholder="Why is this batch being approved or rejected?"></textarea></label>
+              <div><button id="rejectButton" class="button danger" type="button">Reject batch</button><button id="approveButton" class="button success" type="button">Approve and publish</button></div>
+            </div>
+            <div id="actionResult" class="inline-alert" hidden></div>
+          </div>
+        </section>
+      </div>
+
+      <section class="audit-section">
+        <div class="audit-heading"><div><p class="kicker">AUDIT HISTORY</p><h2>Recent review actions</h2></div><button id="refreshAudit" class="text-button" type="button">Refresh</button></div>
+        <div id="auditList" class="audit-list"></div>
+      </section>
+    </section>
+  </main>
+  <div id="toast" class="toast" hidden></div>
+  <script src="admin.js?v=1.1.0"></script>
+</body>
+</html>

@@ -1,2 +1,5 @@
-# NMS-Wonder-Codex-v1.0
-A codex and database of Flora, Fauna, Minerals, and Planet discoveries. Find new wonders and warp to their location, or get their MessageID for editors!
+# Wonder Codex v1.1
+
+Public home, live importer, FastAPI/PostgreSQL backend, and browser-based review console.
+
+Start with `DEPLOY_WONDER_CODEX_v1.1.md`.

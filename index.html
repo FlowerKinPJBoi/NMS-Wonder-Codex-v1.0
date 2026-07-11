@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Wonder Codex is a community-built No Man's Sky research archive, importer, atlas, and procedural Wonder toolkit.">
+  <meta name="theme-color" content="#080b16">
+  <title>Wonder Codex — Preserve the Procedural Universe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=1.1.0">
+</head>
+<body>
+  <div class="cosmos" aria-hidden="true">
+    <div class="aurora aurora-one"></div>
+    <div class="aurora aurora-two"></div>
+    <div class="stars stars-a"></div>
+    <div class="stars stars-b"></div>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Wonder Codex home">
+      <span class="brand-mark" aria-hidden="true"><span>✦</span></span>
+      <span class="brand-copy"><strong>Wonder Codex</strong><small>Community Research Atlas</small></span>
+    </a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
+    <nav id="primaryNav" aria-label="Primary navigation">
+      <a href="#ecosystem">Explore</a>
+      <a href="#research">Research</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="import.html" class="nav-cta">Import a Save</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero shell">
+      <div class="hero-copy-wrap">
+        <div class="status-pill"><span class="pulse"></span> Live public alpha</div>
+        <p class="eyebrow">NO MAN'S SKY • EVIDENCE-DRIVEN COMMUNITY RESEARCH</p>
+        <h1>A living field guide to the <span>procedural universe.</span></h1>
+        <p class="hero-copy">Wonder Codex preserves remarkable discoveries, decodes Wonder Projector data, and turns community research into tools explorers can actually use.</p>
+        <div class="hero-actions">
+          <a class="button primary" href="import.html">Contribute your save <span aria-hidden="true">→</span></a>
+          <a class="button secondary" href="#research">See what we have confirmed</a>
+        </div>
+        <div class="trust-row">
+          <span>Raw saves stay on your device</span>
+          <span>Every claim carries evidence</span>
+          <span>Discoverers keep attribution</span>
+        </div>
+      </div>
+
+      <aside class="mission-console" aria-label="Wonder Codex live status">
+        <div class="console-topline"><span>LIVE DATABASE</span><span id="apiStatus" class="console-status">Connecting…</span></div>
+        <div class="console-grid">
+          <div><strong id="statDiscoveries">—</strong><span>Published discoveries</span></div>
+          <div><strong id="statPending">—</strong><span>Pending submissions</span></div>
+          <div><strong id="statContributors">—</strong><span>Contributors</span></div>
+          <div><strong id="statMatches">—</strong><span>Pet matches</span></div>
+        </div>
+        <div class="type-meter" aria-label="Published discovery types">
+          <div><span>Fauna</span><strong id="statAnimals">—</strong></div>
+          <div><span>Flora</span><strong id="statFlora">—</strong></div>
+          <div><span>Minerals</span><strong id="statMinerals">—</strong></div>
+        </div>
+        <p class="console-note" id="statsNote">Live counts update from the Wonder Database.</p>
+      </aside>
+    </section>
+
+    <section class="milestone-band">
+      <div class="shell milestone-inner">
+        <div><span class="kicker">LATEST MILESTONE</span><strong>Live community imports are operational.</strong></div>
+        <p>Character saves are analyzed locally, normalized, deduplicated, and placed into a human review queue before publication.</p>
+      </div>
+    </section>
+
+    <section class="section shell" id="ecosystem">
+      <div class="section-heading">
+        <div><p class="kicker">THE WONDER CODEX ECOSYSTEM</p><h2>One source of truth. Multiple ways to explore it.</h2></div>
+        <p>The Codex, Database, Forge, Atlas, Importer, and Research Manual all grow from the same verified evidence.</p>
+      </div>
+
+      <div class="project-grid">
+        <article class="project-card project-live">
+          <div class="project-head"><span class="project-icon">▦</span><span class="project-status live">Live foundation</span></div>
+          <h3>Wonder Database</h3>
+          <p>The structured home for UAs, VP arrays, Message IDs, locations, contributors, confidence, and verification history.</p>
+          <span class="project-link muted">Public browser in development</span>
+        </article>
+        <a class="project-card project-link-card" href="import.html">
+          <div class="project-head"><span class="project-icon">⇩</span><span class="project-status live">Live now</span></div>
+          <h3>Wonder Importer</h3>
+          <p>Analyze a full character save in the browser and submit only normalized Wonder records to the review queue.</p>
+          <span class="project-link">Open the importer →</span>
+        </a>
+        <article class="project-card">
+          <div class="project-head"><span class="project-icon">⚒</span><span class="project-status active">Active research</span></div>
+          <h3>Wonder Forge</h3>
+          <p>Generate and decode projector IDs, randomize procedural families, and eventually use “One More Like This.”</p>
+          <span class="project-link muted">Research in progress</span>
+        </article>
+        <article class="project-card">
+          <div class="project-head"><span class="project-icon">⌖</span><span class="project-status">Catalog building</span></div>
+          <h3>Wonder Atlas</h3>
+          <p>Browse verified discoveries by image, galaxy, glyphs, planet, archetype, and contributor.</p>
+          <span class="project-link muted">Coming soon</span>
+        </article>
+        <article class="project-card wide-card">
+          <div class="project-head"><span class="project-icon">▤</span><span class="project-status active">Writing v1.0</span></div>
+          <div><h3>Wonder Codex Research Manual</h3><p>A reproducible technical reference for Message IDs, DiscoveryData, pet matching, VP roles, experiments, confidence, and contributor methodology.</p></div>
+          <span class="project-link muted">Evidence first. Conclusions second.</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="section research-section" id="research">
+      <div class="shell">
+        <div class="section-heading">
+          <div><p class="kicker">CURRENT RESEARCH</p><h2>What the evidence supports today.</h2></div>
+          <p>Confirmed findings are reproducible. Strong findings have controlled experimental support. Open questions remain clearly labeled.</p>
+        </div>
+        <div class="research-grid">
+          <article class="research-card confirmed"><span class="badge confirmed">Confirmed</span><h3>Animal projector encoding</h3><p>Animal DiscoveryData can produce repeatable Wonder Projector Message IDs using UA and the encoded VP sequence.</p></article>
+          <article class="research-card confirmed"><span class="badge confirmed">Confirmed</span><h3>Flora projector encoding</h3><p>Flora records reconstruct from UA, VP0, and VP1. Controlled tests separated visual variation from broad family changes.</p></article>
+          <article class="research-card confirmed"><span class="badge confirmed">Confirmed</span><h3>Mineral projector encoding</h3><p>Mineral DiscoveryData follows the compact two-VP projector structure and can be normalized by the importer.</p></article>
+          <article class="research-card active"><span class="badge active">Active</span><h3>Pet-only generation</h3><p>Known seed mappings are strong, but missing archetype VP values still block some egg-hatched companions such as LAND_JELLYFISH.</p></article>
+          <article class="research-card active"><span class="badge active">Active</span><h3>Archetype library</h3><p>Stable VP values are being mapped to creature, flora, and mineral families to power randomization and “One More Like This.”</p></article>
+          <article class="research-card planned"><span class="badge planned">Planned</span><h3>Location verification</h3><p>Portal glyphs, galaxies, systems, planets, screenshots, and community visits will connect the Database to the Atlas.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section shell contribution-section">
+      <div class="section-heading compact-heading"><div><p class="kicker">CONTRIBUTE SAFELY</p><h2>From save file to reviewed evidence.</h2></div></div>
+      <div class="process-grid">
+        <div class="process-card"><span>01</span><h3>Analyze locally</h3><p>The browser reads the selected JSON. The full save never needs to be uploaded.</p></div>
+        <div class="process-card"><span>02</span><h3>Review normalized records</h3><p>See pets, discoveries, exact matches, generated projector IDs, and issues before submission.</p></div>
+        <div class="process-card"><span>03</span><h3>Human verification</h3><p>Submissions enter a review queue, duplicates are skipped, and approved records become official.</p></div>
+      </div>
+      <div class="center-action"><a class="button primary" href="import.html">Open Wonder Importer</a></div>
+    </section>
+
+    <section class="section roadmap-section" id="roadmap">
+      <div class="shell roadmap-panel">
+        <div class="roadmap-intro"><p class="kicker">PUBLIC ROADMAP</p><h2>The universe is large. We are building in layers.</h2><p>Each milestone adds capability without sacrificing evidence, attribution, or reproducibility.</p></div>
+        <div class="roadmap-list">
+          <div class="roadmap-item done"><span>01</span><div><strong>Live platform foundation</strong><small>Website, API, PostgreSQL, migrations, importer, review queue</small></div><b>Complete</b></div>
+          <div class="roadmap-item current"><span>02</span><div><strong>Admin review and public database</strong><small>Approve submissions, browse published records, live statistics</small></div><b>Now</b></div>
+          <div class="roadmap-item"><span>03</span><div><strong>Wonder Forge</strong><small>Generator, decoder, randomizer, One More Like This</small></div><b>Next</b></div>
+          <div class="roadmap-item"><span>04</span><div><strong>Wonder Atlas</strong><small>Images, glyphs, galaxies, planets, contributor verification</small></div><b>Planned</b></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section shell" id="community">
+      <div class="community-panel">
+        <div><p class="kicker">COMMUNITY BUILT</p><h2>Credit travels with the discovery.</h2><p>Original discoverers, data contributors, validators, and researchers remain attached to the evidence they helped preserve.</p></div>
+        <div class="contributors"><span>PJ</span><span>Boots</span><span>Monketsu</span><span>Corviknight97</span><span>Future Explorers</span></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-main"><a class="brand footer-brand" href="#top"><span class="brand-mark">✦</span><span class="brand-copy"><strong>Wonder Codex</strong><small>Preserve the procedural universe.</small></span></a><p>Independent community research project. Not affiliated with Hello Games.</p></div>
+    <div class="footer-links"><a href="import.html">Importer</a><a href="#research">Research</a><a href="#roadmap">Roadmap</a><span>Public Alpha • 2026</span></div>
+  </footer>
+  <script src="script.js?v=1.1.0"></script>
+</body>
+</html>
