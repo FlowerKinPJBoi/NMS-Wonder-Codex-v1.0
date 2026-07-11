@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select, update
-from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from ..database import get_session
@@ -21,6 +20,7 @@ from ..models import (
 )
 from ..schemas import CatalogUpdate, ImageReviewAction, ReviewAction, VerificationReviewAction
 from ..services.catalog import serialize_discovery, wc_id
+from ..services.bulk import insert_conflict_safe
 from ..services.security import require_admin_key
 from ..services.storage import delete_object, publish_object, signed_review_url
 
@@ -222,22 +222,18 @@ def approve_submission(batch_id: str, action: ReviewAction, session: Session = D
         "raw_record": row.raw_record,
     } for row in submitted_matches]
 
-    discoveries_added = 0
-    matches_added = 0
-    if discovery_rows:
-        result = session.execute(
-            insert(Discovery).values(discovery_rows)
-            .on_conflict_do_nothing(index_elements=["record_hash"])
-            .returning(Discovery.id)
-        )
-        discoveries_added = len(result.scalars().all())
-    if match_rows:
-        result = session.execute(
-            insert(PetDiscoveryMatch).values(match_rows)
-            .on_conflict_do_nothing(index_elements=["record_hash"])
-            .returning(PetDiscoveryMatch.id)
-        )
-        matches_added = len(result.scalars().all())
+    discoveries_added = insert_conflict_safe(
+        session,
+        Discovery,
+        discovery_rows,
+        conflict_columns=["record_hash"],
+    ) if discovery_rows else 0
+    matches_added = insert_conflict_safe(
+        session,
+        PetDiscoveryMatch,
+        match_rows,
+        conflict_columns=["record_hash"],
+    ) if match_rows else 0
 
     session.execute(
         update(SubmittedDiscovery)
