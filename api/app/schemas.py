@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -117,3 +117,10 @@ class CatalogUpdate(BaseModel):
         if cleaned and len(cleaned) != 12:
             raise ValueError("Portal glyph code must contain exactly 12 hexadecimal glyph values.")
         return cleaned
+
+
+class ImageReviewAction(BaseModel):
+    actor: str = Field(min_length=1, max_length=120)
+    note: str = Field(default="", max_length=4000)
+    approval_role: Literal["primary", "alternate"] = "alternate"
+

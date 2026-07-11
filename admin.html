@@ -9,9 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=1.2.0">
-  <link rel="stylesheet" href="catalog.css?v=1.2.0">
-  <link rel="stylesheet" href="admin.css?v=1.2.0">
+  <link rel="stylesheet" href="styles.css?v=1.3.0">
+  <link rel="stylesheet" href="catalog.css?v=1.3.0">
+  <link rel="stylesheet" href="admin.css?v=1.3.0">
 </head>
 <body class="admin-body">
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
@@ -48,7 +48,7 @@
         <button class="admin-mode active" data-mode="submissions" type="button">Data submissions</button>
         <button class="admin-mode" data-mode="verifications" type="button">Verifications <span id="verificationTabCount">0</span></button>
         <button class="admin-mode" data-mode="catalog" type="button">Catalog editor</button>
-        <button class="admin-mode" data-mode="images" type="button">Images <span>Storage next</span></button>
+        <button class="admin-mode" data-mode="images" type="button">Images <span id="imageTabCount">0</span></button>
       </div>
 
       <section class="admin-mode-panel" data-panel="submissions">
@@ -100,14 +100,22 @@
       </section>
 
       <section class="admin-mode-panel" data-panel="images" hidden>
-        <div class="image-admin-placeholder surface"><span class="login-glyph">▧</span><p class="kicker">ADMIN IMAGES QUEUE</p><h2>Interface prepared. Storage connection next.</h2><p>The public Contributions page already supports record selection, local preview, image roles, captions, and permission confirmation. After DigitalOcean Spaces is connected, this section will receive pending images for primary/alternate approval.</p><div class="feature-list"><div><span>01</span><p>Create the Spaces bucket and restricted API credentials.</p></div><div><span>02</span><p>Add upload validation, thumbnails, storage keys, and image metadata.</p></div><div><span>03</span><p>Enable approve as primary, approve as alternate, reassign, and reject.</p></div></div></div>
+        <div class="admin-workspace">
+          <aside class="queue-panel"><div class="queue-toolbar"><div class="status-tabs" role="tablist"><button class="image-status-tab active" data-status="pending" type="button">Pending</button><button class="image-status-tab" data-status="approved" type="button">Approved</button><button class="image-status-tab" data-status="rejected" type="button">Rejected</button></div><input id="imageSearch" type="search" placeholder="Search contributor or WC ID…"></div><div id="imageList" class="queue-list"></div><div id="imageEmpty" class="empty-state" hidden><span>▧</span><strong>No images found</strong></div></aside>
+          <section class="review-panel"><div id="imagePlaceholder" class="review-placeholder"><span>▧</span><h2>Select an image</h2><p>Review the private screenshot, its catalog link, role, dimensions, caption, and contributor permission.</p></div><div id="imageContent" hidden>
+            <div class="review-header"><div><div class="review-meta"><span id="imageStatus" class="detail-status">Pending</span><span id="imageWcId" class="wc-id">—</span></div><h2 id="imageName">—</h2><p id="imageContributorLine">—</p></div><a id="imagePublicLink" class="small-button" target="_blank" rel="noopener">Open public record</a></div>
+            <div class="admin-image-preview"><img id="adminImage" alt="Submitted Wonder screenshot"></div>
+            <div id="imageMetadata" class="detail-summary"></div><div id="imageCaptionReview" class="review-note-existing" hidden></div>
+            <div id="imageActions" class="review-actions"><label>Reviewer note<textarea id="imageReviewNote" rows="3" placeholder="Decision notes for the audit history"></textarea><label class="field" style="margin-top:10px">Approval role<select id="imageApprovalRole"><option value="primary">Primary catalog image</option><option value="alternate">Alternate image</option></select></label></label><div><button id="rejectImage" class="button danger" type="button">Reject image</button><button id="approveImage" class="button success" type="button">Approve and publish</button></div></div><div id="imageReviewResult" class="inline-alert" hidden></div>
+          </div></section>
+        </div>
       </section>
 
       <section class="audit-section"><div class="audit-heading"><div><p class="kicker">AUDIT HISTORY</p><h2>Recent admin actions</h2></div><button id="refreshAudit" class="text-button" type="button">Refresh</button></div><div id="auditList" class="audit-list"></div></section>
     </section>
   </main>
   <div id="toast" class="toast" hidden></div>
-  <script src="glyphs.js?v=1.2.0"></script>
-  <script src="admin.js?v=1.2.0"></script>
+  <script src="glyphs.js?v=1.3.0"></script>
+  <script src="admin.js?v=1.3.0"></script>
 </body>
 </html>

@@ -7,6 +7,7 @@
     submissionStatus: 'pending', submissions: [], selectedSubmission: null, submissionDetail: null, recordSection: 'discoveries',
     verificationStatus: 'pending', verifications: [], selectedVerification: null, verificationDetail: null,
     catalogRecords: [], selectedCatalog: null,
+    imageStatus: 'pending', images: [], selectedImage: null, imageDetail: null,
   };
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -79,6 +80,7 @@
       sumApproved: data.approved_batches,
       sumRejected: data.rejected_batches,
       verificationTabCount: data.pending_verifications,
+      imageTabCount: data.pending_images,
     };
     Object.entries(map).forEach(([id, value]) => { const element = document.getElementById(id); if (element) element.textContent = number(value); });
   }
@@ -88,6 +90,7 @@
     if (state.mode === 'submissions') jobs.push(loadSubmissions());
     if (state.mode === 'verifications') jobs.push(loadVerifications());
     if (state.mode === 'catalog') jobs.push(loadCatalog());
+    if (state.mode === 'images') jobs.push(loadImages());
     await Promise.all(jobs);
     $('#lastRefresh').textContent = `Updated ${new Date().toLocaleTimeString()}`;
   }
@@ -99,6 +102,7 @@
     if (mode === 'submissions') loadSubmissions();
     if (mode === 'verifications') loadVerifications();
     if (mode === 'catalog') loadCatalog();
+    if (mode === 'images') loadImages();
   }
 
   // ---------- Data submission review ----------
@@ -403,6 +407,89 @@
     }
   }
 
+
+  // ---------- Image review ----------
+  async function loadImages() {
+    const data = await api(`/admin/images?status=${encodeURIComponent(state.imageStatus)}&limit=200`);
+    state.images = data.items || [];
+    renderImageQueue();
+  }
+
+  function renderImageQueue() {
+    const query = $('#imageSearch').value.trim().toLowerCase();
+    const rows = state.images.filter((item) => `${item.contributor} ${item.wc_id} ${item.display_name} ${item.image_role}`.toLowerCase().includes(query));
+    $('#imageEmpty').hidden = rows.length > 0;
+    $('#imageList').innerHTML = rows.map((item) => `<button class="queue-item ${state.selectedImage === item.id ? 'active' : ''}" data-id="${escapeHtml(item.id)}" type="button"><div class="queue-item-top"><strong>${escapeHtml(item.wc_id)}</strong><time>${escapeHtml(shortDate(item.created_at))}</time></div><div class="queue-item-sub">${escapeHtml(item.display_name || 'Unnamed record')} • ${escapeHtml(item.contributor)}</div><div class="queue-counts"><span>${escapeHtml(item.image_role.replaceAll('_',' '))}</span><span>${number(item.width)}×${number(item.height)}</span></div></button>`).join('');
+    $$('#imageList .queue-item').forEach((button) => button.addEventListener('click', () => selectImage(button.dataset.id)));
+  }
+
+  async function selectImage(id) {
+    state.selectedImage = id;
+    renderImageQueue();
+    $('#imagePlaceholder').hidden = true;
+    $('#imageContent').hidden = false;
+    try {
+      state.imageDetail = await api(`/admin/images/${encodeURIComponent(id)}`);
+      renderImageDetail();
+    } catch (error) {
+      toast(error.message, true);
+      clearImageDetail();
+    }
+  }
+
+  function clearImageDetail() {
+    state.selectedImage = null;
+    state.imageDetail = null;
+    $('#imageContent').hidden = true;
+    $('#imagePlaceholder').hidden = false;
+  }
+
+  function renderImageDetail() {
+    const {image, discovery} = state.imageDetail;
+    $('#imageStatus').textContent = image.status;
+    $('#imageStatus').className = `detail-status ${image.status}`;
+    $('#imageWcId').textContent = discovery.wc_id;
+    $('#imageName').textContent = discovery.display_name;
+    $('#imageContributorLine').textContent = `Image from ${image.contributor} • submitted ${dateTime(image.created_at)}`;
+    $('#imagePublicLink').href = `record.html?id=${discovery.id}`;
+    $('#adminImage').src = image.preview_url;
+    $('#adminImage').alt = `${discovery.wc_id} submitted by ${image.contributor}`;
+    $('#imageMetadata').innerHTML = `<div><strong>${number(image.width)}×${number(image.height)}</strong><span>Dimensions</span></div><div><strong>${(image.size_bytes/1024/1024).toFixed(2)} MB</strong><span>Stored size</span></div><div><strong>${escapeHtml(image.image_role.replaceAll('_',' '))}</strong><span>Requested role</span></div><div><strong>${escapeHtml(image.original_filename)}</strong><span>Original file</span></div>`;
+    $('#imageCaptionReview').hidden = !image.caption;
+    $('#imageCaptionReview').textContent = image.caption ? `Contributor caption: ${image.caption}` : '';
+    $('#imageActions').hidden = image.status !== 'pending';
+    $('#imageReviewNote').value = '';
+    $('#imageApprovalRole').value = image.image_role === 'primary_catalog' ? 'primary' : 'alternate';
+    $('#imageReviewResult').hidden = true;
+  }
+
+  async function reviewImage(decision) {
+    const detail = state.imageDetail;
+    if (!detail || detail.image.status !== 'pending') return;
+    if (!confirm(`${decision === 'approve' ? 'Publish' : 'Reject'} this image for ${detail.discovery.wc_id}?`)) return;
+    const button = decision === 'approve' ? $('#approveImage') : $('#rejectImage');
+    const original = button.textContent;
+    button.disabled = true;
+    button.textContent = decision === 'approve' ? 'Publishing…' : 'Rejecting…';
+    try {
+      const result = await api(`/admin/images/${encodeURIComponent(state.selectedImage)}/${decision}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({actor:state.actor, note:$('#imageReviewNote').value.trim(), approval_role:$('#imageApprovalRole').value})});
+      $('#imageReviewResult').hidden = false;
+      $('#imageReviewResult').className = 'inline-alert success';
+      $('#imageReviewResult').textContent = decision === 'approve' ? `Image published${result.is_primary ? ' as the primary catalog image' : ' as an alternate image'}.` : 'Image rejected and its private object removed.';
+      toast(decision === 'approve' ? 'Image published.' : 'Image rejected.');
+      clearImageDetail();
+      await Promise.all([loadSummary(), loadImages(), loadAudit()]);
+    } catch (error) {
+      $('#imageReviewResult').hidden = false;
+      $('#imageReviewResult').className = 'inline-alert error';
+      $('#imageReviewResult').textContent = error.message;
+      toast(error.message, true);
+    } finally {
+      button.disabled = false;
+      button.textContent = original;
+    }
+  }
+
   // ---------- Audit ----------
   async function loadAudit() {
     try {
@@ -439,6 +526,10 @@
   let catalogTimer;
   $('#catalogAdminSearch').addEventListener('input', () => { clearTimeout(catalogTimer); catalogTimer = setTimeout(loadCatalog, 300); });
   $('#catalogForm').addEventListener('submit', saveCatalog);
+  $('#imageSearch').addEventListener('input', renderImageQueue);
+  $$('.image-status-tab').forEach((tab) => tab.addEventListener('click', async () => { state.imageStatus = tab.dataset.status; $$('.image-status-tab').forEach((item) => item.classList.toggle('active', item === tab)); clearImageDetail(); await loadImages(); }));
+  $('#approveImage').addEventListener('click', () => reviewImage('approve'));
+  $('#rejectImage').addEventListener('click', () => reviewImage('reject'));
   WCGlyphs.bindInput('#catalogGlyphs','#catalogGlyphPreview','#catalogGlyphStatus');
 
   const savedKey = sessionStorage.getItem('wc_admin_key');

@@ -8,3 +8,6 @@
 @media(max-width:1200px){.v12-summary{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:900px){.v12-summary{grid-template-columns:repeat(2,1fr)}.verification-compare{grid-template-columns:1fr}.verification-checks{grid-template-columns:1fr}.catalog-save-row{align-items:stretch;flex-direction:column}}
 @media(max-width:600px){.admin-mode{flex:1;justify-content:center}.v12-summary{grid-template-columns:repeat(2,1fr)}}
+
+/* v1.3 image review queue */
+.image-status-tab{flex:1;padding:.64rem .4rem;border:0;border-radius:9px;color:var(--muted);background:transparent;cursor:pointer;font:700 .78rem Inter,sans-serif}.image-status-tab.active{color:var(--cyan);background:rgba(109,231,255,.08)}.admin-image-preview{display:grid;place-items:center;min-height:360px;margin:18px 0;border:1px solid var(--line);border-radius:15px;overflow:hidden;background:#050914}.admin-image-preview img{display:block;max-width:100%;max-height:620px;object-fit:contain}

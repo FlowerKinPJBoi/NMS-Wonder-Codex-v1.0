@@ -7,7 +7,7 @@ from sqlalchemy import distinct, func, or_, select
 from sqlalchemy.orm import Session
 
 from ..database import get_session
-from ..models import Discovery, LocationVerification, PetDiscoveryMatch, SubmissionBatch
+from ..models import Discovery, ImageContribution, LocationVerification, PetDiscoveryMatch, SubmissionBatch
 from ..services.catalog import serialize_discovery
 
 router = APIRouter(tags=["public"])
@@ -30,6 +30,9 @@ def public_stats(session: Session = Depends(get_session)):
         "published_pet_matches": session.scalar(select(func.count()).select_from(PetDiscoveryMatch)) or 0,
         "pending_submissions": session.scalar(
             select(func.count()).select_from(SubmissionBatch).where(SubmissionBatch.status == "pending")
+        ) or 0,
+        "pending_images": session.scalar(
+            select(func.count()).select_from(ImageContribution).where(ImageContribution.status == "pending")
         ) or 0,
         "pending_verifications": session.scalar(
             select(func.count()).select_from(LocationVerification).where(LocationVerification.status == "pending")
@@ -101,7 +104,14 @@ def list_discoveries(
     ).all()
 
     return {
-        "items": [serialize_discovery(row) for row in rows],
+        "items": [dict(
+            serialize_discovery(row),
+            primary_image_url=(session.scalar(select(ImageContribution.public_url).where(
+                ImageContribution.discovery_id == row.id,
+                ImageContribution.status == "approved",
+                ImageContribution.is_primary.is_(True),
+            )) or ""),
+        ) for row in rows],
         "total": total,
         "limit": limit,
         "offset": offset,
@@ -129,6 +139,23 @@ def get_discovery(discovery_id: int, session: Session = Depends(get_session)):
     ) or 0
 
     payload = serialize_discovery(discovery, detail=True)
+    approved_images = session.scalars(
+        select(ImageContribution).where(
+            ImageContribution.discovery_id == discovery_id,
+            ImageContribution.status == "approved",
+        ).order_by(ImageContribution.is_primary.desc(), ImageContribution.created_at.asc())
+    ).all()
+    payload["images"] = [{
+        "id": image.id,
+        "url": image.public_url,
+        "role": image.image_role,
+        "caption": image.caption,
+        "contributor": image.contributor,
+        "width": image.width,
+        "height": image.height,
+        "is_primary": image.is_primary,
+    } for image in approved_images]
+    payload["primary_image_url"] = next((image.public_url for image in approved_images if image.is_primary), approved_images[0].public_url if approved_images else "")
     payload["verification_counts"] = {
         "approved": approved_verifications,
         "pending": pending_verifications,

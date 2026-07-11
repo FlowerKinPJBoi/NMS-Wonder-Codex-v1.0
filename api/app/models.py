@@ -135,6 +135,7 @@ class Discovery(Base):
     catalog_note: Mapped[str] = mapped_column(Text, default="", nullable=False)
 
     verifications: Mapped[list["LocationVerification"]] = relationship(cascade="all, delete-orphan")
+    images: Mapped[list["ImageContribution"]] = relationship(cascade="all, delete-orphan")
 
 
 class PetDiscoveryMatch(Base):
@@ -178,6 +179,31 @@ class LocationVerification(Base):
     notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
     status: Mapped[str] = mapped_column(String(30), default="pending", nullable=False, index=True)
     reviewer_note: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    submitter_ip_hash: Mapped[str] = mapped_column(String(64), default="", nullable=False)
+    user_agent: Mapped[str] = mapped_column(Text, default="", nullable=False)
+
+
+class ImageContribution(Base):
+    __tablename__ = "image_contributions"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    discovery_id: Mapped[int] = mapped_column(ForeignKey("discoveries.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    contributor: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    image_role: Mapped[str] = mapped_column(String(60), nullable=False, index=True)
+    caption: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    permission_confirmed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    status: Mapped[str] = mapped_column(String(30), default="pending", nullable=False, index=True)
+    reviewer_note: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    object_key: Mapped[str] = mapped_column(Text, nullable=False)
+    public_url: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    original_filename: Mapped[str] = mapped_column(String(255), default="", nullable=False)
+    content_type: Mapped[str] = mapped_column(String(100), default="image/webp", nullable=False)
+    width: Mapped[int] = mapped_column(Integer, nullable=False)
+    height: Mapped[int] = mapped_column(Integer, nullable=False)
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
     submitter_ip_hash: Mapped[str] = mapped_column(String(64), default="", nullable=False)
     user_agent: Mapped[str] = mapped_column(Text, default="", nullable=False)
 

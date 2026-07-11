@@ -23,6 +23,7 @@
   function card(item) {
     const name = escapeHtml(item.display_name);
     return `<article class="wonder-card">
+      ${item.primary_image_url ? `<div class="wonder-card-image"><img src="${escapeHtml(item.primary_image_url)}" alt="${name}" loading="lazy"></div>` : ''}
       <div class="wonder-card-top"><span class="wc-id">${escapeHtml(item.wc_id)}</span><span class="type-chip">${escapeHtml(typeLabel(item.discovery_type))}</span></div>
       <h2>${name}</h2>
       <p>Contributed by ${escapeHtml(item.contributor || item.owner || 'Unknown explorer')}</p>

@@ -19,6 +19,7 @@ def health(response: Response):
         "service": settings.app_name,
         "version": settings.app_version,
         "mode": "review-queue",
+        "image_storage": {"configured": settings.spaces_ready, "bucket": settings.spaces_bucket, "region": settings.spaces_region},
         "database": {
             "ready": state.ready,
             "detail": state.detail,

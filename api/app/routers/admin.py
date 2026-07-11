@@ -12,15 +12,17 @@ from ..models import (
     AuditEvent,
     Discovery,
     LocationVerification,
+    ImageContribution,
     PetDiscoveryMatch,
     SubmissionBatch,
     SubmissionIssue,
     SubmittedDiscovery,
     SubmittedPetMatch,
 )
-from ..schemas import CatalogUpdate, ReviewAction, VerificationReviewAction
+from ..schemas import CatalogUpdate, ImageReviewAction, ReviewAction, VerificationReviewAction
 from ..services.catalog import serialize_discovery, wc_id
 from ..services.security import require_admin_key
+from ..services.storage import delete_object, publish_object, signed_review_url
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin_key)])
 
@@ -56,6 +58,9 @@ def admin_summary(session: Session = Depends(get_session)):
         ) or 0,
         "images_needed": session.scalar(
             select(func.count()).select_from(Discovery).where(Discovery.image_status == "needed")
+        ) or 0,
+        "pending_images": session.scalar(
+            select(func.count()).select_from(ImageContribution).where(ImageContribution.status == "pending")
         ) or 0,
     }
 
@@ -508,3 +513,146 @@ def update_discovery_catalog(
     session.refresh(discovery)
     return {"ok": True, "discovery": serialize_discovery(discovery, detail=True)}
 
+
+
+@router.get("/images")
+def list_images(
+    status: str = Query(default="pending"),
+    limit: int = Query(default=100, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    session: Session = Depends(get_session),
+):
+    rows = session.scalars(
+        select(ImageContribution)
+        .where(ImageContribution.status == status)
+        .order_by(ImageContribution.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    ).all()
+    items = []
+    for row in rows:
+        discovery = session.get(Discovery, row.discovery_id)
+        items.append({
+            "id": row.id,
+            "created_at": row.created_at.isoformat(),
+            "reviewed_at": row.reviewed_at.isoformat() if row.reviewed_at else None,
+            "status": row.status,
+            "contributor": row.contributor,
+            "discovery_id": row.discovery_id,
+            "wc_id": wc_id(discovery) if discovery else f"Record {row.discovery_id}",
+            "display_name": discovery.display_name if discovery and discovery.display_name else "",
+            "image_role": row.image_role,
+            "caption": row.caption,
+            "width": row.width,
+            "height": row.height,
+            "size_bytes": row.size_bytes,
+            "is_primary": row.is_primary,
+            "public_url": row.public_url if row.status == "approved" else "",
+        })
+    return {"items": items, "limit": limit, "offset": offset}
+
+
+@router.get("/images/{image_id}")
+def get_image(image_id: str, session: Session = Depends(get_session)):
+    row = session.get(ImageContribution, image_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Image submission not found.")
+    discovery = session.get(Discovery, row.discovery_id)
+    if not discovery:
+        raise HTTPException(status_code=404, detail="Linked Wonder record not found.")
+    preview_url = row.public_url if row.status == "approved" else signed_review_url(row.object_key)
+    return {
+        "image": {
+            "id": row.id,
+            "created_at": row.created_at.isoformat(),
+            "reviewed_at": row.reviewed_at.isoformat() if row.reviewed_at else None,
+            "status": row.status,
+            "contributor": row.contributor,
+            "image_role": row.image_role,
+            "caption": row.caption,
+            "reviewer_note": row.reviewer_note,
+            "original_filename": row.original_filename,
+            "content_type": row.content_type,
+            "width": row.width,
+            "height": row.height,
+            "size_bytes": row.size_bytes,
+            "is_primary": row.is_primary,
+            "preview_url": preview_url,
+            "public_url": row.public_url,
+        },
+        "discovery": serialize_discovery(discovery, detail=True),
+    }
+
+
+@router.post("/images/{image_id}/approve")
+def approve_image(image_id: str, action: ImageReviewAction, session: Session = Depends(get_session)):
+    row = session.get(ImageContribution, image_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Image submission not found.")
+    if row.status != "pending":
+        raise HTTPException(status_code=409, detail=f"Image is already {row.status}.")
+    discovery = session.get(Discovery, row.discovery_id)
+    if not discovery:
+        raise HTTPException(status_code=404, detail="Linked Wonder record not found.")
+
+    destination_key = f"approved/{discovery.id}/{row.id}.webp"
+    public_url = publish_object(row.object_key, destination_key)
+    if action.approval_role == "primary":
+        session.execute(
+            update(ImageContribution)
+            .where(ImageContribution.discovery_id == discovery.id, ImageContribution.status == "approved")
+            .values(is_primary=False)
+        )
+        row.is_primary = True
+    else:
+        existing_primary = session.scalar(select(ImageContribution).where(
+            ImageContribution.discovery_id == discovery.id,
+            ImageContribution.status == "approved",
+            ImageContribution.is_primary.is_(True),
+        ))
+        row.is_primary = existing_primary is None
+
+    row.object_key = destination_key
+    row.public_url = public_url
+    row.status = "approved"
+    row.reviewed_at = datetime.now(timezone.utc)
+    row.reviewer_note = action.note
+    discovery.image_status = "available"
+    session.add(AuditEvent(
+        event_type="image_approved",
+        actor=action.actor,
+        batch_id=row.id,
+        detail={"wc_id": wc_id(discovery), "image_role": row.image_role, "primary": row.is_primary, "note": action.note},
+    ))
+    session.commit()
+    return {"ok": True, "status": "approved", "public_url": public_url, "is_primary": row.is_primary}
+
+
+@router.post("/images/{image_id}/reject")
+def reject_image(image_id: str, action: ImageReviewAction, session: Session = Depends(get_session)):
+    row = session.get(ImageContribution, image_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Image submission not found.")
+    if row.status != "pending":
+        raise HTTPException(status_code=409, detail=f"Image is already {row.status}.")
+    discovery = session.get(Discovery, row.discovery_id)
+    delete_object(row.object_key)
+    row.object_key = ""
+    row.status = "rejected"
+    row.reviewed_at = datetime.now(timezone.utc)
+    row.reviewer_note = action.note
+    remaining = session.scalar(select(func.count()).select_from(ImageContribution).where(
+        ImageContribution.discovery_id == row.discovery_id,
+        ImageContribution.status.in_(["pending", "approved"]),
+        ImageContribution.id != row.id,
+    )) or 0
+    if discovery and remaining == 0:
+        discovery.image_status = "needed"
+    session.add(AuditEvent(
+        event_type="image_rejected",
+        actor=action.actor,
+        batch_id=row.id,
+        detail={"wc_id": wc_id(discovery) if discovery else str(row.discovery_id), "note": action.note},
+    ))
+    session.commit()
+    return {"ok": True, "status": "rejected"}

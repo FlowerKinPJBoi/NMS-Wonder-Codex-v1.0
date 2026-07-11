@@ -69,6 +69,33 @@
     update();
   }
 
+
+  function keypadHtml() {
+    return `<div class="glyph-keypad" role="group" aria-label="Portal glyph keypad">${GLYPH_VALUES.map((glyph) => `<button class="glyph-key" type="button" data-glyph="${glyph}" aria-label="Add portal glyph ${glyph}">${glyphHtml(glyph)}</button>`).join('')}<div class="glyph-keypad-actions"><button type="button" data-action="backspace">Backspace</button><button type="button" data-action="clear">Clear</button></div></div>`;
+  }
+
+  function bindKeypad(input, keypad, target, statusTarget) {
+    const inputElement = typeof input === 'string' ? document.querySelector(input) : input;
+    const keypadElement = typeof keypad === 'string' ? document.querySelector(keypad) : keypad;
+    if (!inputElement || !keypadElement) return;
+    keypadElement.innerHTML = keypadHtml();
+    const update = () => inputElement.dispatchEvent(new Event('input', {bubbles:true}));
+    keypadElement.addEventListener('click', (event) => {
+      const button = event.target.closest('button');
+      if (!button) return;
+      if (button.dataset.glyph) {
+        const code = normalize(inputElement.value);
+        if (code.length < 12) inputElement.value = code + button.dataset.glyph;
+      } else if (button.dataset.action === 'backspace') {
+        inputElement.value = normalize(inputElement.value).slice(0, -1);
+      } else if (button.dataset.action === 'clear') {
+        inputElement.value = '';
+      }
+      update();
+    });
+    bindInput(inputElement, target, statusTarget);
+  }
+
   async function copy(value) {
     const code = normalize(value);
     if (!code) return false;
@@ -85,6 +112,8 @@
     codeHtml,
     render,
     bindInput,
+    bindKeypad,
+    keypadHtml,
     copy,
   };
 })();

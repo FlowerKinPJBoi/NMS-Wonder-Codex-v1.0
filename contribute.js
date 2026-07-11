@@ -71,6 +71,7 @@
         $('#imageSelected').hidden = false;
         $('#imageRecordResults').innerHTML = '';
         $('#imageRecordSearch').value = `${record.wc_id} — ${record.display_name}`;
+        $('#submitImage').disabled = false;
       } else {
         state.verifyRecord = record;
         $('#verifySelected').innerHTML = selectedMarkup(record);
@@ -103,6 +104,47 @@
     preview.innerHTML = `<img src="${url}" alt="Local screenshot preview">`;
     const image = preview.querySelector('img');
     image.addEventListener('load', () => URL.revokeObjectURL(url), {once:true});
+  }
+
+
+  async function submitImage(event) {
+    event.preventDefault();
+    const result = $('#imageResult');
+    result.hidden = false;
+    result.className = 'notice';
+    if (!state.imageRecord) { result.textContent = 'Select a Wonder record first.'; result.classList.add('error'); return; }
+    const contributor = $('#imageContributor').value.trim();
+    const file = $('#imageFile').files[0];
+    if (!contributor) { result.textContent = 'Enter your contributor name.'; result.classList.add('error'); return; }
+    if (!file) { result.textContent = 'Choose a screenshot file.'; result.classList.add('error'); return; }
+    if (!$('#imagePermission').checked) { result.textContent = 'Confirm that Wonder Codex may display the image with attribution.'; result.classList.add('error'); return; }
+
+    const form = new FormData();
+    form.append('discovery_id', state.imageRecord.id);
+    form.append('contributor', contributor);
+    form.append('image_role', $('#imageRole').value);
+    form.append('caption', $('#imageCaption').value.trim());
+    form.append('permission_confirmed', 'true');
+    form.append('website', $('#imageWebsite').value);
+    form.append('image', file, file.name);
+
+    const button = $('#submitImage');
+    button.disabled = true;
+    button.textContent = 'Uploading privately…';
+    result.textContent = 'Preparing the screenshot and placing it in the Admin Images queue…';
+    try {
+      const response = await fetch(`${API}/images`, {method:'POST', body:form});
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
+      result.className = 'notice success';
+      result.innerHTML = `<strong>Image received!</strong><br>${escapeHtml(data.wc_id)} is now in the Admin Images queue.<br>Reference: <code>${escapeHtml(data.image_id)}</code>`;
+      button.textContent = 'Submitted ✓';
+    } catch (error) {
+      result.className = 'notice error';
+      result.textContent = `Image submission failed: ${error.message}`;
+      button.disabled = false;
+      button.textContent = 'Submit image for review';
+    }
   }
 
   async function submitVerification(event) {
@@ -152,8 +194,10 @@
   makeRecordSearch('#imageRecordSearch','#imageRecordResults','image');
   makeRecordSearch('#verifyRecordSearch','#verifyRecordResults','verify');
   $('#imageFile').addEventListener('change', previewImage);
+  $('#imageForm').addEventListener('submit', submitImage);
   $('#verificationForm').addEventListener('submit', submitVerification);
-  WCGlyphs.bindInput('#verifyGlyphs','#verifyGlyphPreview','#verifyGlyphStatus');
+  WCGlyphs.bindKeypad('#verifyGlyphs','#verifyGlyphKeypad','#verifyGlyphPreview','#verifyGlyphStatus');
+  $('#verifyGlyphLegend').innerHTML = WCGlyphs.values.map((glyph) => WCGlyphs.glyphHtml(glyph)).join('');
 
   const params = new URLSearchParams(location.search);
   setMode(params.get('mode') || 'save');

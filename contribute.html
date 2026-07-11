@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=1.2.0">
-  <link rel="stylesheet" href="catalog.css?v=1.2.0">
+  <link rel="stylesheet" href="styles.css?v=1.3.0">
+  <link rel="stylesheet" href="catalog.css?v=1.3.0">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
@@ -55,19 +55,18 @@
       <section class="contribution-section surface" data-section="image" hidden>
         <div class="contribution-grid">
           <div>
-            <div class="contribution-copy"><p class="kicker">CONTRIBUTE AN IMAGE</p><h2>Select a published record and prepare its screenshot.</h2><p>The catalog link is attached automatically. Image submission will be enabled as soon as DigitalOcean Spaces is connected.</p></div>
-            <div class="form-stack">
+            <div class="contribution-copy"><p class="kicker">CONTRIBUTE AN IMAGE</p><h2>Select a published record and prepare its screenshot.</h2><p>The catalog link is attached automatically. Screenshots are validated and normalized by the Wonder Codex API, stored privately for review, and published only after approval.</p></div>
+            <form id="imageForm" class="form-stack">
               <label class="field">Find a catalog record<input id="imageRecordSearch" type="search" placeholder="Search WC ID, name, contributor, UA…"></label>
               <div id="imageRecordResults" class="record-picker-results"></div>
               <div id="imageSelected" class="selected-record" hidden></div>
-              <label class="field">Screenshot file<input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp"></label>
+              <label class="field">Screenshot file<input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp" required></label>
               <div id="imagePreview" class="image-preview"><span>No screenshot selected.</span></div>
-              <div class="form-grid"><label class="field">Contributor name<input id="imageContributor" type="text" placeholder="Your community name"></label><label class="field">Image role<select id="imageRole"><option>Primary catalog image</option><option>Full specimen</option><option>Side view</option><option>Front view</option><option>Scale reference</option><option>Environment</option><option>Projector confirmation</option><option>Portal / location evidence</option></select></label></div>
+              <div class="form-grid"><label class="field">Contributor name<input id="imageContributor" type="text" placeholder="Your community name"></label><label class="field">Image role<select id="imageRole"><option value="primary_catalog">Primary catalog image</option><option value="full_specimen">Full specimen</option><option value="side_view">Side view</option><option value="front_view">Front view</option><option value="scale_reference">Scale reference</option><option value="environment">Environment</option><option value="projector_confirmation">Projector confirmation</option><option value="portal_location_evidence">Portal / location evidence</option></select></label></div>
               <label class="field">Caption or reviewer note<textarea id="imageCaption" rows="3" placeholder="Anything the reviewer should know about this image?"></textarea></label>
               <label class="checkbox-row"><input id="imagePermission" type="checkbox"><span>I created this screenshot or have permission to submit it, and I allow Wonder Codex to display it with attribution.</span></label>
-              <button class="button primary" type="button" disabled>Image upload activates after Spaces setup</button>
-              <div class="notice">The selection, preview, role, permission, and record-link workflow is ready. The next deployment will connect this form to the Admin Images queue and object storage.</div>
-            </div>
+              <input id="imageWebsite" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="honeypot"><button id="submitImage" class="button primary" type="submit" disabled>Submit image for review</button><div id="imageResult" class="notice" hidden></div>
+            </form>
           </div>
           <aside class="screenshot-guide surface">
             <p class="kicker">SCREENSHOT FIELD GUIDE</p><h3>Help reviewers see the actual Wonder.</h3>
@@ -87,8 +86,7 @@
               <div id="verifySelected" class="selected-record" hidden></div>
               <div class="form-grid"><label class="field">Contributor name<input id="verifyContributor" type="text" required maxlength="120" placeholder="Your community name"></label><label class="field">Galaxy number<input id="verifyGalaxyNumber" type="number" min="1" max="256" placeholder="1–256"></label></div>
               <label class="field">Galaxy name<input id="verifyGalaxyName" type="text" maxlength="120" placeholder="Optional, but helpful"></label>
-              <label class="field">12-glyph portal code<input id="verifyGlyphs" type="text" maxlength="12" inputmode="text" autocomplete="off" placeholder="0123456789AB"></label>
-              <div id="verifyGlyphPreview"></div><p id="verifyGlyphStatus" class="glyph-input-status">0 of 12 glyphs entered.</p>
+              <label class="field">12-glyph portal address<input id="verifyGlyphs" type="text" maxlength="12" autocomplete="off" readonly placeholder="Click the glyphs below"></label><div id="verifyGlyphPreview"></div><p id="verifyGlyphStatus" class="glyph-input-status">0 of 12 glyphs entered.</p><div id="verifyGlyphKeypad"></div><details class="glyph-legend"><summary>Show glyph translator legend</summary><div class="portal-glyph-row legend" id="verifyGlyphLegend"></div></details>
               <div class="checkbox-list">
                 <label class="checkbox-row"><input id="verifyReached" type="checkbox"><span>I successfully reached the intended system or planet.</span></label>
                 <label class="checkbox-row"><input id="verifyPresent" type="checkbox"><span>The discovery was present and matched the catalog record.</span></label>
@@ -116,8 +114,8 @@
   </main>
 
   <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Community Contributions</small></span></a><p>Raw saves stay local. Public evidence is reviewed. Attribution remains attached.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="import.html">Save data</a><a href="index.html#roadmap">Roadmap</a></div></footer>
-  <script src="script.js?v=1.2.0"></script>
-  <script src="glyphs.js?v=1.2.0"></script>
-  <script src="contribute.js?v=1.2.0"></script>
+  <script src="script.js?v=1.3.0"></script>
+  <script src="glyphs.js?v=1.3.0"></script>
+  <script src="contribute.js?v=1.3.0"></script>
 </body>
 </html>

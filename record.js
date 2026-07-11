@@ -1,6 +1,7 @@
 (() => {
   'use strict';
   const $ = (selector) => document.querySelector(selector);
+  const $$ = (selector) => [...document.querySelectorAll(selector)];
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   let record = null;
 
@@ -21,6 +22,25 @@
     return `<div class="data-item"><span>${escapeHtml(label)}</span>${code ? `<code>${escapeHtml(safe)}</code>` : `<strong>${escapeHtml(safe)}</strong>`}</div>`;
   }
 
+
+  function renderImages(images) {
+    const approved = Array.isArray(images) ? images.filter((image) => image.url) : [];
+    const gallery = $('#recordGallery');
+    if (!approved.length) { gallery.hidden = true; return; }
+    let active = approved.find((image) => image.is_primary) || approved[0];
+    const show = (image) => {
+      active = image;
+      $('#recordPrimaryImage').src = image.url;
+      $('#recordPrimaryImage').alt = `${record.wc_id} — ${image.role.replaceAll('_',' ')}`;
+      $('#recordImageCaption').textContent = `${image.caption || image.role.replaceAll('_',' ')} • Image by ${image.contributor}`;
+      $$('#recordThumbnails .record-thumbnail').forEach((button) => button.classList.toggle('active', button.dataset.id === image.id));
+    };
+    $('#recordThumbnails').innerHTML = approved.map((image) => `<button class="record-thumbnail" type="button" data-id="${escapeHtml(image.id)}"><img src="${escapeHtml(image.url)}" alt="${escapeHtml(image.role.replaceAll('_',' '))}"></button>`).join('');
+    $$('#recordThumbnails .record-thumbnail').forEach((button) => button.addEventListener('click', () => show(approved.find((image) => image.id === button.dataset.id))));
+    gallery.hidden = false;
+    show(active);
+  }
+
   function render(data) {
     record = data;
     document.title = `${data.wc_id} — ${data.display_name} | Wonder Codex`;
@@ -31,6 +51,7 @@
     $('#recordType').textContent = data.discovery_type === 'Animal' ? 'Fauna' : data.discovery_type;
     $('#recordAttribution').textContent = `Contributed by ${data.contributor || data.owner || 'Unknown explorer'}${data.save_name ? ` • ${data.save_name}` : ''}`;
     $('#recordBadges').innerHTML = badge('Location', data.location_status) + badge('Projector', data.projector_status) + badge('Image', data.image_status);
+    renderImages(data.images || []);
     $('#messageId').textContent = data.message_id || 'No Message ID available';
     $('#copyMessage').hidden = !data.message_id;
     $('#dataList').innerHTML = [
