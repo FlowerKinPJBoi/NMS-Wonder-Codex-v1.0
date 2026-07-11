@@ -547,7 +547,7 @@ def list_images(
             "height": row.height,
             "size_bytes": row.size_bytes,
             "is_primary": row.is_primary,
-            "public_url": row.public_url if row.status == "approved" else "",
+            "public_url": f"/api/images/{row.id}/content" if row.status == "approved" else "",
         })
     return {"items": items, "limit": limit, "offset": offset}
 
@@ -560,7 +560,7 @@ def get_image(image_id: str, session: Session = Depends(get_session)):
     discovery = session.get(Discovery, row.discovery_id)
     if not discovery:
         raise HTTPException(status_code=404, detail="Linked Wonder record not found.")
-    preview_url = row.public_url if row.status == "approved" else signed_review_url(row.object_key)
+    preview_url = f"/api/images/{row.id}/content" if row.status == "approved" else signed_review_url(row.object_key)
     return {
         "image": {
             "id": row.id,
@@ -578,7 +578,8 @@ def get_image(image_id: str, session: Session = Depends(get_session)):
             "size_bytes": row.size_bytes,
             "is_primary": row.is_primary,
             "preview_url": preview_url,
-            "public_url": row.public_url,
+            "public_url": f"/api/images/{row.id}/content" if row.status == "approved" else "",
+            "cdn_url": row.public_url,
         },
         "discovery": serialize_discovery(discovery, detail=True),
     }
@@ -625,7 +626,13 @@ def approve_image(image_id: str, action: ImageReviewAction, session: Session = D
         detail={"wc_id": wc_id(discovery), "image_role": row.image_role, "primary": row.is_primary, "note": action.note},
     ))
     session.commit()
-    return {"ok": True, "status": "approved", "public_url": public_url, "is_primary": row.is_primary}
+    return {
+        "ok": True,
+        "status": "approved",
+        "public_url": f"/api/images/{row.id}/content",
+        "cdn_url": public_url,
+        "is_primary": row.is_primary,
+    }
 
 
 @router.post("/images/{image_id}/reject")

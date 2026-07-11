@@ -3,7 +3,8 @@ from __future__ import annotations
 import hashlib
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, Response, UploadFile
+from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -11,7 +12,7 @@ from ..database import check_database, get_session
 from ..models import Discovery, ImageContribution
 from ..services.catalog import wc_id
 from ..services.rate_limit import enforce
-from ..services.storage import prepare_upload, put_pending
+from ..services.storage import get_object, prepare_upload, put_pending
 
 router = APIRouter(prefix="/images", tags=["images"])
 
@@ -103,6 +104,43 @@ async def submit_image(
     }
 
 
+@router.get("/{image_id}/content", include_in_schema=False)
+def approved_image_content(
+    image_id: str,
+    request: Request,
+    session: Session = Depends(get_session),
+):
+    row = session.get(ImageContribution, image_id)
+    if not row or row.status != "approved":
+        raise HTTPException(status_code=404, detail="Approved image not found.")
+    if not row.object_key:
+        raise HTTPException(status_code=404, detail="Approved image file is unavailable.")
+
+    stored = get_object(row.object_key)
+    headers = {
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "Content-Disposition": f'inline; filename="wonder-{row.discovery_id}-{row.id}.webp"',
+        "X-Content-Type-Options": "nosniff",
+    }
+    if stored.etag:
+        headers["ETag"] = stored.etag
+        if request.headers.get("if-none-match") == stored.etag:
+            stored.body.close()
+            return Response(status_code=304, headers=headers)
+    if stored.content_length is not None:
+        headers["Content-Length"] = str(stored.content_length)
+
+    def chunks():
+        try:
+            for chunk in stored.body.iter_chunks(chunk_size=64 * 1024):
+                if chunk:
+                    yield chunk
+        finally:
+            stored.body.close()
+
+    return StreamingResponse(chunks(), media_type=stored.content_type, headers=headers)
+
+
 @router.get("/{image_id}")
 def image_status(image_id: str, session: Session = Depends(get_session)):
     row = session.get(ImageContribution, image_id)
@@ -116,5 +154,5 @@ def image_status(image_id: str, session: Session = Depends(get_session)):
         "reviewed_at": row.reviewed_at.isoformat() if row.reviewed_at else None,
         "wc_id": wc_id(discovery) if discovery else None,
         "reviewer_note": row.reviewer_note,
-        "public_url": row.public_url if row.status == "approved" else "",
+        "public_url": f"/api/images/{row.id}/content" if row.status == "approved" else "",
     }

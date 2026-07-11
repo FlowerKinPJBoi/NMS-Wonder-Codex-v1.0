@@ -13,6 +13,11 @@ from ..services.catalog import serialize_discovery
 router = APIRouter(tags=["public"])
 
 
+def image_delivery_url(image: ImageContribution | None) -> str:
+    return f"/api/images/{image.id}/content" if image else ""
+
+
+
 @router.get("/stats")
 def public_stats(session: Session = Depends(get_session)):
     type_rows = session.execute(
@@ -103,15 +108,22 @@ def list_discoveries(
         base.order_by(Discovery.id.desc()).limit(limit).offset(offset)
     ).all()
 
-    return {
-        "items": [dict(
-            serialize_discovery(row),
-            primary_image_url=(session.scalar(select(ImageContribution.public_url).where(
+    items = []
+    for row in rows:
+        primary_image = session.scalar(
+            select(ImageContribution).where(
                 ImageContribution.discovery_id == row.id,
                 ImageContribution.status == "approved",
                 ImageContribution.is_primary.is_(True),
-            )) or ""),
-        ) for row in rows],
+            )
+        )
+        items.append(dict(
+            serialize_discovery(row),
+            primary_image_url=image_delivery_url(primary_image),
+        ))
+
+    return {
+        "items": items,
         "total": total,
         "limit": limit,
         "offset": offset,
@@ -147,7 +159,8 @@ def get_discovery(discovery_id: int, session: Session = Depends(get_session)):
     ).all()
     payload["images"] = [{
         "id": image.id,
-        "url": image.public_url,
+        "url": image_delivery_url(image),
+        "cdn_url": image.public_url,
         "role": image.image_role,
         "caption": image.caption,
         "contributor": image.contributor,
@@ -155,7 +168,7 @@ def get_discovery(discovery_id: int, session: Session = Depends(get_session)):
         "height": image.height,
         "is_primary": image.is_primary,
     } for image in approved_images]
-    payload["primary_image_url"] = next((image.public_url for image in approved_images if image.is_primary), approved_images[0].public_url if approved_images else "")
+    payload["primary_image_url"] = image_delivery_url(next((image for image in approved_images if image.is_primary), approved_images[0] if approved_images else None))
     payload["verification_counts"] = {
         "approved": approved_verifications,
         "pending": pending_verifications,

@@ -25,6 +25,14 @@ class PreparedImage:
     original_filename: str
 
 
+@dataclass(frozen=True)
+class StoredObject:
+    body: object
+    content_type: str
+    content_length: int | None
+    etag: str
+
+
 def _client():
     settings = get_settings()
     if not settings.spaces_ready:
@@ -128,6 +136,28 @@ def publish_object(source_key: str, destination_key: str) -> str:
         logger.exception("Could not publish Spaces object")
         raise HTTPException(status_code=502, detail="Could not publish the approved image.") from exc
     return f"{settings.spaces_cdn_url.rstrip('/')}/{destination_key}"
+
+
+def get_object(key: str) -> StoredObject:
+    settings = get_settings()
+    try:
+        response = _client().get_object(Bucket=settings.spaces_bucket, Key=key)
+    except ClientError as exc:
+        code = str(exc.response.get("Error", {}).get("Code", ""))
+        if code in {"NoSuchKey", "404", "NotFound"}:
+            raise HTTPException(status_code=404, detail="Approved image file was not found.") from exc
+        logger.exception("Could not read Spaces object %s", key)
+        raise HTTPException(status_code=502, detail="Could not retrieve the approved image.") from exc
+    except BotoCoreError as exc:
+        logger.exception("Could not read Spaces object %s", key)
+        raise HTTPException(status_code=502, detail="Could not retrieve the approved image.") from exc
+
+    return StoredObject(
+        body=response["Body"],
+        content_type=response.get("ContentType") or "image/webp",
+        content_length=response.get("ContentLength"),
+        etag=str(response.get("ETag") or "").strip(),
+    )
 
 
 def delete_object(key: str) -> None:

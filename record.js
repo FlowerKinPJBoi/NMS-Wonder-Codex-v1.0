@@ -30,8 +30,14 @@
     let active = approved.find((image) => image.is_primary) || approved[0];
     const show = (image) => {
       active = image;
-      $('#recordPrimaryImage').src = image.url;
-      $('#recordPrimaryImage').alt = `${record.wc_id} — ${image.role.replaceAll('_',' ')}`;
+      const primary = $('#recordPrimaryImage');
+      primary.onerror = () => {
+        primary.onerror = null;
+        primary.removeAttribute('src');
+        $('#recordImageCaption').textContent = 'The approved image could not be loaded. Please refresh once; the archive may still be propagating.';
+      };
+      primary.src = image.url;
+      primary.alt = `${record.wc_id} — ${image.role.replaceAll('_',' ')}`;
       $('#recordImageCaption').textContent = `${image.caption || image.role.replaceAll('_',' ')} • Image by ${image.contributor}`;
       $$('#recordThumbnails .record-thumbnail').forEach((button) => button.classList.toggle('active', button.dataset.id === image.id));
     };
