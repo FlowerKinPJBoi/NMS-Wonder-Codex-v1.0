@@ -26,7 +26,7 @@
     </section>
 
     <section class="section importer-panel" id="privacy">
-      <div class="privacy-banner"><strong>Local processing</strong><span>Your character JSON stays on this device. Only files you explicitly download leave the page.</span></div>
+      <div class="privacy-banner"><strong>Local processing</strong><span>Your character JSON stays on this device. Your raw character JSON stays on this device. Only the normalized Wonder records shown in the preview are submitted.</span></div>
       <div class="upload-box" id="dropZone">
         <input id="fileInput" type="file" accept=".json,.txt,application/json" hidden>
         <div class="upload-icon">⇧</div>
@@ -46,10 +46,22 @@
     </section>
 
     <section class="section results" id="results" hidden>
-      <div class="section-heading"><div><p class="kicker">IMPORT PREVIEW</p><h2 id="saveTitle">Character results</h2></div><p id="resultNote">Review the normalized records before downloading.</p></div>
+      <div class="section-heading"><div><p class="kicker">IMPORT PREVIEW</p><h2 id="saveTitle">Character results</h2></div><p id="resultNote">Review the normalized records before submitting them to Wonder Database.</p></div>
       <div class="stat-grid" id="statGrid"></div>
+      <div class="submission-panel">
+        <div class="submission-copy">
+          <p class="kicker">LIVE DATABASE SUBMISSION</p>
+          <h3>Ready to contribute?</h3>
+          <p>Only normalized Wonder records are sent. The full save file remains on your device.</p>
+        </div>
+        <label class="submission-key">Contributor submission key
+          <input id="submissionKey" type="password" autocomplete="off" placeholder="Provided by the Wonder Codex team">
+        </label>
+        <button class="button primary submit-button" id="submitDatabase" type="button">Submit to Wonder Database</button>
+        <div id="submitStatus" class="submit-status" hidden></div>
+      </div>
       <div class="download-row">
-        <button class="button primary" id="downloadJson">Download normalized JSON</button>
+        <button class="button secondary" id="downloadJson">Download normalized JSON</button>
         <button class="button secondary" id="downloadDiscoveries">Download discoveries CSV</button>
         <button class="button secondary" id="downloadMatches">Download pet matches CSV</button>
       </div>
@@ -63,7 +75,7 @@
     </section>
   </main>
 
-  <footer><div><strong>Wonder Codex</strong><p>Evidence first. Conclusions second.</p></div><div class="footer-note"><p>Web Importer Alpha v0.1</p><p>Independent community project. Not affiliated with Hello Games.</p></div></footer>
+  <footer><div><strong>Wonder Codex</strong><p>Evidence first. Conclusions second.</p></div><div class="footer-note"><p>Web Importer Alpha v0.2 — Live submissions</p><p>Independent community project. Not affiliated with Hello Games.</p></div></footer>
   <script src="importer.js"></script>
 </body>
 </html>

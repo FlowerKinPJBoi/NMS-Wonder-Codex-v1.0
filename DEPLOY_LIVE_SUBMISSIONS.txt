@@ -1,0 +1,96 @@
+WONDER CODEX LIVE SUBMISSION v0.2
+=================================
+
+WHAT THIS RELEASE ADDS
+----------------------
+Analyze Save
+    ↓
+Review normalized records
+    ↓
+Submit to Wonder Database
+    ↓
+FastAPI validation and duplicate checking
+    ↓
+PostgreSQL
+
+The browser still processes the full character save locally. Only the
+normalized report shown on the preview screen is sent to the API.
+
+FILES TO ADD TO YOUR GITHUB REPOSITORY
+--------------------------------------
+Copy everything in this ZIP into the repository connected to DigitalOcean.
+
+The new api/ directory contains the FastAPI service.
+The updated import.html, importer.js, and importer.css contain the live
+submission interface.
+
+DIGITALOCEAN APP PLATFORM SETUP
+-------------------------------
+Your existing static site remains the website component.
+
+Add a SERVICE component from the same GitHub repository:
+
+Source directory:
+    /api
+
+Run command:
+    uvicorn app:app --host 0.0.0.0 --port $PORT
+
+HTTP port:
+    8080
+
+Route:
+    /api
+
+Add these encrypted environment variables to the API service:
+
+DATABASE_URL
+    Use the PostgreSQL connection string from DigitalOcean.
+    Include sslmode=require when DigitalOcean provides it.
+
+IMPORT_SUBMISSION_KEY
+    Create a long random phrase. Give it only to approved contributors.
+    Do not put it in importer.js or in GitHub.
+
+ALLOWED_ORIGINS
+    https://wondercodex.com,https://www.wondercodex.com
+
+The API creates its initial tables automatically when it starts.
+
+TESTS AFTER DEPLOYMENT
+----------------------
+Open:
+    https://wondercodex.com/api/health
+
+Expected response:
+    {"ok":true,"service":"Wonder Codex Import API","version":"0.2.0"}
+
+Then visit:
+    https://wondercodex.com/import.html
+
+Analyze a save, enter the contributor submission key, and click:
+    Submit to Wonder Database
+
+SECURITY NOTES
+--------------
+1. The raw save is never posted by this version.
+2. PostgreSQL credentials exist only in DigitalOcean environment variables.
+3. A contributor key is required for every submission.
+4. Duplicate discoveries and matches are skipped using stable server hashes.
+5. Keep the database private; only the API service should connect to it.
+6. This alpha accepts approved contributors, not anonymous public uploads.
+
+DATABASE TABLES
+---------------
+import_batches
+discoveries
+pet_discovery_matches
+import_issues
+
+NEXT RELEASE
+------------
+- Contributor accounts instead of a shared submission key
+- Admin review queue
+- Searchable public database
+- Import history page
+- Confidence and independent-verification tracking
