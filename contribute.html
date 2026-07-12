@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=1.4.0">
+  <link rel="stylesheet" href="styles.css?v=1.5.0">
   <link rel="stylesheet" href="catalog.css?v=1.4.0">
 </head>
 <body>
@@ -41,13 +41,13 @@
             <p class="kicker">CONTRIBUTE SAVE DATA</p>
             <h2>Turn a character save into reviewed Wonder records.</h2>
             <p>The current importer reads a decoded character JSON locally, shows the normalized records, removes known duplicates, and sends only the reviewed dataset to the pending queue.</p>
-            <div class="feature-list"><div><span>✓</span><p>Raw character JSON stays on the device.</p></div><div><span>✓</span><p>Approved records retain contributor attribution.</p></div><div><span>✓</span><p>Steam and Xbox folder selection is planned for Wonder Save Finder.</p></div></div>
+            <div class="feature-list"><div><span>✓</span><p>Raw character JSON stays on the device.</p></div><div><span>✓</span><p>Approved records retain contributor attribution.</p></div><div><span>✓</span><p>Steam/GOG and Xbox/Game Pass PC folders can be decoded locally through Wonder Save Finder.</p></div></div>
             <a class="button primary" href="import.html">Open save-data importer →</a>
           </div>
           <aside class="screenshot-guide surface">
             <p class="kicker">WONDER SAVE FINDER</p><h3>Permission-based folder selection</h3>
-            <p class="notice">Alpha live now: choose a Steam/GOG folder, grant read-only browser access, and select any decoded character JSON found there. Raw <code>save*.hg</code> slots are detected while direct decoding is researched.</p>
-            <div class="roadmap-callout"><div><strong>No companion app required</strong><p>The user explicitly chooses the folder. Xbox/Game Pass WGS reconstruction is next.</p></div><span class="status-chip verified">Alpha live</span></div><a class="mini-link primary" href="import.html#saveFinder">Open Save Finder alpha</a>
+            <p class="notice">Alpha live now: choose a Steam/GOG or Xbox/Game Pass PC folder, grant read-only browser access, reconstruct a character slot, and decode its HG data locally.</p>
+            <div class="roadmap-callout"><div><strong>No companion app required</strong><p>The user explicitly chooses the folder. Steam HG and Xbox WGS decoding happen locally in the browser.</p></div><span class="status-chip verified">Alpha live</span></div><a class="mini-link primary" href="import.html#saveFinder">Open Save Finder alpha</a>
           </aside>
         </div>
       </section>
@@ -116,8 +116,8 @@
   </main>
 
   <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Community Contributions</small></span></a><p>Raw saves stay local. Public evidence is reviewed. Attribution remains attached.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="import.html">Save data</a><a href="index.html#roadmap">Roadmap</a></div></footer>
-  <script src="script.js?v=1.4.0"></script>
+  <script src="script.js?v=1.5.0"></script>
   <script src="glyphs.js?v=1.4.0"></script>
-  <script src="contribute.js?v=1.4.0"></script>
+  <script src="contribute.js?v=1.5.0"></script>
 </body>
 </html>

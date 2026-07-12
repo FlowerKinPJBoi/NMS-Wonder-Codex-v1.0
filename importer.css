@@ -86,3 +86,19 @@
 .finder-group.ignored summary{cursor:pointer;color:var(--muted);font-weight:700}
 .finder-file.ignored{opacity:.72;border-style:dashed}
 .submit-button:disabled{opacity:.48;cursor:not-allowed;filter:saturate(.35)}
+
+/* v1.5 Steam HG + Xbox/Game Pass WGS */
+.finder-platform-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:18px}
+.finder-path-guide{margin-top:0;height:100%;display:flex;flex-direction:column}
+.finder-path-guide.xbox-guide{border-color:rgba(174,142,255,.28);background:rgba(174,142,255,.045)}
+.finder-path-guide .save-finder-actions.compact{margin-top:auto;padding-top:8px}
+.finder-path-copy{max-width:100%}
+.finder-path-copy code{max-width:min(520px,100%);overflow-wrap:anywhere}
+.finder-privacy-note{margin:16px 0 12px;padding:12px 14px;border-radius:12px;background:rgba(115,241,189,.055);border:1px solid rgba(115,241,189,.18);color:var(--muted);font-size:.88rem}
+.finder-privacy-note strong{color:var(--green)}
+.manifest-actions{margin:12px 0 0}
+.finder-results.busy{opacity:.64;pointer-events:none}
+.finder-error{color:#ff9cac}
+.finder-file.ready b{color:var(--cyan)}
+.finder-group.ignored .finder-file.ready{opacity:1;border-style:solid}
+@media(max-width:1080px){.finder-platform-grid{grid-template-columns:1fr}}

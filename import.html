@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=1.4.0">
-  <link rel="stylesheet" href="importer.css?v=1.4.2">
+  <link rel="stylesheet" href="styles.css?v=1.5.0">
+  <link rel="stylesheet" href="importer.css?v=1.5.0">
   <style>
     .stars { pointer-events: none !important; }
     .native-file-picker { cursor: pointer; user-select: none; }
@@ -27,37 +27,58 @@
     <section class="import-hero">
       <p class="eyebrow">CONTRIBUTIONS HUB — SAVE DATA</p>
       <h1>Turn a character save into <span>reviewed Wonder data.</span></h1>
-      <p class="hero-copy">Choose a decoded character JSON, or grant read-only access to a Steam/GOG save folder. Every file is inspected locally in your browser; raw save data is never uploaded.</p>
+      <p class="hero-copy">Choose a decoded character JSON, a Steam/GOG save folder, or an Xbox/Game Pass PC WGS folder. Save slots are reconstructed and decoded locally; raw save data is never uploaded.</p>
     </section>
 
     <section class="section importer-panel" id="privacy">
       <div class="privacy-banner"><strong>Local processing</strong><span>Your raw character JSON stays on this device. Only the normalized Wonder records shown in the preview are submitted to the review queue.</span></div>
       <div class="save-finder-panel" id="saveFinder">
         <div class="save-finder-heading">
-          <div><p class="kicker">WONDER SAVE FINDER — ALPHA</p><h2>Select a Steam or GOG save folder.</h2><p>Grant read-only access once. Wonder Codex scans the selected folder locally, separates raw character slots from auxiliary cache files and only lets you select a verified decoded character export.</p></div>
-          <span class="finder-status-chip">Steam/GOG alpha</span>
+          <div><p class="kicker">WONDER SAVE FINDER — v1.5 ALPHA</p><h2>Select a Steam/GOG or Xbox/Game Pass PC save folder.</h2><p>Grant read-only access to the folder you choose. Wonder Codex reconstructs save slots and decodes HG data locally in your browser before handing the selected character to the existing Wonder analyzer.</p></div>
+          <span class="finder-status-chip">Local decoding</span>
         </div>
-        <div class="finder-path-guide">
-          <div class="finder-path-row">
-            <div><strong>Windows Steam / GOG save root</strong><p>The folder dialog may open on Desktop or the last folder you used. That is normal browser behavior.</p></div>
-            <div class="finder-path-copy"><code id="steamSavePath">%AppData%\HelloGames\NMS</code><button class="mini-copy" id="copySteamPath" type="button">Copy path</button></div>
-          </div>
-          <ol>
-            <li>Click <strong>Choose Steam/GOG save folder</strong>.</li>
-            <li>In the Windows folder dialog, press <kbd>Ctrl</kbd> + <kbd>L</kbd>, paste the path above, and press <kbd>Enter</kbd>.</li>
-            <li>Select the <code>NMS</code> folder or the account folder beginning with <code>st_</code>, then click <strong>Upload</strong> or <strong>Select folder</strong>.</li>
-          </ol>
-          <p class="finder-browser-note">Edge or Chrome can remember the chosen folder for later visits. Firefox uses the fallback folder selector and may start at Desktop each time.</p>
+
+        <div class="finder-platform-grid">
+          <article class="finder-path-guide">
+            <div class="finder-path-row">
+              <div><strong>Steam / GOG on Windows</strong><p>Select the NMS folder or the account folder beginning with <code>st_</code>.</p></div>
+              <div class="finder-path-copy"><code id="steamSavePath">%AppData%\HelloGames\NMS</code><button class="mini-copy" id="copySteamPath" type="button">Copy path</button></div>
+            </div>
+            <ol>
+              <li>Click <strong>Choose Steam/GOG save folder</strong>.</li>
+              <li>Press <kbd>Ctrl</kbd> + <kbd>L</kbd>, paste the path above, and press <kbd>Enter</kbd>.</li>
+              <li>Select <code>NMS</code> or the <code>st_…</code> account folder.</li>
+            </ol>
+            <div class="save-finder-actions compact">
+              <button class="button primary" id="chooseSteamFolder" type="button">Choose Steam/GOG folder</button>
+              <label class="button secondary folder-fallback" for="saveFolderInput">Steam folder — fallback</label>
+              <input id="saveFolderInput" type="file" webkitdirectory directory multiple hidden>
+            </div>
+          </article>
+
+          <article class="finder-path-guide xbox-guide">
+            <div class="finder-path-row">
+              <div><strong>Xbox App / Game Pass PC</strong><p>Select the package folder, <code>SystemAppData</code>, <code>wgs</code>, or the long account folder containing <code>containers.index</code>.</p></div>
+              <div class="finder-path-copy"><code id="xboxSavePath">%LOCALAPPDATA%\Packages\HelloGames.NoMansSky_bs190hzg1sesy\SystemAppData\wgs</code><button class="mini-copy" id="copyXboxPath" type="button">Copy path</button></div>
+            </div>
+            <ol>
+              <li>Click <strong>Choose Xbox/Game Pass folder</strong>.</li>
+              <li>Press <kbd>Ctrl</kbd> + <kbd>L</kbd>, paste the path above, and press <kbd>Enter</kbd>.</li>
+              <li>Select <code>wgs</code> or its long account-ID folder.</li>
+            </ol>
+            <div class="save-finder-actions compact">
+              <button class="button primary" id="chooseXboxFolder" type="button">Choose Xbox/Game Pass folder</button>
+              <label class="button secondary folder-fallback" for="xboxFolderInput">Game Pass folder — fallback</label>
+              <input id="xboxFolderInput" type="file" webkitdirectory directory multiple hidden>
+            </div>
+          </article>
         </div>
-        <div class="save-finder-actions">
-          <button class="button primary" id="chooseSteamFolder" type="button">Choose Steam/GOG save folder</button>
-          <label class="button secondary folder-fallback" for="saveFolderInput">Choose folder — browser fallback</label>
-          <input id="saveFolderInput" type="file" webkitdirectory directory multiple hidden>
-          <button class="button secondary" id="downloadSaveManifest" type="button" hidden>Download local scan manifest</button>
-        </div>
-        <p class="finder-support" id="saveFinderSupport">Nothing is uploaded merely by selecting a folder. Wonder Codex reads the chosen files locally. Only verified decoded character exports are selectable. Raw <code>save*.hg</code> slots are detected but cannot be analyzed until the direct decoder is complete; cache JSON files are ignored.</p>
+
+        <div class="finder-privacy-note"><strong>Read-only and local:</strong> selecting a folder does not upload it. Only normalized Wonder records shown in the preview can be sent to the review queue.</div>
+        <p class="finder-support" id="saveFinderSupport">Choose a platform folder above. Steam HG slots and Xbox WGS container data are decoded on this device. A manual decoded-JSON option remains below.</p>
         <div class="save-finder-results" id="saveFinderResults" hidden></div>
-        <div class="finder-next"><strong>Xbox / Game Pass WGS</strong><span>Next research phase: container reconstruction and slot decoding.</span></div>
+        <div class="save-finder-actions manifest-actions"><button class="button secondary" id="downloadSaveManifest" type="button" hidden>Download metadata-only scan manifest</button></div>
+        <div class="finder-next"><strong>Alpha testing</strong><span>Folder layouts vary. Failed slots remain local and can be documented through the redacted scan manifest.</span></div>
       </div>
       <div class="source-divider"><span>or choose a decoded JSON manually</span></div>
       <div class="upload-box" id="dropZone">
@@ -107,8 +128,8 @@
     </section>
   </main>
 
-  <footer><div><strong>Wonder Codex</strong><p>Evidence first. Conclusions second.</p></div><div class="footer-note"><p>Web Importer v1.4.2 — slot classification + empty-submission guard</p><p>Independent community project. Not affiliated with Hello Games.</p></div></footer>
-  <script src="script.js?v=1.4.0"></script>
-  <script src="importer.js?v=1.4.2"></script>
+  <footer><div><strong>Wonder Codex</strong><p>Evidence first. Conclusions second.</p></div><div class="footer-note"><p>Web Importer v1.5.0 — Steam HG + Xbox/Game Pass WGS alpha</p><p>Independent community project. Not affiliated with Hello Games.</p></div></footer>
+  <script src="script.js?v=1.5.0"></script>
+  <script src="importer.js?v=1.5.0"></script>
 </body>
 </html>
