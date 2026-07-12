@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>WonderCodexImporter</AssemblyName>
+    <RootNamespace>WonderCodex.Importer</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\wonder-codex.ico</ApplicationIcon>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <Version>0.1.0</Version>
+    <Authors>Wonder Codex Community</Authors>
+    <Product>Wonder Codex Importer</Product>
+    <Description>Read-only No Man's Sky Wonder data importer.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WonderCodex.Importer.Core\WonderCodex.Importer.Core.csproj" />
+    <PackageReference Include="Avalonia" Version="12.1.0" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.0" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.0" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.0" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="12.1.0" Condition="'$(Configuration)' == 'Debug'" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+</Project>

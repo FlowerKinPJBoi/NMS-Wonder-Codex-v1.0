@@ -1,0 +1,138 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="WonderCodex.Importer.MainWindow"
+        Title="Wonder Codex Importer"
+        Width="1320"
+        Height="860"
+        MinWidth="1080"
+        MinHeight="700"
+        WindowStartupLocation="CenterScreen"
+        Icon="avares://WonderCodexImporter/Assets/wonder-codex.ico">
+  <Grid RowDefinitions="Auto,*,Auto">
+    <Border Grid.Row="0" Background="#0B1122" BorderBrush="#223252" BorderThickness="0,0,0,1" Padding="24,18">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Spacing="3">
+          <TextBlock Classes="kicker" Text="WONDER CODEX IMPORTER — READ-ONLY PREVIEW" />
+          <TextBlock FontSize="27" FontWeight="Bold" Text="Choose an account. Choose a character. Contribute Wonders." />
+          <TextBlock Classes="muted" Text="Raw saves stay on this computer. This app contains no save-editing functions." />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+          <Border Background="#102B27" BorderBrush="#2A8A72" BorderThickness="1" CornerRadius="12" Padding="12,8">
+            <TextBlock Foreground="#7DF3C8" FontWeight="Bold" Text="✓ READ-ONLY SAVE ACCESS" />
+          </Border>
+          <Button Name="RescanButton" Classes="secondary" Content="Rescan saves" Click="RescanButton_OnClick" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" Margin="24" ColumnDefinitions="310,360,*" ColumnSpacing="16">
+      <Border Grid.Column="0" Classes="card">
+        <Grid RowDefinitions="Auto,Auto,*">
+          <TextBlock Classes="kicker" Text="1 — ACCOUNTS" />
+          <TextBlock Grid.Row="1" Classes="muted" Margin="0,7,0,12" Text="Detected automatically from Steam and Xbox / Game Pass PC." TextWrapping="Wrap" />
+          <ListBox Grid.Row="2" Name="AccountList" SelectionChanged="AccountList_OnSelectionChanged">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Border Background="#151D36" BorderBrush="#2A3A60" BorderThickness="1" CornerRadius="12" Padding="13" Margin="0,0,0,8">
+                  <StackPanel Spacing="4">
+                    <TextBlock FontWeight="Bold" FontSize="16" Text="{Binding DisplayName}" />
+                    <TextBlock Foreground="#67DDF2" FontSize="12" Text="{Binding PlatformLabel}" />
+                    <TextBlock Classes="muted" FontSize="12" Text="{Binding CharacterSummary}" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+
+      <Border Grid.Column="1" Classes="card">
+        <Grid RowDefinitions="Auto,Auto,*">
+          <TextBlock Classes="kicker" Text="2 — CHARACTERS" />
+          <TextBlock Grid.Row="1" Classes="muted" Margin="0,7,0,12" Text="Select one character to analyze locally." />
+          <ListBox Grid.Row="2" Name="CharacterList" SelectionChanged="CharacterList_OnSelectionChanged">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Border Background="#151D36" BorderBrush="#2A3A60" BorderThickness="1" CornerRadius="12" Padding="13" Margin="0,0,0,8">
+                  <StackPanel Spacing="4">
+                    <TextBlock FontWeight="Bold" FontSize="17" Text="{Binding DisplayName}" />
+                    <TextBlock Foreground="#AAB6D3" FontSize="12" Text="{Binding DetailLine}" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+
+      <ScrollViewer Grid.Column="2">
+        <StackPanel Spacing="16">
+          <Border Classes="card">
+            <Grid RowDefinitions="Auto,Auto,Auto">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel>
+                  <TextBlock Classes="kicker" Text="3 — LOCAL ANALYSIS" />
+                  <TextBlock Name="SelectedCharacterTitle" Margin="0,7,0,0" FontSize="24" FontWeight="Bold" Text="Select a character" />
+                  <TextBlock Name="SelectedCharacterDetail" Classes="muted" Text="No save has been selected." />
+                </StackPanel>
+                <Button Grid.Column="1" Name="AnalyzeButton" Classes="primary" Content="Analyze character" IsEnabled="False" Click="AnalyzeButton_OnClick" />
+              </Grid>
+              <TextBlock Grid.Row="1" Name="StatusText" Margin="0,16,0,0" Classes="muted" Text="Scanning known No Man's Sky save locations…" TextWrapping="Wrap" />
+              <ProgressBar Grid.Row="2" Name="BusyProgress" Margin="0,12,0,0" Height="5" IsIndeterminate="True" IsVisible="False" />
+            </Grid>
+          </Border>
+
+          <Border Classes="card">
+            <StackPanel Spacing="13">
+              <TextBlock Classes="kicker" Text="NORMALIZED PREVIEW" />
+              <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="10">
+                <Border Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="DiscoveriesCount" FontSize="25" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Discoveries"/></StackPanel></Border>
+                <Border Grid.Column="1" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="AnimalsCount" FontSize="25" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Animals"/></StackPanel></Border>
+                <Border Grid.Column="2" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="FloraCount" FontSize="25" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Flora"/></StackPanel></Border>
+                <Border Grid.Column="3" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="MineralsCount" FontSize="25" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Minerals"/></StackPanel></Border>
+              </Grid>
+              <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="10">
+                <Border Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="PetsCount" FontSize="22" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Pets"/></StackPanel></Border>
+                <Border Grid.Column="1" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="MatchesCount" FontSize="22" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Exact matches"/></StackPanel></Border>
+                <Border Grid.Column="2" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="GenerationsCount" FontSize="22" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Generation records"/></StackPanel></Border>
+                <Border Grid.Column="3" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="IssuesCount" FontSize="22" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Review notes"/></StackPanel></Border>
+              </Grid>
+              <Border Background="#090E1D" BorderBrush="#223252" BorderThickness="1" CornerRadius="12" Padding="12" Height="170">
+                <ScrollViewer>
+                  <ItemsControl Name="PreviewList">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock FontFamily="Consolas" FontSize="11" Foreground="#C5D0EA" Text="{Binding}" TextTrimming="CharacterEllipsis" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </Border>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card">
+            <StackPanel Spacing="12">
+              <TextBlock Classes="kicker" Text="4 — CONTRIBUTION" />
+              <TextBlock Classes="muted" Text="Only the normalized records shown above are sent to the Wonder Codex review queue." TextWrapping="Wrap" />
+              <TextBox Name="ContributorBox" Watermark="Contributor name" />
+              <CheckBox Name="PrivateAttributionBox" Content="Keep my contributor name private on the public site" />
+              <TextBlock Classes="muted" FontSize="12" Text="Reviewers can still see your name. Public records will display Anonymous Contributor." TextWrapping="Wrap" />
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <TextBlock Name="SubmissionStatus" VerticalAlignment="Center" Classes="muted" Text="Analyze a character before submitting." TextWrapping="Wrap" />
+                <Button Grid.Column="1" Name="SubmitButton" Classes="primary" Content="Submit for review" IsEnabled="False" Click="SubmitButton_OnClick" />
+              </Grid>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+
+    <Border Grid.Row="2" Background="#0B1122" BorderBrush="#223252" BorderThickness="0,1,0,0" Padding="24,12">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" FontSize="12" Text="Read-only by design • No administrator rights • No raw-save upload • Independent community project" />
+        <TextBlock Grid.Column="1" Foreground="#67DDF2" FontWeight="Bold" Text="v0.1.0 trusted tester preview" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>
