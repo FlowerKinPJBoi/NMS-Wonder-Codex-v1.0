@@ -116,7 +116,7 @@
     const query = $('#queueSearch').value.trim().toLowerCase();
     const rows = state.submissions.filter((item) => `${item.contributor} ${item.save_name} ${item.id}`.toLowerCase().includes(query));
     $('#queueEmpty').hidden = rows.length > 0;
-    $('#queueList').innerHTML = rows.map((item) => `<button class="queue-item ${state.selectedSubmission === item.id ? 'active' : ''}" data-id="${escapeHtml(item.id)}" type="button"><div class="queue-item-top"><strong>${escapeHtml(item.save_name)}</strong><time>${escapeHtml(shortDate(item.created_at))}</time></div><div class="queue-item-sub">${escapeHtml(item.contributor)}${item.platform ? ` • ${escapeHtml(item.platform)}` : ''}</div><div class="queue-counts"><span>${number(item.discovery_count)} discoveries</span><span>${number(item.pet_match_count)} matches</span><span>${number(item.issue_count)} issues</span></div></button>`).join('');
+    $('#queueList').innerHTML = rows.map((item) => `<button class="queue-item ${state.selectedSubmission === item.id ? 'active' : ''}" data-id="${escapeHtml(item.id)}" type="button"><div class="queue-item-top"><strong>${escapeHtml(item.save_name)}</strong><time>${escapeHtml(shortDate(item.created_at))}</time></div><div class="queue-item-sub">${escapeHtml(item.contributor)}${item.public_attribution ? '' : ' • Private attribution'}${item.platform ? ` • ${escapeHtml(item.platform)}` : ''}</div><div class="queue-counts"><span>${number(item.discovery_count)} discoveries</span><span>${number(item.pet_match_count)} matches</span><span>${number(item.issue_count)} issues</span></div></button>`).join('');
     $$('#queueList .queue-item').forEach((button) => button.addEventListener('click', () => selectSubmission(button.dataset.id)));
   }
 
@@ -148,7 +148,7 @@
     $('#detailStatus').textContent = batch.status;
     $('#detailStatus').className = `detail-status ${batch.status}`;
     $('#detailSave').textContent = batch.save_name;
-    $('#detailContributor').textContent = `Contributor: ${batch.contributor}${batch.platform ? ` • ${batch.platform}` : ''}`;
+    $('#detailContributor').textContent = `Contributor: ${batch.contributor}${batch.public_attribution ? '' : ' • Private on public site'}${batch.platform ? ` • ${batch.platform}` : ''}`;
     $('#detailDiscoveries').textContent = number(counts.discoveries ?? state.submissionDetail.discoveries?.length);
     $('#detailMatches').textContent = number(counts.pet_matches ?? state.submissionDetail.pet_matches?.length);
     $('#detailIssues').textContent = number(counts.issues ?? state.submissionDetail.issues?.length);
@@ -241,7 +241,7 @@
     const query = $('#verificationSearch').value.trim().toLowerCase();
     const rows = state.verifications.filter((item) => `${item.contributor} ${item.wc_id} ${item.display_name} ${item.id}`.toLowerCase().includes(query));
     $('#verificationEmpty').hidden = rows.length > 0;
-    $('#verificationList').innerHTML = rows.map((item) => `<button class="queue-item ${state.selectedVerification === item.id ? 'active' : ''}" data-id="${escapeHtml(item.id)}" type="button"><div class="queue-item-top"><strong>${escapeHtml(item.wc_id)}</strong><time>${escapeHtml(shortDate(item.created_at))}</time></div><div class="queue-item-sub">${escapeHtml(item.display_name || 'Unnamed record')} • ${escapeHtml(item.contributor)}</div><div class="queue-counts"><span>${item.galaxy_number ? `Galaxy ${item.galaxy_number}` : 'No galaxy'}</span><span>${item.portal_glyphs || 'No glyphs'}</span></div></button>`).join('');
+    $('#verificationList').innerHTML = rows.map((item) => `<button class="queue-item ${state.selectedVerification === item.id ? 'active' : ''}" data-id="${escapeHtml(item.id)}" type="button"><div class="queue-item-top"><strong>${escapeHtml(item.wc_id)}</strong><time>${escapeHtml(shortDate(item.created_at))}</time></div><div class="queue-item-sub">${escapeHtml(item.display_name || 'Unnamed record')} • ${escapeHtml(item.contributor)}${item.public_attribution ? '' : ' • Private attribution'}</div><div class="queue-counts"><span>${item.galaxy_number ? `Galaxy ${item.galaxy_number}` : 'No galaxy'}</span><span>${item.portal_glyphs || 'No glyphs'}</span></div></button>`).join('');
     $$('#verificationList .queue-item').forEach((button) => button.addEventListener('click', () => selectVerification(button.dataset.id)));
   }
 
@@ -281,7 +281,7 @@
     $('#verificationStatus').className = `detail-status ${verification.status}`;
     $('#verificationWcId').textContent = discovery.wc_id;
     $('#verificationName').textContent = discovery.display_name;
-    $('#verificationContributor').textContent = `Evidence from ${verification.contributor} • submitted ${dateTime(verification.created_at)}`;
+    $('#verificationContributor').textContent = `Evidence from ${verification.contributor}${verification.public_attribution ? '' : ' • Private on public site'} • submitted ${dateTime(verification.created_at)}`;
     $('#verificationPublicLink').href = `record.html?id=${discovery.id}`;
     $('#currentLocation').innerHTML = locationMarkup(discovery, false);
     $('#proposedLocation').innerHTML = locationMarkup(verification, true);
@@ -330,7 +330,7 @@
   // ---------- Catalog editor ----------
   async function loadCatalog() {
     const query = $('#catalogAdminSearch').value.trim();
-    const data = await api(`/discoveries?q=${encodeURIComponent(query)}&limit=100`);
+    const data = await api(`/admin/discoveries?q=${encodeURIComponent(query)}&limit=100`);
     state.catalogRecords = data.items || [];
     renderCatalogList();
   }
@@ -343,7 +343,7 @@
 
   async function selectCatalog(id) {
     try {
-      state.selectedCatalog = await api(`/discoveries/${id}`);
+      state.selectedCatalog = await api(`/admin/discoveries/${id}`);
       renderCatalogList();
       renderCatalogForm();
     } catch (error) { toast(error.message, true); }
@@ -355,7 +355,7 @@
     $('#catalogForm').hidden = false;
     $('#catalogWcId').textContent = record.wc_id;
     $('#catalogRecordName').textContent = record.display_name;
-    $('#catalogRecordData').textContent = `${record.discovery_type} • ${record.ua} • contributor ${record.contributor}`;
+    $('#catalogRecordData').textContent = `${record.discovery_type} • ${record.ua} • contributor ${record.contributor}${record.public_attribution ? '' : ' (private on public site)'}`;
     $('#catalogPublicLink').href = `record.html?id=${record.id}`;
     $('#catalogDisplayName').value = record.custom_display_name || '';
     $('#catalogGalaxyNumber').value = record.galaxy_number || '';
@@ -419,7 +419,7 @@
     const query = $('#imageSearch').value.trim().toLowerCase();
     const rows = state.images.filter((item) => `${item.contributor} ${item.wc_id} ${item.display_name} ${item.image_role}`.toLowerCase().includes(query));
     $('#imageEmpty').hidden = rows.length > 0;
-    $('#imageList').innerHTML = rows.map((item) => `<button class="queue-item ${state.selectedImage === item.id ? 'active' : ''}" data-id="${escapeHtml(item.id)}" type="button"><div class="queue-item-top"><strong>${escapeHtml(item.wc_id)}</strong><time>${escapeHtml(shortDate(item.created_at))}</time></div><div class="queue-item-sub">${escapeHtml(item.display_name || 'Unnamed record')} • ${escapeHtml(item.contributor)}</div><div class="queue-counts"><span>${escapeHtml(item.image_role.replaceAll('_',' '))}</span><span>${number(item.width)}×${number(item.height)}</span></div></button>`).join('');
+    $('#imageList').innerHTML = rows.map((item) => `<button class="queue-item ${state.selectedImage === item.id ? 'active' : ''}" data-id="${escapeHtml(item.id)}" type="button"><div class="queue-item-top"><strong>${escapeHtml(item.wc_id)}</strong><time>${escapeHtml(shortDate(item.created_at))}</time></div><div class="queue-item-sub">${escapeHtml(item.display_name || 'Unnamed record')} • ${escapeHtml(item.contributor)}${item.public_attribution ? '' : ' • Private attribution'}</div><div class="queue-counts"><span>${escapeHtml(item.image_role.replaceAll('_',' '))}</span><span>${number(item.width)}×${number(item.height)}</span></div></button>`).join('');
     $$('#imageList .queue-item').forEach((button) => button.addEventListener('click', () => selectImage(button.dataset.id)));
   }
 
@@ -450,7 +450,7 @@
     $('#imageStatus').className = `detail-status ${image.status}`;
     $('#imageWcId').textContent = discovery.wc_id;
     $('#imageName').textContent = discovery.display_name;
-    $('#imageContributorLine').textContent = `Image from ${image.contributor} • submitted ${dateTime(image.created_at)}`;
+    $('#imageContributorLine').textContent = `Image from ${image.contributor}${image.public_attribution ? '' : ' • Private on public site'} • submitted ${dateTime(image.created_at)}`;
     $('#imagePublicLink').href = `record.html?id=${discovery.id}`;
     $('#adminImage').src = image.preview_url;
     $('#adminImage').alt = `${discovery.wc_id} submitted by ${image.contributor}`;

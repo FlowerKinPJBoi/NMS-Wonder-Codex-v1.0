@@ -18,6 +18,7 @@ class SubmissionPayload(BaseModel):
     matches: list[dict[str, Any]] = Field(default_factory=list)
     discoveries: list[dict[str, Any]] = Field(default_factory=list)
     issues: list[dict[str, Any]] = Field(default_factory=list)
+    publicAttribution: bool = True
     website: str = ""  # honeypot
 
     @field_validator("contributor", "saveName")
@@ -59,6 +60,7 @@ class LocationVerificationPayload(BaseModel):
     discovery_present: bool = False
     projector_confirmed: bool = False
     notes: str = Field(default="", max_length=4000)
+    public_attribution: bool = True
     website: str = ""  # honeypot
 
     @field_validator("contributor", "galaxy_name")

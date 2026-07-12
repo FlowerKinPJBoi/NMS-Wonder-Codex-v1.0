@@ -125,6 +125,7 @@
     form.append('image_role', $('#imageRole').value);
     form.append('caption', $('#imageCaption').value.trim());
     form.append('permission_confirmed', 'true');
+    form.append('public_attribution', String(!$('#imagePrivateAttribution').checked));
     form.append('website', $('#imageWebsite').value);
     form.append('image', file, file.name);
 
@@ -137,7 +138,7 @@
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
       result.className = 'notice success';
-      result.innerHTML = `<strong>Image received!</strong><br>${escapeHtml(data.wc_id)} is now in the Admin Images queue.<br>Reference: <code>${escapeHtml(data.image_id)}</code>`;
+      result.innerHTML = `<strong>Image received!</strong><br>${escapeHtml(data.wc_id)} is now in the Admin Images queue.<br>${data.public_attribution ? 'Public attribution selected.' : 'Your public attribution will be Anonymous Contributor.'}<br>Reference: <code>${escapeHtml(data.image_id)}</code>`;
       button.textContent = 'Submitted ✓';
     } catch (error) {
       result.className = 'notice error';
@@ -168,6 +169,7 @@
       discovery_present: $('#verifyPresent').checked,
       projector_confirmed: $('#verifyProjector').checked,
       notes: $('#verifyNotes').value.trim(),
+      public_attribution: !$('#verifyPrivateAttribution').checked,
       website: $('#verificationWebsite').value,
     };
 
@@ -180,7 +182,7 @@
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
       result.className = 'notice success';
-      result.innerHTML = `<strong>Verification received!</strong><br>${escapeHtml(data.wc_id)} is now in the Admin Verifications queue.<br>Reference: <code>${escapeHtml(data.verification_id)}</code>`;
+      result.innerHTML = `<strong>Verification received!</strong><br>${escapeHtml(data.wc_id)} is now in the Admin Verifications queue.<br>${data.public_attribution ? 'Public attribution selected.' : 'Your public attribution will be Anonymous Contributor.'}<br>Reference: <code>${escapeHtml(data.verification_id)}</code>`;
       button.textContent = 'Submitted ✓';
     } catch (error) {
       result.className = 'notice error';

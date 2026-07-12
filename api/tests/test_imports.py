@@ -23,6 +23,7 @@ def sample_discovery() -> Discovery:
         platform="ST",
         record_hash="hash",
         raw_record={},
+        public_attribution=True,
         display_name="",
         galaxy_number=42,
         galaxy_name="Xobeurindj",
@@ -58,3 +59,12 @@ def test_verification_normalizes_glyphs():
 def test_catalog_update_accepts_admin_actor():
     update = CatalogUpdate(actor="PJ", display_name="Long-neck fauna")
     assert update.actor == "PJ"
+
+
+def test_private_attribution_masks_public_name():
+    row = sample_discovery()
+    row.public_attribution = False
+    payload = serialize_discovery(row, detail=True)
+    assert payload["contributor"] == "Anonymous Contributor"
+    assert payload["save_name"] == ""
+    assert payload["public_attribution"] is False

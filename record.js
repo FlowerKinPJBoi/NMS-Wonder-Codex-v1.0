@@ -36,13 +36,13 @@
         primary.removeAttribute('src');
         $('#recordImageCaption').textContent = 'The approved image could not be loaded. The archive returned an error; please report this record ID to an administrator.';
       };
-      const deliveryUrl = `${image.url}${image.url.includes('?') ? '&' : '?'}display=134`;
+      const deliveryUrl = `${image.url}${image.url.includes('?') ? '&' : '?'}display=140`;
       primary.src = deliveryUrl;
       primary.alt = `${record.wc_id} — ${image.role.replaceAll('_',' ')}`;
       $('#recordImageCaption').textContent = `${image.caption || image.role.replaceAll('_',' ')} • Image by ${image.contributor}`;
       $$('#recordThumbnails .record-thumbnail').forEach((button) => button.classList.toggle('active', button.dataset.id === image.id));
     };
-    $('#recordThumbnails').innerHTML = approved.map((image) => `<button class="record-thumbnail" type="button" data-id="${escapeHtml(image.id)}"><img src="${escapeHtml(image.url)}${image.url.includes('?') ? '&' : '?'}display=134" alt="${escapeHtml(image.role.replaceAll('_',' '))}"></button>`).join('');
+    $('#recordThumbnails').innerHTML = approved.map((image) => `<button class="record-thumbnail" type="button" data-id="${escapeHtml(image.id)}"><img src="${escapeHtml(image.url)}${image.url.includes('?') ? '&' : '?'}display=140" alt="${escapeHtml(image.role.replaceAll('_',' '))}"></button>`).join('');
     $$('#recordThumbnails .record-thumbnail').forEach((button) => button.addEventListener('click', () => show(approved.find((image) => image.id === button.dataset.id))));
     gallery.hidden = false;
     show(active);

@@ -49,6 +49,7 @@ def submit_verification(
         status="pending",
         submitter_ip_hash=ip_hash,
         user_agent=request.headers.get("user-agent", "")[:1000],
+        public_attribution=payload.public_attribution,
     )
     session.add(verification)
 
@@ -67,7 +68,8 @@ def submit_verification(
         "verification_id": verification_id,
         "discovery_id": discovery.id,
         "wc_id": wc_id(discovery),
-        "contributor": contributor,
+        "contributor": contributor if payload.public_attribution else "Anonymous Contributor",
+        "public_attribution": payload.public_attribution,
     }
 
 

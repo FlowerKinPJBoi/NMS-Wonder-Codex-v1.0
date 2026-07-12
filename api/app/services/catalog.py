@@ -34,6 +34,10 @@ def display_name(discovery: Discovery) -> str:
     return f"{label} {wc_id(discovery)}"
 
 
+def public_contributor(name: str, is_public: bool) -> str:
+    return name if is_public else "Anonymous Contributor"
+
+
 def serialize_discovery(discovery: Discovery, *, detail: bool = False) -> dict[str, Any]:
     item: dict[str, Any] = {
         "id": discovery.id,
@@ -41,9 +45,10 @@ def serialize_discovery(discovery: Discovery, *, detail: bool = False) -> dict[s
         "display_name": display_name(discovery),
         "custom_display_name": discovery.display_name,
         "discovery_type": discovery.discovery_type,
-        "contributor": discovery.contributor,
-        "save_name": discovery.save_name,
-        "owner": discovery.owner,
+        "contributor": public_contributor(discovery.contributor, discovery.public_attribution),
+        "save_name": discovery.save_name if discovery.public_attribution else "",
+        "public_attribution": discovery.public_attribution,
+        "owner": discovery.owner if discovery.public_attribution else "",
         "platform": discovery.platform,
         "created_at": discovery.created_at.isoformat(),
         "updated_at": discovery.updated_at.isoformat() if discovery.updated_at else None,

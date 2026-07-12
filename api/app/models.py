@@ -26,6 +26,7 @@ class SubmissionBatch(Base):
     submitter_ip_hash: Mapped[str] = mapped_column(String(64), default="", nullable=False)
     user_agent: Mapped[str] = mapped_column(Text, default="", nullable=False)
     reviewer_note: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    public_attribution: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     discoveries: Mapped[list["SubmittedDiscovery"]] = relationship(cascade="all, delete-orphan")
     pet_matches: Mapped[list["SubmittedPetMatch"]] = relationship(cascade="all, delete-orphan")
@@ -123,6 +124,7 @@ class Discovery(Base):
     platform: Mapped[str] = mapped_column(String(40), default="", nullable=False)
     record_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     raw_record: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    public_attribution: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Catalog curation fields. WC IDs are derived from discovery type + immutable numeric id.
     display_name: Mapped[str] = mapped_column(String(200), default="", nullable=False)
@@ -160,6 +162,7 @@ class PetDiscoveryMatch(Base):
     message_id: Mapped[str] = mapped_column(Text, default="", nullable=False)
     record_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     raw_record: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    public_attribution: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
 class LocationVerification(Base):
@@ -181,6 +184,7 @@ class LocationVerification(Base):
     reviewer_note: Mapped[str] = mapped_column(Text, default="", nullable=False)
     submitter_ip_hash: Mapped[str] = mapped_column(String(64), default="", nullable=False)
     user_agent: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    public_attribution: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
 class ImageContribution(Base):
@@ -206,6 +210,7 @@ class ImageContribution(Base):
     is_primary: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
     submitter_ip_hash: Mapped[str] = mapped_column(String(64), default="", nullable=False)
     user_agent: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    public_attribution: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
 class AuditEvent(Base):

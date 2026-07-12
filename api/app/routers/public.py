@@ -3,12 +3,12 @@ from __future__ import annotations
 import re
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import distinct, func, or_, select
+from sqlalchemy import and_, distinct, func, or_, select
 from sqlalchemy.orm import Session
 
 from ..database import get_session
 from ..models import Discovery, ImageContribution, LocationVerification, PetDiscoveryMatch, SubmissionBatch
-from ..services.catalog import serialize_discovery
+from ..services.catalog import public_contributor, serialize_discovery
 
 router = APIRouter(tags=["public"])
 
@@ -48,9 +48,11 @@ def public_stats(session: Session = Depends(get_session)):
         "images_needed": session.scalar(
             select(func.count()).select_from(Discovery).where(Discovery.image_status == "needed")
         ) or 0,
-        "contributors": session.scalar(
-            select(func.count(distinct(Discovery.contributor))).select_from(Discovery)
-        ) or 0,
+        "contributors": (session.scalar(
+            select(func.count(distinct(Discovery.contributor))).select_from(Discovery).where(Discovery.public_attribution.is_(True))
+        ) or 0) + (1 if session.scalar(
+            select(func.count()).select_from(Discovery).where(Discovery.public_attribution.is_(False))
+        ) else 0),
         "types": {
             "Animal": type_counts.get("Animal", 0),
             "Flora": type_counts.get("Flora", 0),
@@ -90,8 +92,8 @@ def list_discoveries(
             pattern = f"%{cleaned_query}%"
             conditions.append(or_(
                 Discovery.display_name.ilike(pattern),
-                Discovery.contributor.ilike(pattern),
-                Discovery.owner.ilike(pattern),
+                and_(Discovery.public_attribution.is_(True), Discovery.contributor.ilike(pattern)),
+                and_(Discovery.public_attribution.is_(True), Discovery.owner.ilike(pattern)),
                 Discovery.ua.ilike(pattern),
                 Discovery.message_id.ilike(pattern),
                 Discovery.galaxy_name.ilike(pattern),
@@ -163,7 +165,8 @@ def get_discovery(discovery_id: int, session: Session = Depends(get_session)):
         "cdn_url": image.public_url,
         "role": image.image_role,
         "caption": image.caption,
-        "contributor": image.contributor,
+        "contributor": public_contributor(image.contributor, image.public_attribution),
+        "public_attribution": image.public_attribution,
         "width": image.width,
         "height": image.height,
         "is_primary": image.is_primary,

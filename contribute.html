@@ -9,8 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=1.3.0">
-  <link rel="stylesheet" href="catalog.css?v=1.3.0">
+  <link rel="stylesheet" href="styles.css?v=1.4.0">
+  <link rel="stylesheet" href="catalog.css?v=1.4.0">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
@@ -46,8 +46,8 @@
           </div>
           <aside class="screenshot-guide surface">
             <p class="kicker">WONDER SAVE FINDER</p><h3>Permission-based folder selection</h3>
-            <p class="notice">Planned: choose Steam or Xbox/Game Pass, grant browser access to the save folder, select a character slot, and hand it directly to the existing local analyzer.</p>
-            <div class="roadmap-callout"><div><strong>No companion app required</strong><p>The user explicitly chooses the folder and save slot.</p></div><span class="status-chip pending">Planned</span></div>
+            <p class="notice">Alpha live now: choose a Steam/GOG folder, grant read-only browser access, and select any decoded character JSON found there. Raw <code>save*.hg</code> slots are detected while direct decoding is researched.</p>
+            <div class="roadmap-callout"><div><strong>No companion app required</strong><p>The user explicitly chooses the folder. Xbox/Game Pass WGS reconstruction is next.</p></div><span class="status-chip verified">Alpha live</span></div><a class="mini-link primary" href="import.html#saveFinder">Open Save Finder alpha</a>
           </aside>
         </div>
       </section>
@@ -64,7 +64,8 @@
               <div id="imagePreview" class="image-preview"><span>No screenshot selected.</span></div>
               <div class="form-grid"><label class="field">Contributor name<input id="imageContributor" type="text" placeholder="Your community name"></label><label class="field">Image role<select id="imageRole"><option value="primary_catalog">Primary catalog image</option><option value="full_specimen">Full specimen</option><option value="side_view">Side view</option><option value="front_view">Front view</option><option value="scale_reference">Scale reference</option><option value="environment">Environment</option><option value="projector_confirmation">Projector confirmation</option><option value="portal_location_evidence">Portal / location evidence</option></select></label></div>
               <label class="field">Caption or reviewer note<textarea id="imageCaption" rows="3" placeholder="Anything the reviewer should know about this image?"></textarea></label>
-              <label class="checkbox-row"><input id="imagePermission" type="checkbox"><span>I created this screenshot or have permission to submit it, and I allow Wonder Codex to display it with attribution.</span></label>
+              <label class="checkbox-row"><input id="imagePermission" type="checkbox"><span>I created this screenshot or have permission to submit it, and I allow Wonder Codex to display it after approval.</span></label>
+              <label class="checkbox-row privacy-option"><input id="imagePrivateAttribution" type="checkbox"><span>Keep my contributor name private on the public image gallery. Reviewers will still see it.</span></label>
               <input id="imageWebsite" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="honeypot"><button id="submitImage" class="button primary" type="submit" disabled>Submit image for review</button><div id="imageResult" class="notice" hidden></div>
             </form>
           </div>
@@ -93,6 +94,7 @@
                 <label class="checkbox-row"><input id="verifyProjector" type="checkbox"><span>The Message ID reproduced the expected Wonder in a projector.</span></label>
               </div>
               <label class="field">Evidence notes<textarea id="verifyNotes" rows="4" maxlength="4000" placeholder="Describe what you checked, differences found, planet details, or anything the reviewer should know."></textarea></label>
+              <label class="checkbox-row privacy-option"><input id="verifyPrivateAttribution" type="checkbox"><span>Keep my contributor name private on the public site. Reviewers will still see it.</span></label>
               <input id="verificationWebsite" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="honeypot">
               <button id="submitVerification" class="button primary" type="submit" disabled>Submit verification for review</button>
               <div id="verificationResult" class="notice" hidden></div>
@@ -114,8 +116,8 @@
   </main>
 
   <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Community Contributions</small></span></a><p>Raw saves stay local. Public evidence is reviewed. Attribution remains attached.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="import.html">Save data</a><a href="index.html#roadmap">Roadmap</a></div></footer>
-  <script src="script.js?v=1.3.0"></script>
-  <script src="glyphs.js?v=1.3.0"></script>
-  <script src="contribute.js?v=1.3.0"></script>
+  <script src="script.js?v=1.4.0"></script>
+  <script src="glyphs.js?v=1.4.0"></script>
+  <script src="contribute.js?v=1.4.0"></script>
 </body>
 </html>

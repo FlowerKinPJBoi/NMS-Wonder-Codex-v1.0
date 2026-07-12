@@ -59,6 +59,7 @@ def submit(payload: SubmissionPayload, request: Request, session: Session = Depe
             "summary": cleaned_summary,
             "discoveries": len(payload.discoveries),
             "matches": len(payload.matches),
+            "public_attribution": payload.publicAttribution,
         })
 
         batch = SubmissionBatch(
@@ -72,6 +73,7 @@ def submit(payload: SubmissionPayload, request: Request, session: Session = Depe
             summary=cleaned_summary,
             submitter_ip_hash=ip_hash,
             user_agent=_clip(request.headers.get("user-agent", ""), 1000),
+            public_attribution=payload.publicAttribution,
         )
         session.add(batch)
         session.flush()
@@ -183,6 +185,7 @@ def submit(payload: SubmissionPayload, request: Request, session: Session = Depe
         "submission_id": batch_id,
         "contributor": contributor,
         "save_name": save_name,
+        "public_attribution": payload.publicAttribution,
         "received": {
             "discoveries": len(discovery_rows),
             "pet_matches": len(match_rows),

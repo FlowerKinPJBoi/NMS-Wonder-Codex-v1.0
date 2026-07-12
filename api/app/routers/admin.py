@@ -27,6 +27,14 @@ from ..services.storage import delete_object, signed_review_url, verify_object
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin_key)])
 
 
+def _admin_discovery_payload(discovery: Discovery, *, detail: bool = False):
+    payload = serialize_discovery(discovery, detail=detail)
+    payload["contributor"] = discovery.contributor
+    payload["save_name"] = discovery.save_name
+    payload["public_attribution"] = discovery.public_attribution
+    return payload
+
+
 @router.get("/summary")
 def admin_summary(session: Session = Depends(get_session)):
     return {
@@ -90,6 +98,7 @@ def list_submissions(
             "platform": batch.platform,
             "status": batch.status,
             "reviewer_note": batch.reviewer_note,
+            "public_attribution": batch.public_attribution,
             "summary": batch.summary,
             "discovery_count": session.scalar(
                 select(func.count()).select_from(SubmittedDiscovery).where(
@@ -161,6 +170,7 @@ def get_submission(batch_id: str, session: Session = Depends(get_session)):
             "status": batch.status,
             "summary": batch.summary,
             "reviewer_note": batch.reviewer_note,
+            "public_attribution": batch.public_attribution,
         },
         "counts": counts,
         "discoveries": [row.raw_record for row in discoveries],
@@ -201,6 +211,7 @@ def approve_submission(batch_id: str, action: ReviewAction, session: Session = D
         "platform": row.platform,
         "record_hash": row.record_hash,
         "raw_record": row.raw_record,
+        "public_attribution": batch.public_attribution,
     } for row in submitted_discoveries]
 
     match_rows = [{
@@ -220,6 +231,7 @@ def approve_submission(batch_id: str, action: ReviewAction, session: Session = D
         "message_id": row.message_id,
         "record_hash": row.record_hash,
         "raw_record": row.raw_record,
+        "public_attribution": batch.public_attribution,
     } for row in submitted_matches]
 
     discoveries_added = insert_conflict_safe(
@@ -256,6 +268,7 @@ def approve_submission(batch_id: str, action: ReviewAction, session: Session = D
             "discoveries_added": discoveries_added,
             "matches_added": matches_added,
             "note": action.note,
+            "public_attribution": batch.public_attribution,
         },
     ))
     session.commit()
@@ -348,6 +361,7 @@ def list_verifications(
             "reviewed_at": row.reviewed_at.isoformat() if row.reviewed_at else None,
             "status": row.status,
             "contributor": row.contributor,
+            "public_attribution": row.public_attribution,
             "discovery_id": row.discovery_id,
             "wc_id": wc_id(discovery) if discovery else f"Record {row.discovery_id}",
             "display_name": discovery.display_name if discovery and discovery.display_name else "",
@@ -377,6 +391,7 @@ def get_verification(verification_id: str, session: Session = Depends(get_sessio
             "reviewed_at": row.reviewed_at.isoformat() if row.reviewed_at else None,
             "status": row.status,
             "contributor": row.contributor,
+            "public_attribution": row.public_attribution,
             "galaxy_number": row.galaxy_number,
             "galaxy_name": row.galaxy_name,
             "portal_glyphs": row.portal_glyphs,
@@ -386,7 +401,7 @@ def get_verification(verification_id: str, session: Session = Depends(get_sessio
             "notes": row.notes,
             "reviewer_note": row.reviewer_note,
         },
-        "discovery": serialize_discovery(discovery, detail=True),
+        "discovery": _admin_discovery_payload(discovery, detail=True),
     }
 
 
@@ -439,7 +454,7 @@ def approve_verification(
         "ok": True,
         "status": "approved",
         "location_applied": location_applied,
-        "discovery": serialize_discovery(discovery, detail=True),
+        "discovery": _admin_discovery_payload(discovery, detail=True),
     }
 
 
@@ -475,6 +490,37 @@ def reject_verification(
     return {"ok": True, "status": "rejected"}
 
 
+@router.get("/discoveries")
+def admin_list_discoveries(
+    q: str = Query(default="", max_length=200),
+    limit: int = Query(default=100, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    session: Session = Depends(get_session),
+):
+    query = select(Discovery)
+    cleaned = " ".join(q.strip().split())
+    if cleaned:
+        pattern = f"%{cleaned}%"
+        query = query.where(
+            (Discovery.display_name.ilike(pattern))
+            | (Discovery.contributor.ilike(pattern))
+            | (Discovery.owner.ilike(pattern))
+            | (Discovery.ua.ilike(pattern))
+            | (Discovery.message_id.ilike(pattern))
+            | (Discovery.galaxy_name.ilike(pattern))
+        )
+    rows = session.scalars(query.order_by(Discovery.id.desc()).limit(limit).offset(offset)).all()
+    return {"items": [_admin_discovery_payload(row) for row in rows], "limit": limit, "offset": offset}
+
+
+@router.get("/discoveries/{discovery_id}")
+def admin_get_discovery(discovery_id: int, session: Session = Depends(get_session)):
+    discovery = session.get(Discovery, discovery_id)
+    if not discovery:
+        raise HTTPException(status_code=404, detail="Wonder record not found.")
+    return _admin_discovery_payload(discovery, detail=True)
+
+
 @router.patch("/discoveries/{discovery_id}")
 def update_discovery_catalog(
     discovery_id: int,
@@ -507,7 +553,7 @@ def update_discovery_catalog(
     ))
     session.commit()
     session.refresh(discovery)
-    return {"ok": True, "discovery": serialize_discovery(discovery, detail=True)}
+    return {"ok": True, "discovery": _admin_discovery_payload(discovery, detail=True)}
 
 
 
@@ -534,6 +580,7 @@ def list_images(
             "reviewed_at": row.reviewed_at.isoformat() if row.reviewed_at else None,
             "status": row.status,
             "contributor": row.contributor,
+            "public_attribution": row.public_attribution,
             "discovery_id": row.discovery_id,
             "wc_id": wc_id(discovery) if discovery else f"Record {row.discovery_id}",
             "display_name": discovery.display_name if discovery and discovery.display_name else "",
@@ -564,6 +611,7 @@ def get_image(image_id: str, session: Session = Depends(get_session)):
             "reviewed_at": row.reviewed_at.isoformat() if row.reviewed_at else None,
             "status": row.status,
             "contributor": row.contributor,
+            "public_attribution": row.public_attribution,
             "image_role": row.image_role,
             "caption": row.caption,
             "reviewer_note": row.reviewer_note,
@@ -577,7 +625,7 @@ def get_image(image_id: str, session: Session = Depends(get_session)):
             "public_url": f"/api/images/{row.id}/content" if row.status == "approved" else "",
             "cdn_url": row.public_url,
         },
-        "discovery": serialize_discovery(discovery, detail=True),
+        "discovery": _admin_discovery_payload(discovery, detail=True),
     }
 
 

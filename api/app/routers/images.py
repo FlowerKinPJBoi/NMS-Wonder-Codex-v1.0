@@ -36,6 +36,7 @@ async def submit_image(
     image_role: str = Form(...),
     caption: str = Form(default="", max_length=2000),
     permission_confirmed: bool = Form(...),
+    public_attribution: bool = Form(default=True),
     website: str = Form(default=""),
     image: UploadFile = File(...),
     session: Session = Depends(get_session),
@@ -88,6 +89,7 @@ async def submit_image(
         sha256=digest,
         submitter_ip_hash=ip_hash,
         user_agent=request.headers.get("user-agent", "")[:1000],
+        public_attribution=public_attribution,
     )
     session.add(row)
     if discovery.image_status == "needed":
@@ -101,6 +103,7 @@ async def submit_image(
         "wc_id": wc_id(discovery),
         "width": prepared.width,
         "height": prepared.height,
+        "public_attribution": public_attribution,
     }
 
 
