@@ -5,7 +5,7 @@ namespace WonderCodex.Importer.Core.Models;
 public sealed class AnalysisReport
 {
     [JsonPropertyName("version")]
-    public string Version { get; set; } = "Wonder Codex Importer 0.1.0";
+    public string Version { get; set; } = "Wonder Codex Importer 0.1.4";
 
     [JsonPropertyName("createdUTC")]
     public string CreatedUtc { get; set; } = DateTimeOffset.UtcNow.ToString("O");
@@ -47,10 +47,27 @@ public sealed class AnalysisReport
     public int IssueCount => Issues.Count;
 
     [JsonIgnore]
-    public IReadOnlyList<string> PreviewLines => Discoveries
-        .Take(100)
-        .Select(row => $"{Value(row, "DT", "Other"),-8}  {Value(row, "UA")}  {Value(row, "MessageID")}")
-        .ToArray();
+    public IReadOnlyList<string> PreviewLines
+    {
+        get
+        {
+            if (Discoveries.Count > 0)
+            {
+                return Discoveries
+                    .Take(100)
+                    .Select(row => $"{Value(row, "DT", "Other"),-8}  {Value(row, "UA")}  {Value(row, "MessageID")}")
+                    .ToArray();
+            }
+
+            return Issues
+                .Take(100)
+                .Select(row =>
+                    $"{Value(row, "Severity", "Info"),-10}  " +
+                    $"{Value(row, "RecordType", "Diagnostic"),-12}  " +
+                    $"{Value(row, "Issue")}")
+                .ToArray();
+        }
+    }
 
     private static string Value(IReadOnlyDictionary<string, object?> row, string key, string fallback = "")
         => row.TryGetValue(key, out var value) ? value?.ToString() ?? fallback : fallback;

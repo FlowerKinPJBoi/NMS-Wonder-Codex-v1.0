@@ -114,10 +114,30 @@ public sealed class XboxWgsSaveScanner
             }
         }
 
-        return characterCandidates
-            .GroupBy(character => character.DisplayName, StringComparer.OrdinalIgnoreCase)
+        var newestPerContainer = characterCandidates
+            .GroupBy(
+                character => Path.GetDirectoryName(character.SourcePath) ?? character.SourcePath,
+                StringComparer.OrdinalIgnoreCase)
             .Select(group => group.OrderByDescending(character => character.LastModifiedUtc).First())
             .OrderByDescending(character => character.LastModifiedUtc)
+            .ToArray();
+
+        var candidateNumber = 0;
+        return newestPerContainer
+            .Select(character =>
+            {
+                if (!string.Equals(character.DisplayName, "Detected character", StringComparison.OrdinalIgnoreCase))
+                    return character;
+
+                candidateNumber++;
+                var containerPath = Path.GetDirectoryName(character.SourcePath) ?? character.SourcePath;
+                var token = PathRedactor.AccountToken(containerPath);
+                return character with
+                {
+                    DisplayName = $"WGS candidate {candidateNumber}",
+                    SlotLabel = $"{character.SlotLabel} • container {token}"
+                };
+            })
             .ToArray();
     }
 }

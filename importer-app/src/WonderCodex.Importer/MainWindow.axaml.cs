@@ -120,8 +120,10 @@ public sealed partial class MainWindow : Window
             UpdateAnalysisDisplay(_report);
             if (_report.DiscoveryCount == 0 && _report.MatchCount == 0)
             {
-                StatusText.Text = "The save opened successfully, but no normalized Wonder records were found. Submission remains disabled.";
-                SubmissionStatus.Text = "Nothing can be submitted from an empty analysis.";
+                StatusText.Text =
+                    "Analysis ran successfully, but no normalized Wonder records were found. " +
+                    "The redacted diagnostic key profile is shown in the preview below.";
+                SubmissionStatus.Text = "Submission remains disabled while this WGS candidate is being identified.";
                 return;
             }
 

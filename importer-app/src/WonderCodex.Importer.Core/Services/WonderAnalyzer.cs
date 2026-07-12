@@ -16,6 +16,24 @@ public sealed class WonderAnalyzer
             ["Mineral"] = new(5, 2, 2)
         };
 
+    private static readonly HashSet<string> ReadableMarkers = new(StringComparer.Ordinal)
+    {
+        "CommonStateData",
+        "PlayerStateData",
+        "DiscoveryManagerData",
+        "PersistentPlayerBases",
+        "SaveName",
+        "CreatureID",
+        "CreatureSeed",
+        "SpeciesSeed",
+        "GenusSeed",
+        "GenerationID",
+        "DD",
+        "UA",
+        "DT",
+        "VP"
+    };
+
     public AnalysisReport Analyze(JsonElement root, SaveCharacter character)
     {
         var scan = Scan(root);
@@ -46,6 +64,9 @@ public sealed class WonderAnalyzer
         report.Summary["Mineral"] = mineralCount;
         report.Summary["Other"] = otherCount;
 
+        if (report.DiscoveryCount == 0 && report.MatchCount == 0)
+            AddEmptyAnalysisDiagnostics(root, scan, report);
+
         return report;
     }
 
@@ -54,6 +75,10 @@ public sealed class WonderAnalyzer
         var pets = new List<NodeReference>();
         var discoveries = new List<NodeReference>();
         var generationCount = 0;
+        var objectCount = 0;
+        var propertyCount = 0;
+        var shortPropertyCount = 0;
+        var readableMarkerCount = 0;
         var stack = new Stack<(JsonElement Element, string Path)>();
         stack.Push((root, "$"));
 
@@ -72,18 +97,73 @@ public sealed class WonderAnalyzer
                     break;
 
                 case JsonValueKind.Object:
+                    objectCount++;
                     if (LooksLikePet(element)) pets.Add(new NodeReference(path, element.Clone()));
                     if (LooksLikeDiscovery(element)) discoveries.Add(new NodeReference(path, element.Clone()));
                     if (element.TryGetProperty("GenerationID", out var generation) && generation.ValueKind == JsonValueKind.Array)
                         generationCount++;
 
                     foreach (var property in element.EnumerateObject())
+                    {
+                        propertyCount++;
+                        if (property.Name.Length <= 4) shortPropertyCount++;
+                        if (ReadableMarkers.Contains(property.Name)) readableMarkerCount++;
                         stack.Push((property.Value, $"{path}.{property.Name}"));
+                    }
                     break;
             }
         }
 
-        return new ScanData(pets, discoveries, generationCount);
+        var topLevelKeys = root.ValueKind == JsonValueKind.Object
+            ? root.EnumerateObject().Select(property => property.Name).Take(24).ToArray()
+            : [];
+
+        return new ScanData(
+            pets,
+            discoveries,
+            generationCount,
+            objectCount,
+            propertyCount,
+            shortPropertyCount,
+            readableMarkerCount,
+            topLevelKeys);
+    }
+
+    private static void AddEmptyAnalysisDiagnostics(JsonElement root, ScanData scan, AnalysisReport report)
+    {
+        var topLevel = scan.TopLevelKeys.Count == 0
+            ? "(none)"
+            : string.Join(", ", scan.TopLevelKeys);
+
+        var shortRatio = scan.PropertyCount == 0
+            ? 0d
+            : (double)scan.ShortPropertyCount / scan.PropertyCount;
+
+        report.Issues.Add(new Dictionary<string, object?>
+        {
+            ["Severity"] = "Diagnostic",
+            ["RecordType"] = "JSON",
+            ["Issue"] = $"Root kind: {root.ValueKind}. Top-level keys: {topLevel}"
+        });
+
+        report.Issues.Add(new Dictionary<string, object?>
+        {
+            ["Severity"] = "Diagnostic",
+            ["RecordType"] = "Key profile",
+            ["Issue"] =
+                $"{scan.ObjectCount:N0} objects; {scan.PropertyCount:N0} properties; " +
+                $"{shortRatio:P0} of property names are 4 characters or shorter; " +
+                $"{scan.ReadableMarkerCount:N0} readable save markers found."
+        });
+
+        report.Issues.Add(new Dictionary<string, object?>
+        {
+            ["Severity"] = "Diagnostic",
+            ["RecordType"] = "WGS",
+            ["Issue"] =
+                "No readable DD/UA/DT/VP Wonder structures were found in this candidate. " +
+                "This can mean the selected WGS object is not a character save, or the raw save keys still require mapping."
+        });
     }
 
     private static bool LooksLikePet(JsonElement element)
@@ -307,5 +387,13 @@ public sealed class WonderAnalyzer
 
     private sealed record TypeBlock(int TypeCode, int LayoutCode, int VpCount);
     private sealed record NodeReference(string Path, JsonElement Element);
-    private sealed record ScanData(List<NodeReference> Pets, List<NodeReference> Discoveries, int GenerationCount);
+    private sealed record ScanData(
+        List<NodeReference> Pets,
+        List<NodeReference> Discoveries,
+        int GenerationCount,
+        int ObjectCount,
+        int PropertyCount,
+        int ShortPropertyCount,
+        int ReadableMarkerCount,
+        IReadOnlyList<string> TopLevelKeys);
 }
