@@ -193,14 +193,14 @@ public sealed partial class MainWindow : Window
 
     private void UpdateAnalysisDisplay(AnalysisReport report)
     {
-        SetCount("DiscoveriesCount", report.DiscoveryCount);
-        SetCount("AnimalsCount", SummaryInt(report, "Animal"));
-        SetCount("FloraCount", SummaryInt(report, "Flora"));
-        SetCount("MineralsCount", SummaryInt(report, "Mineral"));
-        SetCount("PetsCount", SummaryInt(report, "pets"));
-        SetCount("MatchesCount", report.MatchCount);
-        SetCount("GenerationsCount", SummaryInt(report, "generations"));
-        SetCount("IssuesCount", report.IssueCount);
+        SetCount(DiscoveriesCount, report.DiscoveryCount);
+        SetCount(AnimalsCount, SummaryInt(report, "Animal"));
+        SetCount(FloraCount, SummaryInt(report, "Flora"));
+        SetCount(MineralsCount, SummaryInt(report, "Mineral"));
+        SetCount(PetsCount, SummaryInt(report, "pets"));
+        SetCount(MatchesCount, report.MatchCount);
+        SetCount(GenerationsCount, SummaryInt(report, "generations"));
+        SetCount(IssuesCount, report.IssueCount);
         PreviewList.ItemsSource = report.PreviewLines;
     }
 
@@ -210,12 +210,14 @@ public sealed partial class MainWindow : Window
         SubmitButton.IsEnabled = false;
         SubmissionStatus.Text = "Analyze a character before submitting.";
         PreviewList.ItemsSource = null;
-        foreach (var controlName in new[]
-                 {
-                     "DiscoveriesCount", "AnimalsCount", "FloraCount", "MineralsCount",
-                     "PetsCount", "MatchesCount", "GenerationsCount", "IssuesCount"
-                 })
-            SetCount(controlName, 0);
+        SetCount(DiscoveriesCount, 0);
+        SetCount(AnimalsCount, 0);
+        SetCount(FloraCount, 0);
+        SetCount(MineralsCount, 0);
+        SetCount(PetsCount, 0);
+        SetCount(MatchesCount, 0);
+        SetCount(GenerationsCount, 0);
+        SetCount(IssuesCount, 0);
     }
 
     private static int SummaryInt(AnalysisReport report, string key)
@@ -224,8 +226,8 @@ public sealed partial class MainWindow : Window
         return Convert.ToInt32(value);
     }
 
-    private void SetCount(string controlName, int value)
-        => FindControl<TextBlock>(controlName)!.Text = value.ToString("N0");
+    private static void SetCount(TextBlock control, int value)
+        => control.Text = value.ToString("N0");
 
     private void SetBusy(bool busy)
     {
