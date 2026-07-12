@@ -1,6 +1,5 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Markup.Xaml;
 using WonderCodex.Importer.Core.Models;
 using WonderCodex.Importer.Core.Services;
 
@@ -13,23 +12,9 @@ public sealed partial class MainWindow : Window
     private SaveCharacter? _selectedCharacter;
     private AnalysisReport? _report;
 
-    private ListBox AccountList => FindControl<ListBox>("AccountList")!;
-    private ListBox CharacterList => FindControl<ListBox>("CharacterList")!;
-    private Button RescanButton => FindControl<Button>("RescanButton")!;
-    private Button AnalyzeButton => FindControl<Button>("AnalyzeButton")!;
-    private Button SubmitButton => FindControl<Button>("SubmitButton")!;
-    private ProgressBar BusyProgress => FindControl<ProgressBar>("BusyProgress")!;
-    private TextBlock StatusText => FindControl<TextBlock>("StatusText")!;
-    private TextBlock SelectedCharacterTitle => FindControl<TextBlock>("SelectedCharacterTitle")!;
-    private TextBlock SelectedCharacterDetail => FindControl<TextBlock>("SelectedCharacterDetail")!;
-    private TextBlock SubmissionStatus => FindControl<TextBlock>("SubmissionStatus")!;
-    private TextBox ContributorBox => FindControl<TextBox>("ContributorBox")!;
-    private CheckBox PrivateAttributionBox => FindControl<CheckBox>("PrivateAttributionBox")!;
-    private ItemsControl PreviewList => FindControl<ItemsControl>("PreviewList")!;
-
     public MainWindow()
     {
-        AvaloniaXamlLoader.Load(this);
+        InitializeComponent();
         Opened += async (_, _) => await ScanAsync();
         Closed += (_, _) => _operationCancellation?.Cancel();
     }
