@@ -8,7 +8,7 @@ fileInput.addEventListener('change',()=>setFile(fileInput.files[0]));
 ['dragenter','dragover'].forEach(e=>dropZone.addEventListener(e,x=>{x.preventDefault();dropZone.classList.add('drag')}));
 ['dragleave','drop'].forEach(e=>dropZone.addEventListener(e,x=>{x.preventDefault();dropZone.classList.remove('drag')}));
 dropZone.addEventListener('drop',e=>setFile(e.dataTransfer.files[0]));
-function setFile(file,sourcePath=''){if(!file)return;selectedFile=file;const source=sourcePath?` • ${sourcePath}`:'';$('#fileName').textContent=`${file.name} — ${(file.size/1024/1024).toFixed(1)} MB${source}`;analyzeButton.disabled=false;$('#errorBox').hidden=true;}
+function setFile(file,sourcePath=''){if(!file)return;selectedFile=file;report=null;const source=sourcePath?` • ${sourcePath}`:'';$('#fileName').textContent=`${file.name} — ${(file.size/1024/1024).toFixed(1)} MB${source}`;analyzeButton.disabled=false;$('#submitDatabase').disabled=true;$('#submitDatabase').textContent='Submit to Wonder Database';$('#submitStatus').hidden=true;$('#results').hidden=true;$('#errorBox').hidden=true;}
 function progress(p,t){$('#progressWrap').hidden=false;$('#progressBar').style.width=p+'%';$('#progressText').textContent=t;}
 function norm(v){if(v===null||v===undefined||v==='')return null;if(typeof v==='number')return Math.trunc(v);if(typeof v==='boolean')return v?1:0;if(typeof v==='string'){try{return v.trim().toLowerCase().startsWith('0x')?Number(BigInt(v.trim())):Number(v.trim())}catch{return null}}return null}
 function big(v){if(v===null||v===undefined||v==='')return null;if(typeof v==='bigint')return v;if(typeof v==='number'&&Number.isFinite(v))return BigInt(Math.trunc(v));if(typeof v==='string'){try{return BigInt(v.trim())}catch{return null}}return null}
@@ -28,8 +28,8 @@ function download(name,content,type){const a=document.createElement('a');a.href=
 function build(root,scanResult){const saveName=root?.CommonStateData?.SaveName||root?.SaveName||'Unknown Save';const platform=root?.Platform||'';const index=new Map();for(const d of scanResult.discoveries){const k=discoveryKey(d.record);if(k){if(!index.has(k))index.set(k,[]);index.get(k).push(d)}}const matches=[],issues=[];for(const p of scanResult.pets){const pet=p.record,k=petKey(pet),candidates=index.get(k)||[];if(candidates.length===1){const d=candidates[0].record.DD;const secondary=seedPair(pet.CreatureSecondarySeed),vp4=d.VP.length>4?big(d.VP[4]):null;matches.push({CreatureID:String(pet.CreatureID).replace(/^\^/,''),CreatureType:pet.CreatureType?.CreatureType||'',UA:hx(d.UA),VP0:hx(d.VP[0]),VP1:hx(d.VP[1]),VP2:hx(d.VP[2]),VP3:hx(d.VP[3]),VP4:d.VP[4]!==undefined?hx(d.VP[4]):'',SecondarySeed:hx(secondary),SecondaryCheck:(secondary??0n)===(vp4??0n)?'Match':'Different',MessageID:messageId('Animal',d.UA,d.VP),PetPath:p.path,DiscoveryPath:candidates[0].path})}else issues.push({Severity:candidates.length?'Warning':'Info',RecordType:'Pet',CreatureID:String(pet.CreatureID).replace(/^\^/,''),UA:hx(pet.UA),Issue:candidates.length?'Multiple exact discovery candidates':'No exact DiscoveryData match',Path:p.path})}
 const discoveries=scanResult.discoveries.map(x=>{const d=x.record.DD,v=d.VP||[],o=x.record.OWS||{};return{DT:d.DT,UA:hx(d.UA),VP0:v[0]!==undefined?hx(v[0]):'',VP1:v[1]!==undefined?hx(v[1]):'',VP2:v[2]!==undefined?hx(v[2]):'',VP3:v[3]!==undefined?hx(v[3]):'',VP4:v[4]!==undefined?hx(v[4]):'',MessageID:messageId(d.DT,d.UA,v),Owner:o.USN||'',Platform:o.PTK||'',Path:x.path}});
 const counts={Animal:0,Flora:0,Mineral:0,Other:0};discoveries.forEach(d=>counts[d.DT]!==undefined?counts[d.DT]++:counts.Other++);return{version:'Wonder Web Importer 0.5',createdUTC:new Date().toISOString(),contributor:$('#contributor').value.trim(),publicAttribution:!privateAttribution.checked,saveName,platform,summary:{pets:scanResult.pets.length,discoveries:discoveries.length,generations:scanResult.generations.length,matches:matches.length,unmatchedPets:issues.filter(i=>i.RecordType==='Pet').length,...counts},matches,discoveries,issues}}
-analyzeButton.onclick=async()=>{try{$('#errorBox').hidden=true;$('#results').hidden=true;progress(8,'Reading character JSON…');await new Promise(r=>setTimeout(r,20));let text=await selectedFile.text();progress(28,'Parsing save…');let root;try{root=JSON.parse(text)}catch{root=JSON.parse(repair(text))}progress(50,'Finding pets, discoveries, and Wonder records…');await new Promise(r=>setTimeout(r,20));const s=scan(root);progress(72,'Matching Pet data to DiscoveryData…');report=build(root,s);progress(100,'Analysis complete.');render();}catch(e){$('#errorBox').hidden=false;$('#errorBox').textContent='Unable to analyze this file: '+e.message;$('#progressWrap').hidden=true}}
-function render(){$('#results').hidden=false;$('#saveTitle').textContent=report.saveName;const s=report.summary;const stats=[['Pets',s.pets],['Discoveries',s.discoveries],['Exact pet matches',s.matches],['Generation records',s.generations],['Animals',s.Animal],['Flora',s.Flora],['Minerals',s.Mineral],['Unmatched pets',s.unmatchedPets]];$('#statGrid').innerHTML=stats.map(([a,b])=>`<div class="stat"><strong>${b.toLocaleString()}</strong><span>${a}</span></div>`).join('');renderTable();$('#results').scrollIntoView({behavior:'smooth'})}
+analyzeButton.onclick=async()=>{try{$('#errorBox').hidden=true;$('#results').hidden=true;progress(8,'Reading character JSON…');await new Promise(r=>setTimeout(r,20));let text=await selectedFile.text();progress(28,'Parsing save…');let root;try{root=JSON.parse(text)}catch{root=JSON.parse(repair(text))}progress(50,'Finding pets, discoveries, and Wonder records…');await new Promise(r=>setTimeout(r,20));const s=scan(root);progress(72,'Matching Pet data to DiscoveryData…');report=build(root,s);const usable=report.discoveries.length>0||report.matches.length>0;if(!usable){report=null;progress(100,'No Wonder records found.');$('#errorBox').hidden=false;$('#errorBox').innerHTML='<strong>This is not a usable decoded character save.</strong><br>No Wonder discoveries or exact pet matches were found. Cache JSON files and raw Steam/GOG <code>.hg</code> slots cannot be submitted. Choose a decoded save-editor JSON export while raw-save decoding is under development.';$('#submitDatabase').disabled=true;return}progress(100,'Analysis complete.');render();}catch(e){report=null;$('#submitDatabase').disabled=true;$('#errorBox').hidden=false;$('#errorBox').textContent='Unable to analyze this file: '+e.message;$('#progressWrap').hidden=true}}
+function render(){$('#results').hidden=false;$('#submitDatabase').disabled=!(report.discoveries.length||report.matches.length);$('#submitDatabase').textContent='Submit to Wonder Database';$('#saveTitle').textContent=report.saveName;const s=report.summary;const stats=[['Pets',s.pets],['Discoveries',s.discoveries],['Exact pet matches',s.matches],['Generation records',s.generations],['Animals',s.Animal],['Flora',s.Flora],['Minerals',s.Mineral],['Unmatched pets',s.unmatchedPets]];$('#statGrid').innerHTML=stats.map(([a,b])=>`<div class="stat"><strong>${b.toLocaleString()}</strong><span>${a}</span></div>`).join('');renderTable();$('#results').scrollIntoView({behavior:'smooth'})}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');currentTab=t.dataset.tab;renderTable()});
 function renderTable(){const rows=report[currentTab]||[],limit=250,shown=rows.slice(0,limit),heads=shown.length?Object.keys(shown[0]):[];$('#tableHead').innerHTML='<tr>'+heads.map(h=>`<th>${h}</th>`).join('')+'</tr>';$('#tableBody').innerHTML=shown.map(r=>'<tr>'+heads.map(h=>`<td>${escapeHtml(r[h])}</td>`).join('')+'</tr>').join('');$('#tableNote').textContent=rows.length>limit?`Showing the first ${limit.toLocaleString()} of ${rows.length.toLocaleString()} records. Downloads contain all records.`:`${rows.length.toLocaleString()} record(s).`}
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -41,6 +41,7 @@ $('#downloadMatches').onclick=()=>download(`${report.saveName.replace(/[^a-z0-9_
 const finderState={entries:[],manifest:[]};
 const rawSavePattern=/^(?:mf_)?save(?:\d+)?\.hg$/i;
 const decodedPattern=/\.(?:json|txt)$/i;
+const auxiliaryNamePattern=/(?:^|_)(?:INTRO_FEED_CACHE|SEASON_DATA_CACHE|SEASON_DATA_CACHE_S\d+|TELEMETRY|SETTINGS)(?:_|\.|$)/i;
 const finderResults=$('#saveFinderResults');
 const finderSupport=$('#saveFinderSupport');
 const folderInput=$('#saveFolderInput');
@@ -52,10 +53,15 @@ function finderDate(value){return value?new Date(value).toLocaleString():'Unknow
 function finderSize(bytes){if(bytes<1024)return `${bytes} B`;if(bytes<1024*1024)return `${(bytes/1024).toFixed(1)} KB`;return `${(bytes/1024/1024).toFixed(1)} MB`}
 async function looksDecoded(file){
   try{
-    const head=await file.slice(0,131072).text();
+    // Raw .hg files are deliberately never treated as decoded exports yet.
+    // They may contain JSON-like text while still requiring save decoding.
+    if(/\.hg$/i.test(file.name))return false;
+    const headSize=Math.min(file.size,524288);
+    const head=await file.slice(0,headSize).text();
     const trimmed=head.trimStart();
     if(!trimmed.startsWith('{')&&!trimmed.startsWith('['))return false;
-    return /"(?:CreatureID|DiscoveryManagerData|PlayerStateData|CommonStateData|PersistentPlayerBases|DD)"\s*:/.test(head)||/\.json$/i.test(file.name);
+    // A .json extension alone is not evidence: NMS folders also contain cache JSON.
+    return /"(?:PlayerStateData|CommonStateData|DiscoveryManagerData|PersistentPlayerBases|SaveName|ActiveContext)"\s*:/.test(head);
   }catch{return false}
 }
 async function walkDirectory(handle,path='',items=[],depth=0){
@@ -73,20 +79,22 @@ async function handleEntries(items){
   const candidates=[];
   for(const item of items){
     const file=item.file||await item.handle.getFile();
+    const path=item.path||file.webkitRelativePath||file.name;
     const lower=file.name.toLowerCase();
+    const normalizedPath=path.replaceAll('\\','/');
     const raw=rawSavePattern.test(lower)||lower==='accountdata.hg'||lower==='containers.index';
-    const maybeDecoded=decodedPattern.test(lower)||raw;
-    let decoded=false;
-    if(maybeDecoded)decoded=await looksDecoded(file);
-    if(raw||decoded)candidates.push({file,path:item.path||file.webkitRelativePath||file.name,raw,decoded});
+    const auxiliary=decodedPattern.test(lower)&&(auxiliaryNamePattern.test(file.name)||/(?:^|\/)cache(?:\/|$)/i.test(normalizedPath));
+    const decoded=!raw&&!auxiliary&&decodedPattern.test(lower)?await looksDecoded(file):false;
+    if(raw||decoded||auxiliary)candidates.push({file,path,raw,decoded,auxiliary});
   }
   finderState.entries=candidates;
-  finderState.manifest=candidates.map(({file,path,raw,decoded})=>({path,name:file.name,size:file.size,last_modified:new Date(file.lastModified).toISOString(),raw_slot_file:raw,decoded_json:decoded}));
+  finderState.manifest=candidates.map(({file,path,raw,decoded,auxiliary})=>({path,name:file.name,size:file.size,last_modified:new Date(file.lastModified).toISOString(),raw_slot_file:raw,decoded_character_export:decoded,auxiliary_file_ignored:Boolean(auxiliary)}));
   renderFinder();
 }
 function renderFinder(){
   const decoded=finderState.entries.filter(item=>item.decoded);
-  const raw=finderState.entries.filter(item=>item.raw&&!item.decoded);
+  const raw=finderState.entries.filter(item=>item.raw);
+  const auxiliary=finderState.entries.filter(item=>item.auxiliary);
   finderResults.hidden=false;
   downloadManifest.hidden=!finderState.entries.length;
   if(!finderState.entries.length){
@@ -94,16 +102,20 @@ function renderFinder(){
     finderSupport.textContent='Nothing was uploaded. The folder scan stayed entirely on this device.';
     return;
   }
-  const decodedHtml=decoded.length?`<div class="finder-group"><h3>Ready to analyze</h3>${decoded.map((item,index)=>`<button class="finder-file ready" type="button" data-entry="${finderState.entries.indexOf(item)}"><span><strong>${escapeHtml(item.file.name)}</strong><small>${escapeHtml(item.path)}</small></span><span><b>${finderSize(item.file.size)}</b><small>${escapeHtml(finderDate(item.file.lastModified))}</small></span></button>`).join('')}</div>`:'';
-  const rawHtml=raw.length?`<div class="finder-group"><h3>Raw Steam/GOG slots detected</h3>${raw.map(item=>`<div class="finder-file raw"><span><strong>${escapeHtml(item.file.name)}</strong><small>${escapeHtml(item.path)}</small></span><span><b>${finderSize(item.file.size)}</b><small>Decoder research pending</small></span></div>`).join('')}<p class="finder-note">Folder access and slot detection are working. Direct decoding of raw <code>.hg</code> data is the next Save Finder milestone; use a decoded JSON export for analysis today.</p></div>`:'';
-  finderResults.innerHTML=`<div class="finder-summary"><strong>${decoded.length} decoded file${decoded.length===1?'':'s'} ready</strong><span>${raw.length} raw slot file${raw.length===1?'':'s'} detected</span></div>${decodedHtml}${rawHtml}`;
+  const decodedHtml=decoded.length?`<div class="finder-group"><h3>Decoded character exports ready</h3>${decoded.map(item=>`<button class="finder-file ready" type="button" data-entry="${finderState.entries.indexOf(item)}"><span><strong>${escapeHtml(item.file.name)}</strong><small>${escapeHtml(item.path)}</small></span><span><b>${finderSize(item.file.size)}</b><small>${escapeHtml(finderDate(item.file.lastModified))}</small></span></button>`).join('')}</div>`:'';
+  const rawHtml=raw.length?`<div class="finder-group"><h3>Raw Steam/GOG slots detected</h3>${raw.map(item=>`<div class="finder-file raw"><span><strong>${escapeHtml(item.file.name)}</strong><small>${escapeHtml(item.path)}</small></span><span><b>${finderSize(item.file.size)}</b><small>Detected — not selectable yet</small></span></div>`).join('')}<p class="finder-note"><strong>These are the actual character-slot files, but the browser decoder is not finished yet.</strong> Raw <code>.hg</code> files may look partly like JSON and still require decoding/deobfuscation. Wonder Codex will not submit them as empty saves.</p></div>`:'';
+  const auxiliaryHtml=auxiliary.length?`<details class="finder-group ignored"><summary>${auxiliary.length} auxiliary cache file${auxiliary.length===1?'':'s'} ignored</summary>${auxiliary.map(item=>`<div class="finder-file ignored"><span><strong>${escapeHtml(item.file.name)}</strong><small>${escapeHtml(item.path)}</small></span><span><small>Not character data</small></span></div>`).join('')}</details>`:'';
+  const readiness=decoded.length?`${decoded.length} decoded character export${decoded.length===1?'':'s'} ready`:'No decoded character export found';
+  finderResults.innerHTML=`<div class="finder-summary"><strong>${readiness}</strong><span>${raw.length} raw slot file${raw.length===1?'':'s'} detected</span></div>${decodedHtml}${rawHtml}${auxiliaryHtml}`;
   finderResults.querySelectorAll('[data-entry]').forEach(button=>button.addEventListener('click',()=>{
     const entry=finderState.entries[Number(button.dataset.entry)];
     setFile(entry.file,entry.path);
     $('#dropZone').scrollIntoView({behavior:'smooth',block:'center'});
     finderSupport.textContent=`Selected ${entry.file.name}. Click Analyze save when ready.`;
   }));
-  finderSupport.textContent='Folder scan complete. No file contents left this browser.';
+  finderSupport.textContent=decoded.length
+    ?'Folder scan complete. Choose a decoded character export above. No file contents left this browser.'
+    :'Folder scan complete. Raw slots were found, but direct .hg decoding is not available in this alpha yet. No data was uploaded.';
 }
 async function chooseFolder(){
   if(!window.showDirectoryPicker){folderInput.click();return}
@@ -166,6 +178,12 @@ async function submitToDatabase() {
   if (!report) {
     status.textContent = 'Analyze a save before submitting.';
     status.classList.add('error');
+    return;
+  }
+  if (!report.discoveries.length && !report.matches.length) {
+    status.textContent = 'Nothing was submitted: this file contains no normalized Wonder discoveries or exact pet matches.';
+    status.classList.add('error');
+    button.disabled = true;
     return;
   }
   if (!report.contributor) {

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1.4.0">
-  <link rel="stylesheet" href="importer.css?v=1.4.1">
+  <link rel="stylesheet" href="importer.css?v=1.4.2">
   <style>
     .stars { pointer-events: none !important; }
     .native-file-picker { cursor: pointer; user-select: none; }
@@ -34,7 +34,7 @@
       <div class="privacy-banner"><strong>Local processing</strong><span>Your raw character JSON stays on this device. Only the normalized Wonder records shown in the preview are submitted to the review queue.</span></div>
       <div class="save-finder-panel" id="saveFinder">
         <div class="save-finder-heading">
-          <div><p class="kicker">WONDER SAVE FINDER — ALPHA</p><h2>Select a Steam or GOG save folder.</h2><p>Grant read-only access once. Wonder Codex scans the selected folder locally, lists recognizable slots and decoded JSON exports, and lets you choose the character data to analyze.</p></div>
+          <div><p class="kicker">WONDER SAVE FINDER — ALPHA</p><h2>Select a Steam or GOG save folder.</h2><p>Grant read-only access once. Wonder Codex scans the selected folder locally, separates raw character slots from auxiliary cache files and only lets you select a verified decoded character export.</p></div>
           <span class="finder-status-chip">Steam/GOG alpha</span>
         </div>
         <div class="finder-path-guide">
@@ -55,7 +55,7 @@
           <input id="saveFolderInput" type="file" webkitdirectory directory multiple hidden>
           <button class="button secondary" id="downloadSaveManifest" type="button" hidden>Download local scan manifest</button>
         </div>
-        <p class="finder-support" id="saveFinderSupport">Nothing is uploaded merely by selecting a folder. Wonder Codex reads the chosen files locally. Decoded JSON exports can be opened immediately; raw <code>save*.hg</code> slots are detected while direct decoding is under active research.</p>
+        <p class="finder-support" id="saveFinderSupport">Nothing is uploaded merely by selecting a folder. Wonder Codex reads the chosen files locally. Only verified decoded character exports are selectable. Raw <code>save*.hg</code> slots are detected but cannot be analyzed until the direct decoder is complete; cache JSON files are ignored.</p>
         <div class="save-finder-results" id="saveFinderResults" hidden></div>
         <div class="finder-next"><strong>Xbox / Game Pass WGS</strong><span>Next research phase: container reconstruction and slot decoding.</span></div>
       </div>
@@ -88,7 +88,7 @@
           <h3>Ready to contribute?</h3>
           <p id="contributorDisplay">Your contributor name will be recorded with this submission.</p>
         </div>
-        <button class="button primary submit-button" id="submitDatabase" type="button">Submit to Wonder Database</button>
+        <button class="button primary submit-button" id="submitDatabase" type="button" disabled>Submit to Wonder Database</button>
         <div id="submitStatus" class="submit-status" hidden></div>
       </div>
       <input id="websiteField" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="honeypot">
@@ -107,8 +107,8 @@
     </section>
   </main>
 
-  <footer><div><strong>Wonder Codex</strong><p>Evidence first. Conclusions second.</p></div><div class="footer-note"><p>Web Importer v1.4.1 — Save Finder path guide + private attribution</p><p>Independent community project. Not affiliated with Hello Games.</p></div></footer>
+  <footer><div><strong>Wonder Codex</strong><p>Evidence first. Conclusions second.</p></div><div class="footer-note"><p>Web Importer v1.4.2 — slot classification + empty-submission guard</p><p>Independent community project. Not affiliated with Hello Games.</p></div></footer>
   <script src="script.js?v=1.4.0"></script>
-  <script src="importer.js?v=1.4.1"></script>
+  <script src="importer.js?v=1.4.2"></script>
 </body>
 </html>

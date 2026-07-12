@@ -41,6 +41,15 @@ def submit(payload: SubmissionPayload, request: Request, session: Session = Depe
     if len(payload.issues) > settings.max_issues_per_submission:
         raise HTTPException(status_code=413, detail="Too many issues in one submission.")
 
+    if not payload.discoveries and not payload.matches:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "No normalized Wonder discoveries or exact pet matches were found. "
+                "Select a decoded character-save JSON; cache files and raw .hg slots are not valid submissions yet."
+            ),
+        )
+
     contributor = _clip(payload.contributor, 120)
     save_name = _clip(payload.saveName, 200)
     platform = _clip(payload.platform, 40)
