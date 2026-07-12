@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1.4.0">
-  <link rel="stylesheet" href="importer.css?v=1.4.0">
+  <link rel="stylesheet" href="importer.css?v=1.4.1">
   <style>
     .stars { pointer-events: none !important; }
     .native-file-picker { cursor: pointer; user-select: none; }
@@ -37,13 +37,25 @@
           <div><p class="kicker">WONDER SAVE FINDER — ALPHA</p><h2>Select a Steam or GOG save folder.</h2><p>Grant read-only access once. Wonder Codex scans the selected folder locally, lists recognizable slots and decoded JSON exports, and lets you choose the character data to analyze.</p></div>
           <span class="finder-status-chip">Steam/GOG alpha</span>
         </div>
+        <div class="finder-path-guide">
+          <div class="finder-path-row">
+            <div><strong>Windows Steam / GOG save root</strong><p>The folder dialog may open on Desktop or the last folder you used. That is normal browser behavior.</p></div>
+            <div class="finder-path-copy"><code id="steamSavePath">%AppData%\HelloGames\NMS</code><button class="mini-copy" id="copySteamPath" type="button">Copy path</button></div>
+          </div>
+          <ol>
+            <li>Click <strong>Choose Steam/GOG save folder</strong>.</li>
+            <li>In the Windows folder dialog, press <kbd>Ctrl</kbd> + <kbd>L</kbd>, paste the path above, and press <kbd>Enter</kbd>.</li>
+            <li>Select the <code>NMS</code> folder or the account folder beginning with <code>st_</code>, then click <strong>Upload</strong> or <strong>Select folder</strong>.</li>
+          </ol>
+          <p class="finder-browser-note">Edge or Chrome can remember the chosen folder for later visits. Firefox uses the fallback folder selector and may start at Desktop each time.</p>
+        </div>
         <div class="save-finder-actions">
-          <button class="button primary" id="chooseSteamFolder" type="button">Allow & choose Steam/GOG folder</button>
-          <label class="button secondary folder-fallback" for="saveFolderInput">Choose folder — fallback</label>
+          <button class="button primary" id="chooseSteamFolder" type="button">Choose Steam/GOG save folder</button>
+          <label class="button secondary folder-fallback" for="saveFolderInput">Choose folder — browser fallback</label>
           <input id="saveFolderInput" type="file" webkitdirectory directory multiple hidden>
           <button class="button secondary" id="downloadSaveManifest" type="button" hidden>Download local scan manifest</button>
         </div>
-        <p class="finder-support" id="saveFinderSupport">Decoded JSON exports can be opened immediately. Raw <code>save*.hg</code> slots are detected and listed while direct raw-save decoding is under active research.</p>
+        <p class="finder-support" id="saveFinderSupport">Nothing is uploaded merely by selecting a folder. Wonder Codex reads the chosen files locally. Decoded JSON exports can be opened immediately; raw <code>save*.hg</code> slots are detected while direct decoding is under active research.</p>
         <div class="save-finder-results" id="saveFinderResults" hidden></div>
         <div class="finder-next"><strong>Xbox / Game Pass WGS</strong><span>Next research phase: container reconstruction and slot decoding.</span></div>
       </div>
@@ -95,8 +107,8 @@
     </section>
   </main>
 
-  <footer><div><strong>Wonder Codex</strong><p>Evidence first. Conclusions second.</p></div><div class="footer-note"><p>Web Importer v1.4 — Save Finder alpha + private attribution</p><p>Independent community project. Not affiliated with Hello Games.</p></div></footer>
+  <footer><div><strong>Wonder Codex</strong><p>Evidence first. Conclusions second.</p></div><div class="footer-note"><p>Web Importer v1.4.1 — Save Finder path guide + private attribution</p><p>Independent community project. Not affiliated with Hello Games.</p></div></footer>
   <script src="script.js?v=1.4.0"></script>
-  <script src="importer.js?v=1.4.0"></script>
+  <script src="importer.js?v=1.4.1"></script>
 </body>
 </html>

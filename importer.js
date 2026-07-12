@@ -45,6 +45,7 @@ const finderResults=$('#saveFinderResults');
 const finderSupport=$('#saveFinderSupport');
 const folderInput=$('#saveFolderInput');
 const chooseSteamFolder=$('#chooseSteamFolder');
+const copySteamPath=$('#copySteamPath');
 const downloadManifest=$('#downloadSaveManifest');
 
 function finderDate(value){return value?new Date(value).toLocaleString():'Unknown date'}
@@ -89,7 +90,7 @@ function renderFinder(){
   finderResults.hidden=false;
   downloadManifest.hidden=!finderState.entries.length;
   if(!finderState.entries.length){
-    finderResults.innerHTML='<div class="finder-empty"><strong>No recognizable save files were found.</strong><p>Select the folder that contains the No Man\'s Sky save slots or a decoded JSON export.</p></div>';
+    finderResults.innerHTML='<div class="finder-empty"><strong>No recognizable save files were found.</strong><p>On Windows Steam/GOG, try <code>%AppData%\\HelloGames\\NMS</code>, then select either the <code>NMS</code> folder or its <code>st_…</code> account folder.</p></div>';
     finderSupport.textContent='Nothing was uploaded. The folder scan stayed entirely on this device.';
     return;
   }
@@ -107,7 +108,7 @@ function renderFinder(){
 async function chooseFolder(){
   if(!window.showDirectoryPicker){folderInput.click();return}
   try{
-    const handle=await window.showDirectoryPicker({mode:'read'});
+    const handle=await window.showDirectoryPicker({mode:'read',id:'wonder-codex-steam-gog'});
     finderResults.hidden=false;
     finderResults.innerHTML='<div class="finder-empty"><strong>Scanning folder…</strong><p>Looking for decoded JSON and Steam/GOG save-slot files.</p></div>';
     const items=await walkDirectory(handle);
@@ -119,6 +120,19 @@ async function chooseFolder(){
     }
   }
 }
+
+copySteamPath?.addEventListener('click',async()=>{
+  const path='%AppData%\\HelloGames\\NMS';
+  try{
+    await navigator.clipboard.writeText(path);
+    const original=copySteamPath.textContent;
+    copySteamPath.textContent='Copied';
+    setTimeout(()=>{copySteamPath.textContent=original},1400);
+  }catch{
+    window.prompt('Copy this Windows save path:',path);
+  }
+});
+
 chooseSteamFolder.addEventListener('click',chooseFolder);
 folderInput.addEventListener('change',async()=>{
   const items=[...folderInput.files].map(file=>({file,path:file.webkitRelativePath||file.name}));
