@@ -49,6 +49,7 @@
   }
 
   function render(data) {
+    data = WCLocation.enrich(data);
     record = data;
     document.title = `${data.wc_id} — ${data.display_name} | Wonder Codex`;
     $('#recordHero').innerHTML = `${escapeHtml(data.wc_id)} <span>published record.</span>`;
@@ -57,7 +58,7 @@
     $('#recordName').textContent = data.display_name;
     $('#recordType').textContent = data.discovery_type === 'Animal' ? 'Fauna' : data.discovery_type;
     $('#recordAttribution').textContent = `Contributed by ${data.contributor || data.owner || 'Unknown explorer'}${data.save_name ? ` • ${data.save_name}` : ''}`;
-    $('#recordBadges').innerHTML = badge('Location', data.location_status) + badge('Projector', data.projector_status) + badge('Image', data.image_status);
+    $('#recordBadges').innerHTML = badge('Location', data.travel_status) + badge('Projector', data.projector_status) + badge('Image', data.image_status);
     renderImages(data.images || []);
     $('#messageId').textContent = data.message_id || 'No Message ID available';
     $('#copyMessage').hidden = !data.message_id;
@@ -70,12 +71,24 @@
     $('#catalogNote').textContent = data.catalog_note || '';
 
     const verified = data.has_location;
+    const travelReady = data.has_travel_address;
+    const derived = data.travel_status === 'derived';
     $('#locationPanel').classList.toggle('verified', verified);
-    $('#locationTitle').textContent = verified ? `Galaxy ${data.galaxy_number}${data.galaxy_name ? ` — ${data.galaxy_name}` : ''}` : data.location_status === 'pending' ? 'Location awaiting review' : 'Location not yet verified';
-    $('#locationCopy').textContent = verified ? 'Use this reviewed galaxy and 12-glyph portal address to travel to the system.' : 'This record needs reviewed galaxy and portal evidence before travel directions can be published.';
-    $('#locationFacts').hidden = !verified;
-    if (verified) {
-      $('#locationFacts').innerHTML = `<div><span>Galaxy number</span><strong>${data.galaxy_number}</strong></div><div><span>Galaxy name</span><strong>${escapeHtml(data.galaxy_name || 'Not supplied')}</strong></div>`;
+    $('#locationPanel').classList.toggle('derived', derived);
+    $('#locationTitle').textContent = travelReady
+      ? `Galaxy ${data.galaxy_number}${data.galaxy_name ? ` — ${data.galaxy_name}` : ''}`
+      : data.location_status === 'pending'
+        ? 'Location awaiting review'
+        : 'Location not yet available';
+    $('#locationCopy').textContent = verified
+      ? 'Use this reviewed galaxy and 12-glyph portal address to travel to the system.'
+      : derived
+        ? 'This portal route was decoded automatically from the discovery Universal Address. The decoding method is confirmed; this individual find still welcomes a community revisit.'
+        : 'This record needs a valid Universal Address or reviewed galaxy and portal evidence before travel directions can be displayed.';
+    $('#locationFacts').hidden = !travelReady;
+    if (travelReady) {
+      const routeSource = verified ? 'Community verified' : derived ? 'Decoded from UA' : 'Catalog supplied';
+      $('#locationFacts').innerHTML = `<div><span>Galaxy number</span><strong>${data.galaxy_number}</strong></div><div><span>Galaxy name</span><strong>${escapeHtml(data.galaxy_name || 'Not supplied')}</strong></div><div><span>Route source</span><strong>${escapeHtml(routeSource)}</strong></div><div><span>RealityIndex</span><strong>${data.reality_index ?? '—'}</strong></div>`;
       WCGlyphs.render('#glyphRow', data.portal_glyphs);
       $('#glyphCode').textContent = data.portal_glyphs;
       $('#copyGlyphs').hidden = false;

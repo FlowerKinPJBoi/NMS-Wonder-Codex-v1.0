@@ -24,7 +24,7 @@
     <section class="page-hero">
       <p class="eyebrow">PUBLISHED WONDER DATABASE</p>
       <h1>Search the living <span>catalog.</span></h1>
-      <p>Browse approved fauna, flora, minerals, projector data, verification status, and—when confirmed—the galaxy and portal address needed to visit each find.</p>
+      <p>Browse approved fauna, flora, minerals, projector data, verification status, and UA-derived or community-verified galaxy and portal routes.</p>
     </section>
 
     <section class="page-shell">
@@ -34,7 +34,7 @@
         <label>Location<select id="locationFilter"><option value="">Any status</option><option value="verified">Verified</option><option value="pending">Pending review</option><option value="unverified">Needs verification</option><option value="disputed">Disputed</option></select></label>
         <label>Images<select id="imageFilter"><option value="">Any status</option><option value="needed">Image needed</option><option value="pending">Image pending</option><option value="available">Image available</option></select></label>
       </div>
-      <div class="catalog-meta"><span id="catalogCount">Loading catalog…</span><span>Every published record retains contributor attribution.</span></div>
+      <div class="catalog-meta"><span id="catalogCount">Loading catalog…</span><span>UA-derived routes are labeled separately from community-verified locations.</span></div>
       <div id="catalogGrid" class="catalog-grid" aria-live="polite"><div class="loading-state surface">Connecting to the Wonder Database…</div></div>
       <div class="load-more-wrap"><button id="loadMore" class="button secondary" type="button" hidden>Load more records</button></div>
     </section>
@@ -42,7 +42,8 @@
 
   <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Evidence first</small></span></a><p>Independent community research project. Not affiliated with Hello Games.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="contribute.html">Contribute</a><a href="import.html">Save data</a><a href="index.html#roadmap">Roadmap</a></div></footer>
   <script src="script.js?v=1.4.0"></script>
-  <script src="glyphs.js?v=1.4.0"></script>
-  <script src="database.js?v=1.4.0"></script>
+  <script src="glyphs.js?v=1.6.0"></script>
+  <script src="locations.js?v=1.6.0"></script>
+  <script src="database.js?v=1.6.0"></script>
 </body>
 </html>

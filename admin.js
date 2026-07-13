@@ -268,11 +268,13 @@
   }
 
   function locationMarkup(data, proposed = false) {
+    data = proposed ? data : WCLocation.enrich(data || {});
     const galaxyNumber = data.galaxy_number;
-    const glyphs = data.portal_glyphs || '';
+    const glyphs = WCGlyphs.normalize(data.portal_glyphs || '');
     const complete = galaxyNumber && glyphs.length === 12;
-    const status = proposed ? (complete ? 'pending' : 'unverified') : (data.location_status || 'unverified');
-    return `<span class="status-chip ${escapeHtml(status)}">${proposed ? 'Submitted' : 'Catalog'} ${escapeHtml(status)}</span><h3>${galaxyNumber ? `Galaxy ${galaxyNumber}${data.galaxy_name ? ` — ${escapeHtml(data.galaxy_name)}` : ''}` : 'No galaxy supplied'}</h3>${glyphs ? `<div class="portal-glyph-row compact">${WCGlyphs.codeHtml(glyphs,{compact:true})}</div><p class="glyph-code">${escapeHtml(glyphs)}</p>` : '<p>No portal glyphs supplied.</p>'}`;
+    const status = proposed ? (complete ? 'pending' : 'unverified') : (data.travel_status || data.location_status || 'unverified');
+    const source = !proposed && data.location_is_derived ? ' • decoded from UA' : '';
+    return `<span class="status-chip ${escapeHtml(status)}">${proposed ? 'Submitted' : 'Current'} ${escapeHtml(status)}${escapeHtml(source)}</span><h3>${galaxyNumber ? `Galaxy ${galaxyNumber}${data.galaxy_name ? ` — ${escapeHtml(data.galaxy_name)}` : ''}` : 'No galaxy supplied'}</h3>${glyphs ? `<div class="portal-glyph-row compact">${WCGlyphs.codeHtml(glyphs,{compact:true})}</div><p class="glyph-code">${escapeHtml(glyphs)}</p>` : '<p>No portal glyphs supplied.</p>'}`;
   }
 
   function renderVerificationDetail() {
@@ -337,20 +339,23 @@
 
   function renderCatalogList() {
     $('#catalogAdminEmpty').hidden = state.catalogRecords.length > 0;
-    $('#catalogAdminList').innerHTML = state.catalogRecords.map((item) => `<button class="queue-item ${state.selectedCatalog?.id === item.id ? 'active' : ''}" data-id="${item.id}" type="button"><div class="queue-item-top"><strong>${escapeHtml(item.wc_id)}</strong><span class="status-chip ${escapeHtml(item.location_status)}">${escapeHtml(item.location_status)}</span></div><div class="queue-item-sub">${escapeHtml(item.display_name)}</div><div class="queue-counts"><span>${escapeHtml(item.discovery_type)}</span><span>Image ${escapeHtml(item.image_status)}</span></div></button>`).join('');
+    $('#catalogAdminList').innerHTML = state.catalogRecords.map((raw) => {
+      const item = WCLocation.enrich(raw);
+      return `<button class="queue-item ${state.selectedCatalog?.id === item.id ? 'active' : ''}" data-id="${item.id}" type="button"><div class="queue-item-top"><strong>${escapeHtml(item.wc_id)}</strong><span class="status-chip ${escapeHtml(item.travel_status)}">${escapeHtml(item.travel_status)}</span></div><div class="queue-item-sub">${escapeHtml(item.display_name)}</div><div class="queue-counts"><span>${escapeHtml(item.discovery_type)}</span><span>Image ${escapeHtml(item.image_status)}</span></div></button>`;
+    }).join('');
     $$('#catalogAdminList .queue-item').forEach((button) => button.addEventListener('click', () => selectCatalog(Number(button.dataset.id))));
   }
 
   async function selectCatalog(id) {
     try {
-      state.selectedCatalog = await api(`/admin/discoveries/${id}`);
+      state.selectedCatalog = WCLocation.enrich(await api(`/admin/discoveries/${id}`));
       renderCatalogList();
       renderCatalogForm();
     } catch (error) { toast(error.message, true); }
   }
 
   function renderCatalogForm() {
-    const record = state.selectedCatalog;
+    const record = WCLocation.enrich(state.selectedCatalog);
     $('#catalogPlaceholder').hidden = true;
     $('#catalogForm').hidden = false;
     $('#catalogWcId').textContent = record.wc_id;
@@ -366,7 +371,13 @@
     $('#catalogProjectorStatus').value = record.projector_status;
     $('#catalogImageStatus').value = record.image_status;
     $('#catalogNote').value = record.catalog_note || '';
-    $('#catalogSaveResult').hidden = true;
+    if (record.location_is_derived) {
+      $('#catalogSaveResult').hidden = false;
+      $('#catalogSaveResult').className = 'inline-alert';
+      $('#catalogSaveResult').textContent = 'Galaxy and glyphs were decoded from the confirmed UA format. Save this record only when you want to persist or curate the route.';
+    } else {
+      $('#catalogSaveResult').hidden = true;
+    }
   }
 
   async function saveCatalog(event) {

@@ -18,10 +18,19 @@
   }
 
   function locationPanel(record) {
-    if (record?.has_location) {
-      return `<div class="location-panel verified"><span class="status-chip verified">Verified location</span><h3>Galaxy ${record.galaxy_number}${record.galaxy_name ? ` — ${escapeHtml(record.galaxy_name)}` : ''}</h3><div class="portal-glyph-row compact">${WCGlyphs.codeHtml(record.portal_glyphs,{compact:true})}</div><p class="glyph-code">${escapeHtml(record.portal_glyphs)}</p></div>`;
+    record = WCLocation.enrich(record || {});
+    if (record.has_travel_address) {
+      const verified = record.has_location;
+      const derived = record.travel_status === 'derived';
+      const label = verified ? 'Verified location' : derived ? 'UA-derived route' : 'Catalog route';
+      const copy = verified
+        ? 'Travel address reviewed and approved.'
+        : derived
+          ? 'Decoded from the Universal Address. Please revisit and submit confirmation.'
+          : 'Travel address is available but not yet verified.';
+      return `<div class="location-panel ${verified ? 'verified' : derived ? 'derived' : ''}"><span class="status-chip ${escapeHtml(record.travel_status)}">${escapeHtml(label)}</span><h3>Galaxy ${record.galaxy_number}${record.galaxy_name ? ` — ${escapeHtml(record.galaxy_name)}` : ''}</h3><div class="portal-glyph-row compact">${WCGlyphs.codeHtml(record.portal_glyphs,{compact:true})}</div><p class="glyph-code">${escapeHtml(record.portal_glyphs)}</p><p>${escapeHtml(copy)}</p></div>`;
     }
-    return `<div class="location-panel"><span class="status-chip ${escapeHtml(record?.location_status || 'unverified')}">Location ${escapeHtml(record?.location_status || 'unverified')}</span><h3>No reviewed travel address yet</h3><p>You may submit a proposed galaxy and glyph code with your evidence.</p></div>`;
+    return `<div class="location-panel"><span class="status-chip ${escapeHtml(record.travel_status || 'unverified')}">Location ${escapeHtml(record.travel_status || 'unverified')}</span><h3>No travel address available yet</h3><p>You may submit a proposed galaxy and glyph code with your evidence.</p></div>`;
   }
 
   function selectedMarkup(record) {
@@ -64,7 +73,7 @@
 
   async function selectRecord(mode, id) {
     try {
-      const record = await fetchRecord(id);
+      const record = WCLocation.enrich(await fetchRecord(id));
       if (mode === 'image') {
         state.imageRecord = record;
         $('#imageSelected').innerHTML = selectedMarkup(record);
@@ -79,7 +88,7 @@
         $('#verifyRecordResults').innerHTML = '';
         $('#verifyRecordSearch').value = `${record.wc_id} — ${record.display_name}`;
         $('#verifyTravelPanel').innerHTML = locationPanel(record);
-        if (record.has_location) {
+        if (record.has_travel_address) {
           $('#verifyGalaxyNumber').value = record.galaxy_number || '';
           $('#verifyGalaxyName').value = record.galaxy_name || '';
           $('#verifyGlyphs').value = record.portal_glyphs || '';

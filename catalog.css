@@ -11,3 +11,19 @@
 /* v1.3 image contributions and visual glyph entry */
 .glyph-keypad{display:grid;grid-template-columns:repeat(8,minmax(54px,1fr));gap:8px;padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(5,9,20,.45)}.glyph-key{display:grid;place-items:center;padding:4px;border:1px solid rgba(109,231,255,.16);border-radius:10px;background:rgba(109,231,255,.035);cursor:pointer}.glyph-key:hover,.glyph-key:focus-visible{border-color:rgba(109,231,255,.55);background:rgba(109,231,255,.1);transform:translateY(-1px)}.glyph-key .portal-glyph{border:0;background:transparent}.glyph-keypad-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px}.glyph-keypad-actions button{padding:.55rem .8rem;border:1px solid var(--line);border-radius:9px;color:var(--text);background:rgba(255,255,255,.04);cursor:pointer}.glyph-legend{padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.02)}.glyph-legend summary{cursor:pointer;color:var(--cyan);font-weight:800}.portal-glyph-row.legend{margin-top:10px}.wonder-card-image{height:180px;margin:-20px -20px 18px;overflow:hidden;border-radius:18px 18px 0 0;background:rgba(255,255,255,.025)}.wonder-card-image img{width:100%;height:100%;object-fit:cover}.record-gallery{display:grid;gap:10px;margin-bottom:18px}.record-primary-image{overflow:hidden;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.025)}.record-primary-image img{display:block;width:100%;max-height:520px;object-fit:contain;background:#050914}.record-image-caption{padding:10px 12px;color:var(--muted);font-size:.75rem}.record-thumbnails{display:flex;gap:8px;overflow:auto}.record-thumbnail{flex:0 0 92px;height:72px;padding:0;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:none;cursor:pointer}.record-thumbnail img{width:100%;height:100%;object-fit:cover}.record-thumbnail.active{border-color:var(--cyan)}
 @media(max-width:760px){.glyph-keypad{grid-template-columns:repeat(4,1fr)}.wonder-card-image{height:160px}}
+
+
+/* v1.6 — confirmed UA-derived portal routes */
+.status-chip.derived{
+  color:#8feaff;
+  border-color:rgba(109,231,255,.34);
+  background:rgba(109,231,255,.08);
+}
+.location-panel.derived{
+  border-color:rgba(109,231,255,.3);
+  background:linear-gradient(145deg,rgba(109,231,255,.055),rgba(157,140,255,.035));
+}
+.location-mini.derived{
+  border-color:rgba(109,231,255,.25);
+  background:rgba(109,231,255,.04);
+}

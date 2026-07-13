@@ -12,15 +12,18 @@
   }
 
   function locationMarkup(item) {
-    if (item.has_location) {
+    item = WCLocation.enrich(item);
+    if (item.has_travel_address) {
       const galaxy = `${item.galaxy_number}${item.galaxy_name ? ` — ${escapeHtml(item.galaxy_name)}` : ''}`;
-      return `<div class="location-mini"><strong>Galaxy ${galaxy}</strong><div class="portal-glyph-row compact">${WCGlyphs.codeHtml(item.portal_glyphs,{compact:true})}</div></div>`;
+      const source = item.has_location ? 'Community verified' : item.travel_status === 'derived' ? 'UA-derived route' : 'Catalog route';
+      return `<div class="location-mini ${escapeHtml(item.travel_status)}"><strong>Galaxy ${galaxy}</strong><div class="portal-glyph-row compact">${WCGlyphs.codeHtml(item.portal_glyphs,{compact:true})}</div><p>${escapeHtml(source)}</p></div>`;
     }
     const label = item.location_status === 'pending' ? 'Location awaiting review' : item.location_status === 'disputed' ? 'Location disputed' : 'Location verification needed';
     return `<div class="location-mini"><strong>${escapeHtml(label)}</strong><p>Contributors can submit galaxy and glyph evidence.</p></div>`;
   }
 
   function card(item) {
+    item = WCLocation.enrich(item);
     const name = escapeHtml(item.display_name);
     return `<article class="wonder-card">
       ${item.primary_image_url ? `<div class="wonder-card-image"><img src="${escapeHtml(item.primary_image_url)}" alt="${name}" loading="lazy"></div>` : ''}
@@ -28,7 +31,7 @@
       <h2>${name}</h2>
       <p>Contributed by ${escapeHtml(item.contributor || item.owner || 'Unknown explorer')}</p>
       <div class="card-badges">
-        <span class="status-chip ${escapeHtml(item.location_status)}">Location ${escapeHtml(item.location_status)}</span>
+        <span class="status-chip ${escapeHtml(item.travel_status)}">Location ${escapeHtml(item.travel_status)}</span>
         <span class="status-chip ${item.image_status === 'available' ? 'verified' : 'needed'}">Image ${escapeHtml(item.image_status)}</span>
         <span class="status-chip ${item.projector_status === 'verified' ? 'verified' : ''}">Projector ${escapeHtml(item.projector_status.replaceAll('_',' '))}</span>
       </div>

@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from app.models import Discovery
 from app.schemas import CatalogUpdate, LocationVerificationPayload
 from app.services.catalog import serialize_discovery, wc_id
+from app.services.locations import decode_universal_address
 
 
 def sample_discovery() -> Discovery:
@@ -68,3 +69,36 @@ def test_private_attribution_masks_public_name():
     assert payload["contributor"] == "Anonymous Contributor"
     assert payload["save_name"] == ""
     assert payload["public_attribution"] is False
+
+
+def test_confirmed_ua_decoding_vector():
+    decoded = decode_universal_address("0x208BFF11112111")
+    assert decoded is not None
+    assert decoded["portal_glyphs"] == "208B11112111"
+    assert decoded["reality_index"] == 255
+    assert decoded["galaxy_number"] == 256
+    assert decoded["galaxy_name"] == "Odyalutai"
+
+
+def test_padded_importer_ua_is_decoded():
+    decoded = decode_universal_address("0x00208BFF11112111")
+    assert decoded is not None
+    assert decoded["ua_normalized"] == "208BFF11112111"
+    assert decoded["portal_glyphs"] == "208B11112111"
+
+
+def test_unverified_record_exposes_ua_derived_travel_address():
+    row = sample_discovery()
+    row.ua = "0x00208BFF11112111"
+    row.galaxy_number = None
+    row.galaxy_name = ""
+    row.portal_glyphs = ""
+    row.location_status = "unverified"
+    payload = serialize_discovery(row, detail=True)
+    assert payload["has_location"] is False
+    assert payload["has_travel_address"] is True
+    assert payload["travel_status"] == "derived"
+    assert payload["location_source"] == "ua_confirmed_v1"
+    assert payload["portal_glyphs"] == "208B11112111"
+    assert payload["galaxy_number"] == 256
+    assert payload["galaxy_name"] == "Odyalutai"

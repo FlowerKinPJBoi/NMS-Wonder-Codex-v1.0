@@ -1,12 +1,14 @@
-# Wonder Codex v1.5 — Private Attribution & Save Finder Alpha
+# Wonder Codex v1.6
 
-This cumulative release retains the complete image system, private approved-image delivery, clickable portal glyph keypad, large-save protections, catalog, verification queues, and admin review tools.
+Full website and API deployment package for:
 
-It adds public-attribution privacy controls and the first permission-based Steam/GOG Save Finder prototype.
+- confirmed Universal Address → galaxy + portal glyph decoding;
+- UA-derived route display across Database, Record, Contributions, and Admin pages;
+- separate derived versus verified location status;
+- complete 1–256 galaxy-name lookup;
+- Pegasus Transit branding;
+- procedural flora/mineral name research dataset and experiment plan.
 
-Read `DEPLOY_WONDER_CODEX_v1.4.md` before deployment.
+No database migration is required.
 
-
-## v1.5 Save Finder
-
-The browser importer now includes local HG decoding for Steam/GOG character slots and Xbox/Game Pass PC WGS reconstruction from `containers.index`. Folder access remains read-only and raw save data is not submitted.
+See `DEPLOY_WONDER_CODEX_v1.6.md`.
