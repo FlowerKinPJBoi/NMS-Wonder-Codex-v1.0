@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img">
+  <title>Horned grazer representative archetype</title><desc>A stylized scan silhouette representing the triceratops-like fauna family.</desc>
+  <defs><radialGradient id="sky" cx="52%" cy="44%" r="72%"><stop stop-color="#243744"/><stop offset=".6" stop-color="#0d1524"/><stop offset="1" stop-color="#050914"/></radialGradient><linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#365153"/><stop offset="1" stop-color="#161c31"/></linearGradient><pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse"><path d="M56 0H0V56" fill="none" stroke="#72efbd" stroke-opacity=".07"/></pattern><filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <rect width="1200" height="675" fill="url(#sky)"/><rect width="1200" height="675" fill="url(#grid)"/>
+  <g fill="none" stroke="#72efbd"><ellipse cx="600" cy="413" rx="365" ry="122" stroke-opacity=".34" stroke-dasharray="9 16"/><path d="M58 142V58h84M1058 58h84v84M58 533v84h84M1058 617h84v-84" stroke-width="3" stroke-opacity=".5"/></g>
+  <g stroke="#72efbd" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+    <ellipse cx="554" cy="403" rx="226" ry="107" fill="url(#body)"/>
+    <path d="M724 380c30-108 111-169 193-113 68 47 38 160-55 169-51 5-102-20-142-48z" fill="url(#body)"/>
+    <path d="M772 364c-12-115 69-184 155-143 60 29 57 113 3 154" fill="#263e49"/>
+    <path d="M867 265l31-116 17 120m-71 38-60-94 90 63m62 77 102-35-86 74" fill="none"/>
+    <path d="M378 454l-24 121m116-116-5 116m164-118 21 118m79-137 48 137M336 389l-75-35" fill="none"/>
+    <circle cx="907" cy="323" r="8" fill="#ffd783" stroke="none"/>
+  </g>
+  <g font-family="Inter,Arial,sans-serif" letter-spacing="4"><text x="58" y="42" font-size="17" fill="#e2fff3">WONDER CODEX // ARCHETYPE SCAN</text><text x="1142" y="42" font-size="14" text-anchor="end" fill="#ffd783">NOT A SPECIMEN IMAGE</text><text x="58" y="645" font-size="19" fill="#72efbd">HORNED GRAZER</text></g>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img">
+  <title>Large bipedal predator representative archetype</title><desc>A stylized scan silhouette representing the large bipedal predator fauna family.</desc>
+  <defs><radialGradient id="sky" cx="56%" cy="43%" r="72%"><stop stop-color="#34243d"/><stop offset=".58" stop-color="#161026"/><stop offset="1" stop-color="#050914"/></radialGradient><linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#503348"/><stop offset="1" stop-color="#19172d"/></linearGradient><pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse"><path d="M56 0H0V56" fill="none" stroke="#ff7896" stroke-opacity=".065"/></pattern><filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <rect width="1200" height="675" fill="url(#sky)"/><rect width="1200" height="675" fill="url(#grid)"/>
+  <g fill="none" stroke="#ff7896"><ellipse cx="610" cy="400" rx="366" ry="128" stroke-opacity=".34" stroke-dasharray="9 16"/><path d="M58 142V58h84M1058 58h84v84M58 533v84h84M1058 617h84v-84" stroke-width="3" stroke-opacity=".5"/></g>
+  <g stroke="#ff7896" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+    <path d="M337 407c132-129 282-178 421-106 73 38 94 104 64 177-52 69-170 63-273 26L369 478z" fill="url(#body)"/>
+    <path d="M718 333c53-121 112-180 208-140 42 18 75 61 54 94-29 45-110 37-179 27l-45 86z" fill="url(#body)"/>
+    <path d="M383 411 172 348l189 119" fill="url(#body)"/>
+    <path d="M617 486c-2 46-20 77-54 103h112m93-119c-3 54 12 89 48 119H704" fill="none"/>
+    <path d="M788 368l78 50m-84-32 55 62" fill="none"/>
+    <path d="M877 279l79 15-72 16" fill="none" stroke-opacity=".65"/>
+    <circle cx="916" cy="236" r="8" fill="#ffd783" stroke="none"/>
+  </g>
+  <g font-family="Inter,Arial,sans-serif" letter-spacing="4"><text x="58" y="42" font-size="17" fill="#ffe5eb">WONDER CODEX // ARCHETYPE SCAN</text><text x="1142" y="42" font-size="14" text-anchor="end" fill="#ffd783">NOT A SPECIMEN IMAGE</text><text x="58" y="645" font-size="19" fill="#ff8faa">LARGE BIPEDAL PREDATOR</text></g>
+</svg>

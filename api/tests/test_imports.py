@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
 
-from app.models import Discovery
+from app.models import Discovery, PetDiscoveryMatch
 from app.schemas import CatalogUpdate, LocationVerificationPayload
+from app.services.archetypes import archetype_metadata, discovery_match_key
 from app.services.catalog import serialize_discovery, wc_id
 from app.services.locations import decode_universal_address
 
@@ -102,3 +103,40 @@ def test_unverified_record_exposes_ua_derived_travel_address():
     assert payload["portal_glyphs"] == "208B11112111"
     assert payload["galaxy_number"] == 256
     assert payload["galaxy_name"] == "Odyalutai"
+
+
+def test_confirmed_pet_match_selects_supported_fauna_archetype():
+    row = sample_discovery()
+    match = PetDiscoveryMatch(
+        approved_from_batch_id=row.approved_from_batch_id,
+        contributor="PJ",
+        save_name="Flower-Kin",
+        creature_id="TRICERATOPS",
+        creature_type="",
+        ua=row.ua,
+        vp0=row.vp0,
+        vp1=row.vp1,
+        vp2=row.vp2,
+        vp3=row.vp3,
+        vp4=row.vp4,
+        secondary_seed="",
+        secondary_check="",
+        message_id=row.message_id,
+        record_hash="pet-hash",
+        raw_record={},
+        public_attribution=True,
+    )
+    assert discovery_match_key(row) == discovery_match_key(match)
+    assert archetype_metadata(row, match) == {
+        "archetype_key": "fauna.triceratops",
+        "archetype_label": "Horned grazer",
+        "archetype_source": "confirmed_pet_match",
+    }
+
+
+def test_unknown_or_nonfauna_record_uses_neutral_category_fallback():
+    row = sample_discovery()
+    row.discovery_type = "Flora"
+    metadata = archetype_metadata(row)
+    assert metadata["archetype_key"] == "flora.unknown"
+    assert metadata["archetype_source"] == "category_fallback"

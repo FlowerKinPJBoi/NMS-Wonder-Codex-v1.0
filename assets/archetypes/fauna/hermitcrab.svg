@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img">
+  <title>Shelled arthropod representative archetype</title><desc>A stylized scan silhouette representing the hermit-crab-like fauna family.</desc>
+  <defs><radialGradient id="sky" cx="48%" cy="45%" r="72%"><stop stop-color="#203747"/><stop offset=".6" stop-color="#0b1525"/><stop offset="1" stop-color="#050914"/></radialGradient><radialGradient id="shell" cx="38%" cy="35%" r="66%"><stop stop-color="#67523c"/><stop offset=".62" stop-color="#2d3542"/><stop offset="1" stop-color="#131a2d"/></radialGradient><pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse"><path d="M56 0H0V56" fill="none" stroke="#ffd783" stroke-opacity=".07"/></pattern><filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <rect width="1200" height="675" fill="url(#sky)"/><rect width="1200" height="675" fill="url(#grid)"/>
+  <g fill="none" stroke="#ffd783"><ellipse cx="598" cy="420" rx="350" ry="115" stroke-opacity=".35" stroke-dasharray="9 16"/><path d="M58 142V58h84M1058 58h84v84M58 533v84h84M1058 617h84v-84" stroke-width="3" stroke-opacity=".5"/></g>
+  <g stroke="#ffd783" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+    <path d="M370 397c0-141 99-236 234-224 119 11 190 102 166 225-21 107-117 147-226 119-104-27-174-38-174-120z" fill="url(#shell)"/>
+    <path d="M482 383c15-76 76-118 144-96 61 20 87 92 42 139-35 36-106 30-121-17-10-33 19-61 50-53" fill="none" stroke-opacity=".72"/>
+    <path d="M708 413c90-55 183-21 201 56-29 52-95 67-177 23z" fill="#193449" stroke="#6de7ff"/>
+    <path d="M744 484l-83 76m142-64-36 79m93-91 36 70m-133-129-43-63m111 76 42-68" fill="none" stroke="#6de7ff"/>
+    <path d="M843 451l14-57m-64 50-8-55" fill="none" stroke="#6de7ff"/>
+    <circle cx="857" cy="394" r="8" fill="#ffd783" stroke="none"/><circle cx="785" cy="389" r="8" fill="#ffd783" stroke="none"/>
+  </g>
+  <g font-family="Inter,Arial,sans-serif" letter-spacing="4"><text x="58" y="42" font-size="17" fill="#fff4d7">WONDER CODEX // ARCHETYPE SCAN</text><text x="1142" y="42" font-size="14" text-anchor="end" fill="#6de7ff">NOT A SPECIMEN IMAGE</text><text x="58" y="645" font-size="19" fill="#ffd783">SHELLED ARTHROPOD</text></g>
+</svg>

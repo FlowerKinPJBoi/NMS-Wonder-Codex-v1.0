@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img">
+  <title>Unclassified fauna representative archetype</title>
+  <desc>A neutral Wonder Codex scan illustration used until a specimen screenshot is approved.</desc>
+  <defs>
+    <radialGradient id="sky" cx="50%" cy="44%" r="70%"><stop offset="0" stop-color="#152746"/><stop offset=".58" stop-color="#091224"/><stop offset="1" stop-color="#050914"/></radialGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#173b53"/><stop offset="1" stop-color="#101c36"/></linearGradient>
+    <pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse"><path d="M56 0H0V56" fill="none" stroke="#6de7ff" stroke-opacity=".07"/></pattern>
+    <filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1200" height="675" fill="url(#sky)"/><rect width="1200" height="675" fill="url(#grid)"/>
+  <g fill="none" stroke="#6de7ff" stroke-opacity=".45"><path d="M58 142V58h84M1058 58h84v84M58 533v84h84M1058 617h84v-84" stroke-width="3"/><ellipse cx="602" cy="388" rx="330" ry="142" stroke-dasharray="8 15"/><path d="M602 196v384M345 388h514" stroke-opacity=".17"/></g>
+  <g transform="translate(0 20)" stroke="#6de7ff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+    <path d="M340 385c32-103 128-149 248-126 78 14 124 55 158 118l-18 84H374z" fill="url(#body)"/>
+    <path d="M719 360c54-70 108-92 166-47 26 20 31 66-4 90-39 27-97 16-144-9" fill="url(#body)"/>
+    <path d="M388 442l-25 120m105-117-6 117m194-112 17 112m61-124 45 124M338 369l-66-40" fill="none"/>
+    <path d="M851 307l25-45m-2 50 50-26" fill="none"/>
+    <circle cx="868" cy="348" r="8" fill="#ffd783" stroke="none"/>
+  </g>
+  <g font-family="Inter,Arial,sans-serif" letter-spacing="4" fill="#d8f8ff"><text x="58" y="42" font-size="17">WONDER CODEX // ARCHETYPE SCAN</text><text x="1142" y="42" font-size="14" text-anchor="end" fill="#ffd783">NOT A SPECIMEN IMAGE</text><text x="58" y="645" font-size="19" fill="#6de7ff">UNCLASSIFIED FAUNA</text></g>
+</svg>

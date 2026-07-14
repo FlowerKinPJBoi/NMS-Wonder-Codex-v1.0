@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img">
+  <title>Unclassified Wonder representative archetype</title><desc>A neutral survey scan illustration used until an approved specimen image is available.</desc>
+  <defs><radialGradient id="sky" cx="50%" cy="45%" r="72%"><stop stop-color="#2d3142"/><stop offset=".6" stop-color="#111526"/><stop offset="1" stop-color="#050914"/></radialGradient><linearGradient id="core" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#65563f"/><stop offset=".5" stop-color="#25364e"/><stop offset="1" stop-color="#17182c"/></linearGradient><pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse"><path d="M56 0H0V56" fill="none" stroke="#ffd783" stroke-opacity=".07"/></pattern><filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <rect width="1200" height="675" fill="url(#sky)"/><rect width="1200" height="675" fill="url(#grid)"/>
+  <g fill="none" stroke="#ffd783"><circle cx="600" cy="338" r="260" stroke-opacity=".22"/><circle cx="600" cy="338" r="194" stroke-opacity=".35" stroke-dasharray="9 16"/><path d="M58 142V58h84M1058 58h84v84M58 533v84h84M1058 617h84v-84" stroke-width="3" stroke-opacity=".5"/></g>
+  <g stroke="#ffd783" stroke-width="7" stroke-linejoin="round" filter="url(#glow)">
+    <path d="M600 116 805 235v238L600 591 395 473V235z" fill="url(#core)"/>
+    <path d="m600 116 1 475M395 235l206 121 204-121M395 473l206-117 204 117" fill="none" stroke-opacity=".58"/>
+    <circle cx="600" cy="355" r="58" fill="#18283d" stroke="#6de7ff"/>
+    <path d="M600 258v-44m0 283v-44m-97-98h-44m283 0h-44" fill="none" stroke="#6de7ff"/>
+    <circle cx="600" cy="355" r="10" fill="#ffd783" stroke="none"/>
+  </g>
+  <g font-family="Inter,Arial,sans-serif" letter-spacing="4"><text x="58" y="42" font-size="17" fill="#fff4d7">WONDER CODEX // CATEGORY SCAN</text><text x="1142" y="42" font-size="14" text-anchor="end" fill="#6de7ff">NOT A SPECIMEN IMAGE</text><text x="58" y="645" font-size="19" fill="#ffd783">UNCLASSIFIED WONDER</text></g>
+</svg>

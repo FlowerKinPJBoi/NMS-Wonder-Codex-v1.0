@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img">
+  <title>Unclassified flora representative archetype</title><desc>A neutral botanical scan illustration used until a flora specimen screenshot is approved.</desc>
+  <defs><radialGradient id="sky" cx="50%" cy="45%" r="72%"><stop stop-color="#173d3b"/><stop offset=".6" stop-color="#091b22"/><stop offset="1" stop-color="#050914"/></radialGradient><linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#285c51"/><stop offset="1" stop-color="#142a39"/></linearGradient><pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse"><path d="M56 0H0V56" fill="none" stroke="#72efbd" stroke-opacity=".07"/></pattern><filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <rect width="1200" height="675" fill="url(#sky)"/><rect width="1200" height="675" fill="url(#grid)"/>
+  <g fill="none" stroke="#72efbd"><circle cx="600" cy="357" r="253" stroke-opacity=".22"/><ellipse cx="600" cy="512" rx="318" ry="66" stroke-opacity=".34" stroke-dasharray="9 16"/><path d="M58 142V58h84M1058 58h84v84M58 533v84h84M1058 617h84v-84" stroke-width="3" stroke-opacity=".5"/></g>
+  <g stroke="#72efbd" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+    <path d="M603 538c-16-130-4-249 10-363m-6 194c-72-75-125-104-188-109m190 50c76-75 130-106 194-111m-196 233c-63-54-113-70-172-65m174 6c54-44 96-62 148-64" fill="none"/>
+    <path d="M419 260c78-31 136 3 181 91-91 17-157-6-181-91zm384-61c-77-25-135 14-181 106 91 9 157-20 181-106zM435 367c65-21 115 13 157 88-74 10-128-17-157-88zm322-58c-63-17-112 20-151 97 73 5 126-25 151-97z" fill="url(#leaf)"/>
+    <circle cx="613" cy="166" r="31" fill="#284e4d"/><path d="M613 118v-42m-35 57-30-29m101 29 30-29" fill="none"/>
+  </g>
+  <g font-family="Inter,Arial,sans-serif" letter-spacing="4"><text x="58" y="42" font-size="17" fill="#e2fff3">WONDER CODEX // CATEGORY SCAN</text><text x="1142" y="42" font-size="14" text-anchor="end" fill="#ffd783">NOT A SPECIMEN IMAGE</text><text x="58" y="645" font-size="19" fill="#72efbd">UNCLASSIFIED FLORA</text></g>
+</svg>

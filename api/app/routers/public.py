@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_session
 from ..models import Discovery, ImageContribution, LocationVerification, PetDiscoveryMatch, SubmissionBatch
+from ..services.archetypes import archetype_metadata, discovery_match_key
 from ..services.catalog import public_contributor, serialize_discovery
 
 router = APIRouter(tags=["public"])
@@ -15,6 +16,19 @@ router = APIRouter(tags=["public"])
 
 def image_delivery_url(image: ImageContribution | None) -> str:
     return f"/api/images/{image.id}/content" if image else ""
+
+
+def pet_archetypes_for(discoveries: list[Discovery], session: Session) -> dict[tuple[str, ...], PetDiscoveryMatch]:
+    universal_addresses = {row.ua for row in discoveries if row.ua}
+    if not universal_addresses:
+        return {}
+    matches = session.scalars(
+        select(PetDiscoveryMatch).where(PetDiscoveryMatch.ua.in_(universal_addresses))
+    ).all()
+    by_key: dict[tuple[str, ...], PetDiscoveryMatch] = {}
+    for match in matches:
+        by_key.setdefault(discovery_match_key(match), match)
+    return by_key
 
 
 
@@ -109,6 +123,7 @@ def list_discoveries(
     rows = session.scalars(
         base.order_by(Discovery.id.desc()).limit(limit).offset(offset)
     ).all()
+    pet_archetypes = pet_archetypes_for(rows, session)
 
     items = []
     for row in rows:
@@ -121,6 +136,7 @@ def list_discoveries(
         )
         items.append(dict(
             serialize_discovery(row),
+            **archetype_metadata(row, pet_archetypes.get(discovery_match_key(row))),
             primary_image_url=image_delivery_url(primary_image),
         ))
 
@@ -153,6 +169,8 @@ def get_discovery(discovery_id: int, session: Session = Depends(get_session)):
     ) or 0
 
     payload = serialize_discovery(discovery, detail=True)
+    pet_archetypes = pet_archetypes_for([discovery], session)
+    payload.update(archetype_metadata(discovery, pet_archetypes.get(discovery_match_key(discovery))))
     approved_images = session.scalars(
         select(ImageContribution).where(
             ImageContribution.discovery_id == discovery_id,

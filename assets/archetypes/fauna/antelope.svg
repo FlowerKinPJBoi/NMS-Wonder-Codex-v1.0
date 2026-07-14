@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img">
+  <title>Slender grazer representative archetype</title><desc>A stylized scan silhouette representing the antelope-like fauna family.</desc>
+  <defs><radialGradient id="sky" cx="56%" cy="42%" r="70%"><stop stop-color="#173047"/><stop offset=".6" stop-color="#091224"/><stop offset="1" stop-color="#050914"/></radialGradient><linearGradient id="body" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#174458"/><stop offset="1" stop-color="#101b34"/></linearGradient><pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse"><path d="M56 0H0V56" fill="none" stroke="#6de7ff" stroke-opacity=".07"/></pattern><filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <rect width="1200" height="675" fill="url(#sky)"/><rect width="1200" height="675" fill="url(#grid)"/>
+  <g fill="none" stroke="#6de7ff"><ellipse cx="600" cy="410" rx="360" ry="112" stroke-opacity=".35" stroke-dasharray="9 16"/><path d="M58 142V58h84M1058 58h84v84M58 533v84h84M1058 617h84v-84" stroke-width="3" stroke-opacity=".5"/></g>
+  <g stroke="#6de7ff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)">
+    <ellipse cx="566" cy="386" rx="190" ry="78" fill="url(#body)"/>
+    <path d="M704 370c34-66 59-145 100-171 28-18 70-5 79 27 10 37-28 66-71 58l-62 127z" fill="url(#body)"/>
+    <path d="M419 428l-37 141m111-127-8 127m137-129 31 129m72-151 65 151M385 366l-69-42" fill="none"/>
+    <path d="M827 200c-5-57 8-96 42-128m-13 131c15-55 43-86 79-102" fill="none"/>
+    <circle cx="856" cy="232" r="7" fill="#ffd783" stroke="none"/>
+  </g>
+  <g font-family="Inter,Arial,sans-serif" letter-spacing="4"><text x="58" y="42" font-size="17" fill="#d8f8ff">WONDER CODEX // ARCHETYPE SCAN</text><text x="1142" y="42" font-size="14" text-anchor="end" fill="#ffd783">NOT A SPECIMEN IMAGE</text><text x="58" y="645" font-size="19" fill="#6de7ff">SLENDER GRAZER</text></g>
+</svg>

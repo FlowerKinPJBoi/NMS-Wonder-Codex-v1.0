@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img">
+  <title>Unclassified mineral representative archetype</title><desc>A neutral crystalline scan illustration used until a mineral specimen screenshot is approved.</desc>
+  <defs><radialGradient id="sky" cx="50%" cy="45%" r="72%"><stop stop-color="#222d4d"/><stop offset=".6" stop-color="#0c1228"/><stop offset="1" stop-color="#050914"/></radialGradient><linearGradient id="crystal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#334e75"/><stop offset=".55" stop-color="#252e52"/><stop offset="1" stop-color="#17172e"/></linearGradient><pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse"><path d="M56 0H0V56" fill="none" stroke="#9d8cff" stroke-opacity=".075"/></pattern><filter id="glow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+  <rect width="1200" height="675" fill="url(#sky)"/><rect width="1200" height="675" fill="url(#grid)"/>
+  <g fill="none" stroke="#9d8cff"><circle cx="600" cy="355" r="263" stroke-opacity=".22"/><ellipse cx="600" cy="519" rx="337" ry="69" stroke-opacity=".35" stroke-dasharray="9 16"/><path d="M58 142V58h84M1058 58h84v84M58 533v84h84M1058 617h84v-84" stroke-width="3" stroke-opacity=".5"/></g>
+  <g stroke="#9d8cff" stroke-width="7" stroke-linejoin="round" filter="url(#glow)">
+    <path d="M516 511 461 274l101-151 76 163-22 225z" fill="url(#crystal)"/>
+    <path d="M640 511 622 329l94-117 88 156-69 143z" fill="url(#crystal)"/>
+    <path d="M382 511 366 370l77-96 69 156-32 81zm352 0 75-176 91 89-30 87z" fill="url(#crystal)"/>
+    <path d="m562 123 1 373m-102-222 89 83m88-71 82 78m-98-35 83 174" fill="none" stroke-opacity=".5"/>
+  </g>
+  <g font-family="Inter,Arial,sans-serif" letter-spacing="4"><text x="58" y="42" font-size="17" fill="#eeeaff">WONDER CODEX // CATEGORY SCAN</text><text x="1142" y="42" font-size="14" text-anchor="end" fill="#ffd783">NOT A SPECIMEN IMAGE</text><text x="58" y="645" font-size="19" fill="#b9adff">UNCLASSIFIED MINERAL</text></g>
+</svg>
