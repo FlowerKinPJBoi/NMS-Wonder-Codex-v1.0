@@ -8,7 +8,13 @@ from sqlalchemy.orm import Session
 
 from ..database import get_session
 from ..models import Discovery, ImageContribution, LocationVerification, PetDiscoveryMatch, SubmissionBatch
-from ..services.archetypes import archetype_metadata, discovery_match_key
+from ..services.archetypes import (
+    archetype_metadata,
+    build_exact_match_index,
+    build_vp1_family_index,
+    discovery_match_key,
+    family_vp1s,
+)
 from ..services.catalog import public_contributor, serialize_discovery
 
 router = APIRouter(tags=["public"])
@@ -18,18 +24,11 @@ def image_delivery_url(image: ImageContribution | None) -> str:
     return f"/api/images/{image.id}/content" if image else ""
 
 
-def pet_archetypes_for(discoveries: list[Discovery], session: Session) -> dict[tuple[str, ...], PetDiscoveryMatch]:
-    universal_addresses = {row.ua for row in discoveries if row.ua}
-    if not universal_addresses:
-        return {}
-    matches = session.scalars(
-        select(PetDiscoveryMatch).where(PetDiscoveryMatch.ua.in_(universal_addresses))
-    ).all()
-    by_key: dict[tuple[str, ...], PetDiscoveryMatch] = {}
-    for match in matches:
-        by_key.setdefault(discovery_match_key(match), match)
-    return by_key
-
+def pet_identity_context(
+    session: Session,
+) -> tuple[dict[tuple[str, ...], PetDiscoveryMatch], dict[str, dict[str, str | int]]]:
+    matches = session.scalars(select(PetDiscoveryMatch)).all()
+    return build_exact_match_index(matches), build_vp1_family_index(matches)
 
 
 @router.get("/stats")
@@ -77,16 +76,50 @@ def public_stats(session: Session = Depends(get_session)):
     }
 
 
+@router.get("/fauna-families")
+def list_fauna_families(session: Session = Depends(get_session)):
+    _, vp1_index = pet_identity_context(session)
+    if not vp1_index:
+        return {"items": []}
+
+    discovery_counts = dict(session.execute(
+        select(Discovery.vp1, func.count(Discovery.id))
+        .where(Discovery.discovery_type == "Animal", Discovery.vp1.in_(list(vp1_index)))
+        .group_by(Discovery.vp1)
+    ).all())
+
+    grouped: dict[str, dict[str, str | int]] = {}
+    for vp1, evidence in vp1_index.items():
+        family_id = str(evidence["creature_id"])
+        row = grouped.setdefault(family_id, {
+            "id": family_id,
+            "label": str(evidence["family_label"]),
+            "record_count": 0,
+            "evidence_count": 0,
+        })
+        row["record_count"] = int(row["record_count"]) + int(discovery_counts.get(vp1, 0))
+        row["evidence_count"] = int(row["evidence_count"]) + int(evidence["evidence_count"])
+
+    return {
+        "items": sorted(
+            (row for row in grouped.values() if int(row["record_count"]) > 0),
+            key=lambda row: str(row["label"]),
+        )
+    }
+
+
 @router.get("/discoveries")
 def list_discoveries(
     q: str = Query(default="", max_length=200),
     discovery_type: str = Query(default="", max_length=40),
+    fauna_family: str = Query(default="", max_length=120),
     location_status: str = Query(default="", max_length=30),
     image_status: str = Query(default="", max_length=30),
     limit: int = Query(default=48, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
     session: Session = Depends(get_session),
 ):
+    exact_matches, vp1_index = pet_identity_context(session)
     conditions = []
     if discovery_type:
         conditions.append(Discovery.discovery_type == discovery_type)
@@ -94,6 +127,10 @@ def list_discoveries(
         conditions.append(Discovery.location_status == location_status)
     if image_status:
         conditions.append(Discovery.image_status == image_status)
+    if fauna_family:
+        mapped_vp1s = family_vp1s(vp1_index, fauna_family, exact=True)
+        conditions.append(Discovery.discovery_type == "Animal")
+        conditions.append(Discovery.vp1.in_(mapped_vp1s) if mapped_vp1s else Discovery.id == -1)
 
     cleaned_query = " ".join(q.strip().split())
     if cleaned_query:
@@ -104,14 +141,21 @@ def list_discoveries(
             conditions.append(Discovery.id == int(cleaned_query))
         else:
             pattern = f"%{cleaned_query}%"
-            conditions.append(or_(
+            search_conditions = [
                 Discovery.display_name.ilike(pattern),
                 and_(Discovery.public_attribution.is_(True), Discovery.contributor.ilike(pattern)),
                 and_(Discovery.public_attribution.is_(True), Discovery.owner.ilike(pattern)),
                 Discovery.ua.ilike(pattern),
                 Discovery.message_id.ilike(pattern),
                 Discovery.galaxy_name.ilike(pattern),
-            ))
+            ]
+            mapped_vp1s = family_vp1s(vp1_index, cleaned_query, exact=False)
+            if mapped_vp1s:
+                search_conditions.append(and_(
+                    Discovery.discovery_type == "Animal",
+                    Discovery.vp1.in_(mapped_vp1s),
+                ))
+            conditions.append(or_(*search_conditions))
 
     base = select(Discovery)
     count_query = select(func.count()).select_from(Discovery)
@@ -123,8 +167,6 @@ def list_discoveries(
     rows = session.scalars(
         base.order_by(Discovery.id.desc()).limit(limit).offset(offset)
     ).all()
-    pet_archetypes = pet_archetypes_for(rows, session)
-
     items = []
     for row in rows:
         primary_image = session.scalar(
@@ -136,7 +178,11 @@ def list_discoveries(
         )
         items.append(dict(
             serialize_discovery(row),
-            **archetype_metadata(row, pet_archetypes.get(discovery_match_key(row))),
+            **archetype_metadata(
+                row,
+                exact_matches.get(discovery_match_key(row)),
+                vp1_index.get(row.vp1),
+            ),
             primary_image_url=image_delivery_url(primary_image),
         ))
 
@@ -169,8 +215,12 @@ def get_discovery(discovery_id: int, session: Session = Depends(get_session)):
     ) or 0
 
     payload = serialize_discovery(discovery, detail=True)
-    pet_archetypes = pet_archetypes_for([discovery], session)
-    payload.update(archetype_metadata(discovery, pet_archetypes.get(discovery_match_key(discovery))))
+    exact_matches, vp1_index = pet_identity_context(session)
+    payload.update(archetype_metadata(
+        discovery,
+        exact_matches.get(discovery_match_key(discovery)),
+        vp1_index.get(discovery.vp1),
+    ))
     approved_images = session.scalars(
         select(ImageContribution).where(
             ImageContribution.discovery_id == discovery_id,

@@ -2,7 +2,13 @@ from datetime import datetime, timezone
 
 from app.models import Discovery, PetDiscoveryMatch
 from app.schemas import CatalogUpdate, LocationVerificationPayload
-from app.services.archetypes import archetype_metadata, discovery_match_key
+from app.services.archetypes import (
+    archetype_metadata,
+    build_exact_match_index,
+    build_vp1_family_index,
+    discovery_match_key,
+    family_vp1s,
+)
 from app.services.catalog import serialize_discovery, wc_id
 from app.services.locations import decode_universal_address
 
@@ -105,14 +111,13 @@ def test_unverified_record_exposes_ua_derived_travel_address():
     assert payload["galaxy_name"] == "Odyalutai"
 
 
-def test_confirmed_pet_match_selects_supported_fauna_archetype():
-    row = sample_discovery()
-    match = PetDiscoveryMatch(
+def sample_pet_match(row: Discovery, creature_id: str = "TRICERATOPS", creature_type: str = "Prey") -> PetDiscoveryMatch:
+    return PetDiscoveryMatch(
         approved_from_batch_id=row.approved_from_batch_id,
         contributor="PJ",
         save_name="Flower-Kin",
-        creature_id="TRICERATOPS",
-        creature_type="",
+        creature_id=creature_id,
+        creature_type=creature_type,
         ua=row.ua,
         vp0=row.vp0,
         vp1=row.vp1,
@@ -122,16 +127,53 @@ def test_confirmed_pet_match_selects_supported_fauna_archetype():
         secondary_seed="",
         secondary_check="",
         message_id=row.message_id,
-        record_hash="pet-hash",
+        record_hash=f"pet-hash-{creature_id}",
         raw_record={},
         public_attribution=True,
     )
+
+
+def test_confirmed_pet_match_selects_supported_fauna_archetype():
+    row = sample_discovery()
+    match = sample_pet_match(row)
+    vp1_index = build_vp1_family_index([match])
     assert discovery_match_key(row) == discovery_match_key(match)
-    assert archetype_metadata(row, match) == {
-        "archetype_key": "fauna.triceratops",
-        "archetype_label": "Horned grazer",
-        "archetype_source": "confirmed_pet_match",
+    assert build_exact_match_index([match])[discovery_match_key(row)] is match
+    metadata = archetype_metadata(row, match, vp1_index[row.vp1])
+    assert metadata["archetype_key"] == "fauna.triceratops"
+    assert metadata["archetype_source"] == "confirmed_pet_match"
+    assert metadata["fauna_family_id"] == "TRICERATOPS"
+    assert metadata["fauna_family_label"] == "Triceratops"
+    assert metadata["fauna_behavior"] == "Prey"
+    assert metadata["fauna_identity_source"] == "exact_pet_match"
+
+
+def test_unambiguous_vp1_mapping_labels_related_discoveries_without_copying_behavior():
+    row = sample_discovery()
+    match = sample_pet_match(row, "TREX", "Predator")
+    vp1_family = build_vp1_family_index([match])[row.vp1]
+    metadata = archetype_metadata(row, None, vp1_family)
+    assert metadata["archetype_key"] == "fauna.trex"
+    assert metadata["fauna_family_label"] == "T-Rex"
+    assert metadata["fauna_behavior"] == ""
+    assert metadata["fauna_identity_source"] == "confirmed_vp1_mapping"
+
+
+def test_conflicting_vp1_family_evidence_is_not_inferred():
+    row = sample_discovery()
+    match_a = sample_pet_match(row, "CAT", "Passive")
+    match_b = sample_pet_match(row, "TREX", "Predator")
+    assert row.vp1 not in build_vp1_family_index([match_a, match_b])
+
+
+def test_family_search_accepts_friendly_and_technical_names():
+    index = {
+        "0xA": {"creature_id": "TREX", "family_label": "T-Rex", "evidence_count": 1},
+        "0xB": {"creature_id": "FLOATSPIDER", "family_label": "Float Spider", "evidence_count": 1},
     }
+    assert family_vp1s(index, "T-Rex", exact=True) == ["0xA"]
+    assert family_vp1s(index, "float spider", exact=True) == ["0xB"]
+    assert family_vp1s(index, "spider", exact=False) == ["0xB"]
 
 
 def test_unknown_or_nonfauna_record_uses_neutral_category_fallback():
@@ -140,3 +182,4 @@ def test_unknown_or_nonfauna_record_uses_neutral_category_fallback():
     metadata = archetype_metadata(row)
     assert metadata["archetype_key"] == "flora.unknown"
     assert metadata["archetype_source"] == "category_fallback"
+    assert metadata["fauna_family_id"] == ""

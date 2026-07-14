@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import Any
+from collections import defaultdict
+import re
+from typing import Any, Iterable
 
 
 SUPPORTED_FAUNA_ARCHETYPES = {
@@ -12,6 +14,18 @@ SUPPORTED_FAUNA_ARCHETYPES = {
     "TRICERATOPS": ("fauna.triceratops", "Horned grazer"),
 }
 
+FAUNA_FAMILY_LABELS = {
+    "ANTELOPE": "Antelope",
+    "CAT": "Cat",
+    "FLOATSPIDER": "Float Spider",
+    "HERMITCRAB": "Hermit Crab",
+    "PLANTCAT": "Plant Cat",
+    "ROBOTANTELOPE": "Robot Antelope",
+    "TREX": "T-Rex",
+    "TRICERATOPS": "Triceratops",
+    "WALKINGBUILDING": "Walking Building",
+}
+
 CATEGORY_ARCHETYPES = {
     "Animal": ("fauna.unknown", "Unclassified fauna"),
     "Flora": ("flora.unknown", "Unclassified flora"),
@@ -21,38 +35,135 @@ CATEGORY_ARCHETYPES = {
 OTHER_ARCHETYPE = ("other.unknown", "Unclassified Wonder")
 
 
+def normalize_creature_id(value: Any) -> str:
+    cleaned = str(value or "").strip().lstrip("^").upper()
+    return cleaned if re.fullmatch(r"[A-Z0-9_]{1,120}", cleaned) else ""
+
+
+def family_label(creature_id: str) -> str:
+    normalized = normalize_creature_id(creature_id)
+    if not normalized:
+        return ""
+    if normalized in FAUNA_FAMILY_LABELS:
+        return FAUNA_FAMILY_LABELS[normalized]
+    return normalized.replace("_", " ").title()
+
+
+def family_vp1s(
+    vp1_index: dict[str, dict[str, str | int]],
+    query: str,
+    *,
+    exact: bool,
+) -> list[str]:
+    """Find mapped VP1 values by friendly or technical family name."""
+    needle = re.sub(r"[^A-Z0-9]+", "", query.upper())
+    if not needle:
+        return []
+
+    matches = []
+    for vp1, evidence in vp1_index.items():
+        family_id = re.sub(r"[^A-Z0-9]+", "", str(evidence.get("creature_id", "")).upper())
+        label = re.sub(r"[^A-Z0-9]+", "", str(evidence.get("family_label", "")).upper())
+        is_match = needle in {family_id, label} if exact else needle in family_id or needle in label
+        if is_match:
+            matches.append(vp1)
+    return matches
+
+
 def discovery_match_key(record: Any) -> tuple[str, ...]:
-    """Return the exact projector identity shared by a discovery and pet match."""
+    """Return the exact key used by the importer to pair PetData and DiscoveryData."""
     return tuple(str(getattr(record, field, "") or "") for field in (
         "ua",
         "vp0",
-        "vp1",
         "vp2",
         "vp3",
-        "vp4",
-        "message_id",
     ))
 
 
-def archetype_metadata(discovery: Any, pet_match: Any | None = None) -> dict[str, str]:
-    """Choose a public, allowlisted representative archetype for a catalog record."""
-    if getattr(discovery, "discovery_type", "") == "Animal" and pet_match is not None:
-        creature_id = str(getattr(pet_match, "creature_id", "") or "").strip().upper()
-        supported = SUPPORTED_FAUNA_ARCHETYPES.get(creature_id)
-        if supported:
-            key, label = supported
-            return {
-                "archetype_key": key,
-                "archetype_label": label,
-                "archetype_source": "confirmed_pet_match",
-            }
+def build_exact_match_index(pet_matches: Iterable[Any]) -> dict[tuple[str, ...], Any]:
+    grouped: dict[tuple[str, ...], list[Any]] = defaultdict(list)
+    for match in pet_matches:
+        key = discovery_match_key(match)
+        if all(key) and normalize_creature_id(getattr(match, "creature_id", "")):
+            grouped[key].append(match)
 
-    key, label = CATEGORY_ARCHETYPES.get(
-        getattr(discovery, "discovery_type", ""),
-        OTHER_ARCHETYPE,
-    )
+    exact: dict[tuple[str, ...], Any] = {}
+    for key, matches in grouped.items():
+        families = {normalize_creature_id(getattr(match, "creature_id", "")) for match in matches}
+        if len(families) == 1:
+            exact[key] = next(
+                (match for match in matches if str(getattr(match, "creature_type", "") or "").strip()),
+                matches[0],
+            )
+    return exact
+
+
+def build_vp1_family_index(pet_matches: Iterable[Any]) -> dict[str, dict[str, str | int]]:
+    """Keep only VP1 values whose approved PetData evidence resolves to one family."""
+    grouped: dict[str, list[str]] = defaultdict(list)
+    for match in pet_matches:
+        vp1 = str(getattr(match, "vp1", "") or "").strip()
+        creature_id = normalize_creature_id(getattr(match, "creature_id", ""))
+        if vp1 and creature_id:
+            grouped[vp1].append(creature_id)
+
+    index: dict[str, dict[str, str | int]] = {}
+    for vp1, creature_ids in grouped.items():
+        unique = set(creature_ids)
+        if len(unique) != 1:
+            continue
+        creature_id = unique.pop()
+        index[vp1] = {
+            "creature_id": creature_id,
+            "family_label": family_label(creature_id),
+            "evidence_count": len(creature_ids),
+        }
+    return index
+
+
+def archetype_metadata(
+    discovery: Any,
+    pet_match: Any | None = None,
+    vp1_family: dict[str, str | int] | None = None,
+) -> dict[str, str | int]:
+    """Attach evidence-safe family identity and representative artwork metadata."""
+    discovery_type = str(getattr(discovery, "discovery_type", "") or "")
+    family_id = ""
+    behavior = ""
+    identity_source = ""
+    identity_label = ""
+    evidence_count = 0
+
+    if discovery_type == "Animal" and pet_match is not None:
+        family_id = normalize_creature_id(getattr(pet_match, "creature_id", ""))
+        behavior = str(getattr(pet_match, "creature_type", "") or "").strip().lstrip("^")
+        if family_id:
+            identity_source = "exact_pet_match"
+            identity_label = "Exact PetData match"
+            evidence_count = int((vp1_family or {}).get("evidence_count", 1))
+    elif discovery_type == "Animal" and vp1_family:
+        family_id = normalize_creature_id(vp1_family.get("creature_id", ""))
+        if family_id:
+            identity_source = "confirmed_vp1_mapping"
+            identity_label = "Confirmed VP1 family mapping"
+            evidence_count = int(vp1_family.get("evidence_count", 0))
+
+    supported = SUPPORTED_FAUNA_ARCHETYPES.get(family_id)
+    if supported:
+        archetype_key, archetype_label = supported
+        archetype_source = "confirmed_pet_match" if identity_source == "exact_pet_match" else "confirmed_vp1_mapping"
+    else:
+        archetype_key, archetype_label = CATEGORY_ARCHETYPES.get(discovery_type, OTHER_ARCHETYPE)
+        archetype_source = "category_fallback"
+
     return {
-        "archetype_key": key,
-        "archetype_label": label,
-        "archetype_source": "category_fallback",
+        "archetype_key": archetype_key,
+        "archetype_label": archetype_label,
+        "archetype_source": archetype_source,
+        "fauna_family_id": family_id,
+        "fauna_family_label": family_label(family_id),
+        "fauna_behavior": behavior,
+        "fauna_identity_source": identity_source,
+        "fauna_identity_label": identity_label,
+        "fauna_family_evidence_count": evidence_count,
     }
