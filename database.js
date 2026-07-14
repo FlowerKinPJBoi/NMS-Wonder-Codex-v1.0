@@ -22,11 +22,36 @@
     return `<div class="location-mini"><strong>${escapeHtml(label)}</strong><p>Contributors can submit galaxy and glyph evidence.</p></div>`;
   }
 
+  function imageMarkup(item, name) {
+    const archetype = WCArchetypes.resolve(item);
+    const approvedUrl = String(item.primary_image_url || '').trim();
+    const isArchetype = !approvedUrl;
+    return `<div class="wonder-card-image ${isArchetype ? 'is-archetype' : 'is-approved'}">
+      <img src="${escapeHtml(approvedUrl || archetype.url)}" alt="${escapeHtml(isArchetype ? archetype.alt : name)}" loading="lazy" data-archetype-fallback="${escapeHtml(archetype.url)}" data-archetype-alt="${escapeHtml(archetype.alt)}">
+      <div class="archetype-label"${isArchetype ? '' : ' hidden'}><span>Representative archetype</span><small>${escapeHtml(archetype.label)} · specimen image pending</small></div>
+    </div>`;
+  }
+
+  function bindImageFallbacks() {
+    document.querySelectorAll('#catalogGrid .wonder-card-image img[data-archetype-fallback]').forEach((image) => {
+      image.addEventListener('error', function useArchetypeFallback() {
+        image.removeEventListener('error', useArchetypeFallback);
+        image.src = image.dataset.archetypeFallback;
+        image.alt = image.dataset.archetypeAlt;
+        const frame = image.closest('.wonder-card-image');
+        frame?.classList.remove('is-approved');
+        frame?.classList.add('is-archetype');
+        const label = frame?.querySelector('.archetype-label');
+        if (label) label.hidden = false;
+      });
+    });
+  }
+
   function card(item) {
     item = WCLocation.enrich(item);
     const name = escapeHtml(item.display_name);
     return `<article class="wonder-card">
-      ${item.primary_image_url ? `<div class="wonder-card-image"><img src="${escapeHtml(item.primary_image_url)}" alt="${name}" loading="lazy"></div>` : ''}
+      ${imageMarkup(item, item.display_name)}
       <div class="wonder-card-top"><span class="wc-id">${escapeHtml(item.wc_id)}</span><span class="type-chip">${escapeHtml(typeLabel(item.discovery_type))}</span></div>
       <h2>${name}</h2>
       <p>Contributed by ${escapeHtml(item.contributor || item.owner || 'Unknown explorer')}</p>
@@ -92,6 +117,7 @@
     $('#catalogGrid').innerHTML = state.items.length
       ? state.items.map(card).join('')
       : '<div class="empty-catalog surface"><strong>No records match these filters.</strong><p>Try a broader search or help verify a location.</p></div>';
+    bindImageFallbacks();
   }
 
   let timer;

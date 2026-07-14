@@ -23,18 +23,36 @@
   }
 
 
-  function renderImages(images) {
+  function showArchetype(data, note = '') {
+    const archetype = WCArchetypes.resolve(data);
+    const gallery = $('#recordGallery');
+    const frame = gallery.querySelector('.record-primary-image');
+    const primary = $('#recordPrimaryImage');
+    frame.classList.add('is-archetype');
+    primary.onerror = () => {
+      primary.onerror = null;
+      primary.removeAttribute('src');
+      $('#recordImageCaption').textContent = 'The representative archetype could not be loaded. Please report this record ID to an administrator.';
+    };
+    primary.src = archetype.url;
+    primary.alt = archetype.alt;
+    $('#recordImageCaption').textContent = `${archetype.label} • Representative archetype — specimen image pending${note ? ` • ${note}` : ''}`;
+    $('#recordThumbnails').innerHTML = '';
+    $('#recordThumbnails').hidden = true;
+    gallery.hidden = false;
+  }
+
+  function renderImages(images, data) {
     const approved = Array.isArray(images) ? images.filter((image) => image.url) : [];
     const gallery = $('#recordGallery');
-    if (!approved.length) { gallery.hidden = true; return; }
+    if (!approved.length) { showArchetype(data); return; }
     let active = approved.find((image) => image.is_primary) || approved[0];
     const show = (image) => {
       active = image;
       const primary = $('#recordPrimaryImage');
+      gallery.querySelector('.record-primary-image').classList.remove('is-archetype');
       primary.onerror = () => {
-        primary.onerror = null;
-        primary.removeAttribute('src');
-        $('#recordImageCaption').textContent = 'The approved image could not be loaded. The archive returned an error; please report this record ID to an administrator.';
+        showArchetype(data, 'approved image temporarily unavailable');
       };
       const deliveryUrl = `${image.url}${image.url.includes('?') ? '&' : '?'}display=140`;
       primary.src = deliveryUrl;
@@ -43,6 +61,7 @@
       $$('#recordThumbnails .record-thumbnail').forEach((button) => button.classList.toggle('active', button.dataset.id === image.id));
     };
     $('#recordThumbnails').innerHTML = approved.map((image) => `<button class="record-thumbnail" type="button" data-id="${escapeHtml(image.id)}"><img src="${escapeHtml(image.url)}${image.url.includes('?') ? '&' : '?'}display=140" alt="${escapeHtml(image.role.replaceAll('_',' '))}"></button>`).join('');
+    $('#recordThumbnails').hidden = false;
     $$('#recordThumbnails .record-thumbnail').forEach((button) => button.addEventListener('click', () => show(approved.find((image) => image.id === button.dataset.id))));
     gallery.hidden = false;
     show(active);
@@ -59,7 +78,7 @@
     $('#recordType').textContent = data.discovery_type === 'Animal' ? 'Fauna' : data.discovery_type;
     $('#recordAttribution').textContent = `Contributed by ${data.contributor || data.owner || 'Unknown explorer'}${data.save_name ? ` • ${data.save_name}` : ''}`;
     $('#recordBadges').innerHTML = badge('Location', data.travel_status) + badge('Projector', data.projector_status) + badge('Image', data.image_status);
-    renderImages(data.images || []);
+    renderImages(data.images || [], data);
     $('#messageId').textContent = data.message_id || 'No Message ID available';
     $('#copyMessage').hidden = !data.message_id;
     $('#dataList').innerHTML = [

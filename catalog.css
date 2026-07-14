@@ -27,3 +27,16 @@
   border-color:rgba(109,231,255,.25);
   background:rgba(109,231,255,.04);
 }
+
+/* v1.7 — representative archetypes for records awaiting specimen images */
+.wonder-card-image{position:relative}
+.wonder-card-image.is-archetype{background:#060b18}
+.wonder-card-image.is-archetype img{object-fit:cover}
+.archetype-label{position:absolute;right:10px;bottom:10px;left:10px;padding:8px 10px;border:1px solid rgba(109,231,255,.25);border-radius:10px;background:rgba(5,9,20,.84);box-shadow:0 8px 24px rgba(0,0,0,.28);backdrop-filter:blur(8px)}
+.archetype-label[hidden]{display:none}
+.archetype-label span,.archetype-label small{display:block}
+.archetype-label span{color:var(--cyan);font:800 .58rem/1.2 "Space Grotesk",sans-serif;letter-spacing:.1em;text-transform:uppercase}
+.archetype-label small{margin-top:3px;color:#c8d2e9;font-size:.64rem}
+.record-primary-image.is-archetype{background:#060b18}
+.record-primary-image.is-archetype img{aspect-ratio:16/9;object-fit:cover}
+.record-primary-image.is-archetype .record-image-caption{border-top:1px solid rgba(109,231,255,.12);color:#b9c6df}

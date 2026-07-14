@@ -1,4 +1,4 @@
-# Wonder Codex v1.6
+# Wonder Codex v1.7
 
 Full website and API deployment package for:
 
@@ -11,4 +11,4 @@ Full website and API deployment package for:
 
 No database migration is required.
 
-See `DEPLOY_WONDER_CODEX_v1.6.md`.
+See `CHANGELOG_v1.7.md` for the representative-archetype release and `DEPLOY_WONDER_CODEX_v1.6.md` for the current deployment foundation.
