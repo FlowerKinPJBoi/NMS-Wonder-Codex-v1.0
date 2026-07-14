@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1.4.0">
-  <link rel="stylesheet" href="catalog.css?v=1.7.0">
+  <link rel="stylesheet" href="catalog.css?v=1.8.0">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
@@ -29,8 +29,9 @@
 
     <section class="page-shell">
       <div class="catalog-toolbar surface">
-        <label>Search<input id="catalogSearch" type="search" placeholder="WC ID, contributor, owner, UA, galaxy…"></label>
+        <label>Search<input id="catalogSearch" type="search" placeholder="WC ID, fauna family, contributor, UA, galaxy…"></label>
         <label>Type<select id="typeFilter"><option value="">All types</option><option value="Animal">Fauna</option><option value="Flora">Flora</option><option value="Mineral">Minerals</option></select></label>
+        <label>Fauna family<select id="familyFilter"><option value="">All families</option></select></label>
         <label>Location<select id="locationFilter"><option value="">Any status</option><option value="verified">Verified</option><option value="pending">Pending review</option><option value="unverified">Needs verification</option><option value="disputed">Disputed</option></select></label>
         <label>Images<select id="imageFilter"><option value="">Any status</option><option value="needed">Image needed</option><option value="pending">Image pending</option><option value="available">Image available</option></select></label>
       </div>
@@ -45,6 +46,6 @@
   <script src="glyphs.js?v=1.6.0"></script>
   <script src="locations.js?v=1.6.0"></script>
   <script src="archetypes.js?v=1.7.0"></script>
-  <script src="database.js?v=1.7.0"></script>
+  <script src="database.js?v=1.8.0"></script>
 </body>
 </html>

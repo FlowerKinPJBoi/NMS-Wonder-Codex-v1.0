@@ -22,6 +22,22 @@
     return `<div class="location-mini"><strong>${escapeHtml(label)}</strong><p>Contributors can submit galaxy and glyph evidence.</p></div>`;
   }
 
+  function faunaIdentityMarkup(item) {
+    if (!item.fauna_family_label) return '';
+    const exact = item.fauna_identity_source === 'exact_pet_match';
+    const behavior = exact && item.fauna_behavior
+      ? `Behavior: ${escapeHtml(item.fauna_behavior)}`
+      : 'Behavior not inferred';
+    const evidenceCount = Number(item.fauna_family_evidence_count || 0);
+    const evidence = exact
+      ? 'Exact PetData match'
+      : `${escapeHtml(item.fauna_identity_label || 'Confirmed VP1 family mapping')}${evidenceCount ? ` · ${number(evidenceCount)} supporting exact match${evidenceCount === 1 ? '' : 'es'}` : ''}`;
+    return `<div class="fauna-identity card-identity ${exact ? 'exact' : 'inferred'}">
+      <div class="fauna-identity-heading"><span class="fauna-family-badge">${escapeHtml(item.fauna_family_label)} family</span><span class="fauna-behavior">${behavior}</span></div>
+      <small>${evidence}</small>
+    </div>`;
+  }
+
   function imageMarkup(item, name) {
     const archetype = WCArchetypes.resolve(item);
     const approvedUrl = String(item.primary_image_url || '').trim();
@@ -55,6 +71,7 @@
       <div class="wonder-card-top"><span class="wc-id">${escapeHtml(item.wc_id)}</span><span class="type-chip">${escapeHtml(typeLabel(item.discovery_type))}</span></div>
       <h2>${name}</h2>
       <p>Contributed by ${escapeHtml(item.contributor || item.owner || 'Unknown explorer')}</p>
+      ${faunaIdentityMarkup(item)}
       <div class="card-badges">
         <span class="status-chip ${escapeHtml(item.travel_status)}">Location ${escapeHtml(item.travel_status)}</span>
         <span class="status-chip ${item.image_status === 'available' ? 'verified' : 'needed'}">Image ${escapeHtml(item.image_status)}</span>
@@ -73,15 +90,32 @@
     const params = new URLSearchParams();
     const q = $('#catalogSearch').value.trim();
     const type = $('#typeFilter').value;
+    const family = $('#familyFilter').value;
     const location = $('#locationFilter').value;
     const image = $('#imageFilter').value;
     if (q) params.set('q', q);
     if (type) params.set('discovery_type', type);
+    if (family) params.set('fauna_family', family);
     if (location) params.set('location_status', location);
     if (image) params.set('image_status', image);
     params.set('limit', state.limit);
     params.set('offset', reset ? 0 : state.offset);
     return params.toString();
+  }
+
+  async function loadFamilies() {
+    const select = $('#familyFilter');
+    try {
+      const response = await fetch(`${API}/fauna-families`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
+      select.innerHTML = '<option value="">All families</option>' + (data.items || []).map((family) =>
+        `<option value="${escapeHtml(family.id)}">${escapeHtml(family.label)} (${number(family.record_count)})</option>`
+      ).join('');
+    } catch {
+      select.innerHTML = '<option value="">Family filter unavailable</option>';
+      select.disabled = true;
+    }
   }
 
   async function load(reset = true) {
@@ -122,7 +156,12 @@
 
   let timer;
   $('#catalogSearch').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => load(true), 300); });
-  ['#typeFilter','#locationFilter','#imageFilter'].forEach((selector) => $(selector).addEventListener('change', () => load(true)));
+  $('#typeFilter').addEventListener('change', () => {
+    if ($('#typeFilter').value && $('#typeFilter').value !== 'Animal') $('#familyFilter').value = '';
+    load(true);
+  });
+  ['#familyFilter','#locationFilter','#imageFilter'].forEach((selector) => $(selector).addEventListener('change', () => load(true)));
   $('#loadMore').addEventListener('click', () => load(false));
+  loadFamilies();
   load(true);
 })();

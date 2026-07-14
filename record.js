@@ -3,6 +3,7 @@
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  const number = (value) => Number(value || 0).toLocaleString();
   let record = null;
 
   function toast(message) {
@@ -20,6 +21,26 @@
   function item(label, value, code = true) {
     const safe = value || '—';
     return `<div class="data-item"><span>${escapeHtml(label)}</span>${code ? `<code>${escapeHtml(safe)}</code>` : `<strong>${escapeHtml(safe)}</strong>`}</div>`;
+  }
+
+  function renderFaunaIdentity(data) {
+    const element = $('#recordIdentity');
+    if (!data.fauna_family_label) {
+      element.hidden = true;
+      element.innerHTML = '';
+      return;
+    }
+    const exact = data.fauna_identity_source === 'exact_pet_match';
+    const evidenceCount = Number(data.fauna_family_evidence_count || 0);
+    const evidence = exact
+      ? 'Exact PetData match'
+      : `${data.fauna_identity_label || 'Confirmed VP1 family mapping'}${evidenceCount ? ` · supported by ${number(evidenceCount)} exact match${evidenceCount === 1 ? '' : 'es'}` : ''}`;
+    element.classList.toggle('exact', exact);
+    element.classList.toggle('inferred', !exact);
+    element.innerHTML = `<p class="kicker">FAUNA IDENTITY</p>
+      <div class="fauna-identity-heading"><strong>${escapeHtml(data.fauna_family_label)} family</strong><span class="fauna-behavior">${exact && data.fauna_behavior ? `Behavior: ${escapeHtml(data.fauna_behavior)}` : 'Behavior not inferred'}</span></div>
+      <p>${escapeHtml(evidence)} · Technical family ID <code>${escapeHtml(data.fauna_family_id)}</code></p>`;
+    element.hidden = false;
   }
 
 
@@ -77,11 +98,18 @@
     $('#recordName').textContent = data.display_name;
     $('#recordType').textContent = data.discovery_type === 'Animal' ? 'Fauna' : data.discovery_type;
     $('#recordAttribution').textContent = `Contributed by ${data.contributor || data.owner || 'Unknown explorer'}${data.save_name ? ` • ${data.save_name}` : ''}`;
+    renderFaunaIdentity(data);
     $('#recordBadges').innerHTML = badge('Location', data.travel_status) + badge('Projector', data.projector_status) + badge('Image', data.image_status);
     renderImages(data.images || [], data);
     $('#messageId').textContent = data.message_id || 'No Message ID available';
     $('#copyMessage').hidden = !data.message_id;
+    const identityData = data.fauna_family_label ? [
+      item('Fauna family', data.fauna_family_label, false),
+      item('Behavior', data.fauna_identity_source === 'exact_pet_match' ? data.fauna_behavior || 'Not recorded' : 'Not inferred', false),
+      item('Identity evidence', data.fauna_identity_label, false),
+    ] : [];
     $('#dataList').innerHTML = [
+      ...identityData,
       item('Universal Address', data.ua), item('VP0', data.vp0), item('VP1', data.vp1), item('VP2', data.vp2), item('VP3', data.vp3), item('VP4', data.vp4),
       item('Owner', data.owner, false), item('Platform', data.platform, false),
       item('Approved verifications', data.verification_counts?.approved ?? 0, false), item('Pending verifications', data.verification_counts?.pending ?? 0, false),
