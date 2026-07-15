@@ -17,6 +17,14 @@ def require_admin_key(
         for name, value in settings.admin_api_keys.items()
         if name.strip() and value
     }
+    named_keys.update({
+        name.casefold(): value.strip()
+        for name, value in {
+            "PJ": settings.admin_api_key_pj,
+            "Boots": settings.admin_api_key_boots,
+        }.items()
+        if value.strip()
+    })
     legacy_key = settings.admin_api_key.strip()
     if not named_keys and not legacy_key:
         raise HTTPException(status_code=503, detail="Administrator keys are not configured.")

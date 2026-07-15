@@ -75,6 +75,14 @@ def test_named_admin_keys_parse_from_environment_json():
     assert settings.admin_api_keys == {"PJ": "pj-key", "Boots": "boots-key"}
 
 
+def test_named_admin_keys_accept_individual_environment_values(monkeypatch):
+    monkeypatch.setenv("ADMIN_API_KEY_PJ", "pj-key")
+    monkeypatch.setenv("ADMIN_API_KEY_BOOTS", "boots-key")
+    settings = Settings()
+    assert settings.admin_api_key_pj == "pj-key"
+    assert settings.admin_api_key_boots == "boots-key"
+
+
 def test_private_attribution_masks_public_name():
     row = sample_discovery()
     row.public_attribution = False

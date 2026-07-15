@@ -27,6 +27,8 @@ class Settings(BaseSettings):
         ]
     )
     admin_api_key: str = ""
+    admin_api_key_pj: str = ""
+    admin_api_key_boots: str = ""
     admin_api_keys: dict[str, str] = Field(default_factory=dict)
     ip_hash_salt: str = "change-me"
     max_requests_per_hour: int = 5
