@@ -192,9 +192,12 @@
   function applyData(data) {
     state.apps = data.items || [];
     state.maxUploadBytes = Number(data.max_upload_bytes || 0);
-    $('#storageBadge').textContent = data.storage_ready ? 'Private storage online' : 'Storage setup required';
-    $('#storageBadge').className = `status-pill ${data.storage_ready ? 'ready' : 'warning'}`;
-    $('#expiryNote').textContent = data.storage_ready ? `Download links expire after ${Math.round((data.download_expires_seconds || 600) / 60)} minutes.` : 'Configure the existing Spaces credentials on the API service.';
+    const storageWarning = String(data.storage_warning || '').trim();
+    const storageOnline = Boolean(data.storage_ready) && !storageWarning;
+    $('#storageBadge').textContent = storageOnline ? 'Private storage online' : (data.storage_ready ? 'Storage check needs attention' : 'Storage setup required');
+    $('#storageBadge').className = `status-pill ${storageOnline ? 'ready' : 'warning'}`;
+    $('#expiryNote').textContent = storageOnline ? `Download links expire after ${Math.round((data.download_expires_seconds || 600) / 60)} minutes.` : (storageWarning || 'Configure the existing Spaces credentials on the API service.');
+    showAlert(storageWarning);
     renderApps();
   }
 

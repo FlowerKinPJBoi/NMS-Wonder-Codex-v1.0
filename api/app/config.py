@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Wonder Codex API"
-    app_version: str = "1.5.1"
+    app_version: str = "1.8.5"
     environment: str = "production"
     database_url: str = ""
     allowed_origins: List[str] = Field(
@@ -49,10 +49,16 @@ class Settings(BaseSettings):
     min_image_width: int = 640
     min_image_height: int = 360
     max_image_dimension: int = 7680
+    max_admin_app_mb: int = 160
+    admin_app_download_seconds: int = 600
 
     @property
     def max_image_bytes(self) -> int:
         return self.max_image_mb * 1024 * 1024
+
+    @property
+    def max_admin_app_bytes(self) -> int:
+        return self.max_admin_app_mb * 1024 * 1024
 
     @property
     def spaces_ready(self) -> bool:
@@ -63,6 +69,16 @@ class Settings(BaseSettings):
             self.spaces_bucket,
             self.spaces_endpoint,
             self.spaces_cdn_url,
+        ])
+
+    @property
+    def spaces_private_ready(self) -> bool:
+        return all([
+            self.spaces_access_key,
+            self.spaces_secret_key,
+            self.spaces_region,
+            self.spaces_bucket,
+            self.spaces_endpoint,
         ])
 
     @field_validator("allowed_origins", mode="before")

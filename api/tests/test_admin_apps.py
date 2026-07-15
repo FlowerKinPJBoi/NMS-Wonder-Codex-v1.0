@@ -6,6 +6,7 @@ import zipfile
 import pytest
 from fastapi import HTTPException
 
+from app.routers import admin_apps as admin_apps_router
 from app.config import Settings
 from app.services.admin_apps import (
     APPLICATIONS,
@@ -71,3 +72,16 @@ def test_private_storage_does_not_require_a_public_cdn_url():
     assert settings.spaces_private_ready is True
     assert settings.spaces_ready is False
     assert settings.max_admin_app_bytes == 160 * 1024 * 1024
+
+
+def test_storage_status_failure_does_not_lock_operator_out(monkeypatch):
+    def fail_status(_application):
+        raise HTTPException(status_code=502, detail="Could not inspect private application storage.")
+
+    monkeypatch.setattr(admin_apps_router, "release_status", fail_status)
+    response = admin_apps_router.list_private_apps(actor="PJ")
+
+    assert response["operator"] == "PJ"
+    assert len(response["items"]) == 2
+    assert all(item["release"] is None for item in response["items"])
+    assert response["storage_warning"] == "Could not inspect private application storage."

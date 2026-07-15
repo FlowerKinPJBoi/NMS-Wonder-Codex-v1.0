@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from starlette.concurrency import run_in_threadpool
 
@@ -18,20 +20,36 @@ from ..services.admin_apps import (
 from ..services.security import require_admin_key
 
 router = APIRouter(prefix="/admin/apps", tags=["admin-apps"])
+logger = logging.getLogger(__name__)
 
 
 @router.get("")
 def list_private_apps(actor: str = Depends(require_admin_key)):
     settings = get_settings()
     items = []
+    storage_warnings: list[str] = []
     for application in APPLICATIONS:
         item = public_application(application)
-        item["release"] = release_status(application)
+        try:
+            item["release"] = release_status(application)
+        except HTTPException as exc:
+            # A release-status lookup must never lock an authorized operator out
+            # of the vault. Upload and download operations still fail closed.
+            item["release"] = None
+            storage_warnings.append(str(exc.detail))
+        except Exception as exc:
+            logger.exception("Unexpected private storage status failure for %s", application.slug)
+            item["release"] = None
+            storage_warnings.append(
+                f"Private storage status check failed ({type(exc).__name__})."
+            )
         items.append(item)
+    storage_warning = " ".join(dict.fromkeys(storage_warnings))
     return {
         "items": items,
         "operator": actor,
         "storage_ready": settings.spaces_private_ready,
+        "storage_warning": storage_warning,
         "max_upload_bytes": settings.max_admin_app_bytes,
         "download_expires_seconds": settings.admin_app_download_seconds,
     }

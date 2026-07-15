@@ -17,7 +17,7 @@
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
   <header class="site-header admin-header">
     <a class="brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Admin Review Console</small></span></a>
-    <div class="admin-head-actions"><span id="connectionBadge" class="connection-badge">Locked</span><button id="lockButton" class="small-button" type="button" hidden>Lock console</button><a class="small-button" href="index.html">Public site</a></div>
+    <div class="admin-head-actions"><span id="connectionBadge" class="connection-badge">Locked</span><button id="lockButton" class="small-button" type="button" hidden>Lock console</button><a class="small-button" href="admin/apps/">Private apps</a><a class="small-button" href="index.html">Public site</a></div>
   </header>
 
   <main class="admin-shell">
@@ -31,7 +31,7 @@
     </section>
 
     <section id="dashboard" class="admin-dashboard" hidden>
-      <div class="admin-title-row"><div><p class="kicker">WONDER DATABASE ADMIN</p><h1>Review and curate the Codex</h1><p>Publish normalized data, evaluate travel evidence, curate catalog records, and retain an auditable decision history.</p></div><div class="admin-title-actions"><button id="refreshButton" class="button secondary" type="button">Refresh data</button><span id="lastRefresh">Not refreshed</span></div></div>
+      <div class="admin-title-row"><div><p class="kicker">WONDER DATABASE ADMIN</p><h1>Review and curate the Codex</h1><p>Publish normalized data, evaluate travel evidence, curate catalog records, and retain an auditable decision history.</p></div><div class="admin-title-actions"><a class="button secondary" href="admin/apps/">Open private apps</a><button id="refreshButton" class="button secondary" type="button">Refresh data</button><span id="lastRefresh">Not refreshed</span></div></div>
 
       <div id="summaryGrid" class="admin-summary-grid v12-summary">
         <div class="admin-stat"><span>Pending batches</span><strong id="sumPending">—</strong></div>
@@ -117,6 +117,6 @@
   <div id="toast" class="toast" hidden></div>
   <script src="glyphs.js?v=1.6.0"></script>
   <script src="locations.js?v=1.6.0"></script>
-  <script src="admin.js?v=1.8.1"></script>
+  <script src="admin.js?v=1.8.3"></script>
 </body>
 </html>
