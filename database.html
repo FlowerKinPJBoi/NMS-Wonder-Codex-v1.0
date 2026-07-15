@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1.4.0">
-  <link rel="stylesheet" href="catalog.css?v=1.8.0">
+  <link rel="stylesheet" href="catalog.css?v=1.9.0">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
@@ -24,18 +24,35 @@
     <section class="page-hero">
       <p class="eyebrow">PUBLISHED WONDER DATABASE</p>
       <h1>Search the living <span>catalog.</span></h1>
-      <p>Browse approved fauna, flora, minerals, projector data, verification status, and UA-derived or community-verified galaxy and portal routes.</p>
+      <p>Browse approved planetary Wonders and the developing catalog of procedural starships, freighters, frigates, and multi-tools.</p>
     </section>
 
     <section class="page-shell">
+      <div class="catalog-lanes" role="tablist" aria-label="Catalog sections">
+        <button class="catalog-lane active" data-catalog-lane="wonders" type="button" role="tab" aria-selected="true">
+          <span class="catalog-lane-mark">✦</span><span><strong>Wonders</strong><small>Fauna, flora &amp; minerals</small></span>
+        </button>
+        <button class="catalog-lane" data-catalog-lane="Starship" type="button" role="tab" aria-selected="false">
+          <img src="assets/archetypes/assets/starship.svg" alt="" aria-hidden="true"><span><strong>Starships</strong><small><b data-asset-count="Starship">0</b> published</small></span>
+        </button>
+        <button class="catalog-lane" data-catalog-lane="Freighter" type="button" role="tab" aria-selected="false">
+          <img src="assets/archetypes/assets/freighter.svg" alt="" aria-hidden="true"><span><strong>Freighters</strong><small><b data-asset-count="Freighter">0</b> published</small></span>
+        </button>
+        <button class="catalog-lane" data-catalog-lane="Frigate" type="button" role="tab" aria-selected="false">
+          <img src="assets/archetypes/assets/frigate.svg" alt="" aria-hidden="true"><span><strong>Frigates</strong><small><b data-asset-count="Frigate">0</b> published</small></span>
+        </button>
+        <button class="catalog-lane" data-catalog-lane="Multitool" type="button" role="tab" aria-selected="false">
+          <img src="assets/archetypes/assets/multitool.svg" alt="" aria-hidden="true"><span><strong>Multi-tools</strong><small><b data-asset-count="Multitool">0</b> published</small></span>
+        </button>
+      </div>
       <div class="catalog-toolbar surface">
         <label>Search<input id="catalogSearch" type="search" placeholder="WC ID, fauna family, contributor, UA, galaxy…"></label>
-        <label>Type<select id="typeFilter"><option value="">All types</option><option value="Animal">Fauna</option><option value="Flora">Flora</option><option value="Mineral">Minerals</option></select></label>
-        <label>Fauna family<select id="familyFilter"><option value="">All families</option></select></label>
+        <label id="typeFilterField">Type<select id="typeFilter"><option value="">All types</option><option value="Animal">Fauna</option><option value="Flora">Flora</option><option value="Mineral">Minerals</option></select></label>
+        <label id="familyFilterField">Fauna family<select id="familyFilter"><option value="">All families</option></select></label>
         <label>Location<select id="locationFilter"><option value="">Any status</option><option value="verified">Verified</option><option value="pending">Pending review</option><option value="unverified">Needs verification</option><option value="disputed">Disputed</option></select></label>
         <label>Images<select id="imageFilter"><option value="">Any status</option><option value="needed">Image needed</option><option value="pending">Image pending</option><option value="available">Image available</option></select></label>
       </div>
-      <div class="catalog-meta"><span id="catalogCount">Loading catalog…</span><span>UA-derived routes are labeled separately from community-verified locations.</span></div>
+      <div class="catalog-meta"><span id="catalogCount">Loading catalog…</span><span id="catalogContext">UA-derived routes are labeled separately from community-verified locations.</span></div>
       <div id="catalogGrid" class="catalog-grid" aria-live="polite"><div class="loading-state surface">Connecting to the Wonder Database…</div></div>
       <div class="load-more-wrap"><button id="loadMore" class="button secondary" type="button" hidden>Load more records</button></div>
     </section>
@@ -45,7 +62,7 @@
   <script src="script.js?v=1.4.0"></script>
   <script src="glyphs.js?v=1.6.0"></script>
   <script src="locations.js?v=1.6.0"></script>
-  <script src="archetypes.js?v=1.7.0"></script>
-  <script src="database.js?v=1.8.0"></script>
+  <script src="archetypes.js?v=1.9.0"></script>
+  <script src="database.js?v=1.9.0"></script>
 </body>
 </html>

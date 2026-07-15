@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from ..database import get_session
 from ..models import (
     AuditEvent,
+    AssetSpecimen,
     Discovery,
     LocationVerification,
     ImageContribution,
@@ -69,6 +70,12 @@ def admin_summary(session: Session = Depends(get_session)):
         ) or 0,
         "pending_images": session.scalar(
             select(func.count()).select_from(ImageContribution).where(ImageContribution.status == "pending")
+        ) or 0,
+        "pending_assets": session.scalar(
+            select(func.count()).select_from(AssetSpecimen).where(AssetSpecimen.publication_state == "review")
+        ) or 0,
+        "published_assets": session.scalar(
+            select(func.count()).select_from(AssetSpecimen).where(AssetSpecimen.publication_state == "published")
         ) or 0,
     }
 

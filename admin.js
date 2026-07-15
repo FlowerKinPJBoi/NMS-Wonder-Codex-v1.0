@@ -7,6 +7,7 @@
     submissionStatus: 'pending', submissions: [], selectedSubmission: null, submissionDetail: null, recordSection: 'discoveries',
     verificationStatus: 'pending', verifications: [], selectedVerification: null, verificationDetail: null,
     catalogRecords: [], selectedCatalog: null,
+    assetStatus: 'review', assets: [], selectedAsset: null,
     imageStatus: 'pending', images: [], selectedImage: null, imageDetail: null,
   };
   const $ = (selector) => document.querySelector(selector);
@@ -81,6 +82,7 @@
       sumRejected: data.rejected_batches,
       verificationTabCount: data.pending_verifications,
       imageTabCount: data.pending_images,
+      assetTabCount: data.pending_assets,
     };
     Object.entries(map).forEach(([id, value]) => { const element = document.getElementById(id); if (element) element.textContent = number(value); });
   }
@@ -90,6 +92,7 @@
     if (state.mode === 'submissions') jobs.push(loadSubmissions());
     if (state.mode === 'verifications') jobs.push(loadVerifications());
     if (state.mode === 'catalog') jobs.push(loadCatalog());
+    if (state.mode === 'assets') jobs.push(loadAssets());
     if (state.mode === 'images') jobs.push(loadImages());
     await Promise.all(jobs);
     $('#lastRefresh').textContent = `Updated ${new Date().toLocaleTimeString()}`;
@@ -102,6 +105,7 @@
     if (mode === 'submissions') loadSubmissions();
     if (mode === 'verifications') loadVerifications();
     if (mode === 'catalog') loadCatalog();
+    if (mode === 'assets') loadAssets();
     if (mode === 'images') loadImages();
   }
 
@@ -419,6 +423,81 @@
   }
 
 
+  // ---------- Procedural asset review ----------
+  async function loadAssets() {
+    const data = await api(`/admin/assets?publication_state=${encodeURIComponent(state.assetStatus)}&limit=500`);
+    state.assets = data.items || [];
+    renderAssetQueue();
+  }
+
+  function renderAssetQueue() {
+    const query = $('#assetAdminSearch').value.trim().toLowerCase();
+    const rows = state.assets.filter((item) => `${item.wc_id} ${item.asset_type} ${item.display_name} ${item.source_role} ${item.source_collection} ${item.contributor}`.toLowerCase().includes(query));
+    $('#assetAdminEmpty').hidden = rows.length > 0;
+    $('#assetAdminList').innerHTML = rows.map((item) => `<button class="queue-item ${state.selectedAsset?.id === item.id ? 'active' : ''}" data-id="${item.id}" type="button"><div class="queue-item-top"><strong>${escapeHtml(item.wc_id)}</strong><span class="status-chip ${item.publication_state === 'published' ? 'verified' : 'pending'}">${escapeHtml(item.publication_state)}</span></div><div class="queue-item-sub">${escapeHtml(item.display_name)} • ${escapeHtml(item.asset_type)}</div><div class="queue-counts"><span>${escapeHtml((item.source_role || 'unknown').replaceAll('_',' '))}</span><span>${escapeHtml(item.source_collection || 'No source collection')}</span></div></button>`).join('');
+    $$('#assetAdminList .queue-item').forEach((button) => button.addEventListener('click', () => selectAsset(Number(button.dataset.id))));
+  }
+
+  async function selectAsset(id) {
+    try {
+      state.selectedAsset = await api(`/admin/assets/${id}`);
+      renderAssetQueue(); renderAssetForm();
+    } catch (error) { toast(error.message, true); }
+  }
+
+  function renderAssetForm() {
+    const item = state.selectedAsset;
+    $('#assetPlaceholder').hidden = true; $('#assetForm').hidden = false;
+    $('#assetWcId').textContent = item.wc_id; $('#assetRecordName').textContent = item.display_name;
+    $('#assetRecordData').textContent = `${item.asset_type} • ${item.contributor} • ${item.platform || 'platform not recorded'} • ${item.asset_key}`;
+    $('#assetPublicLink').href = `asset.html?id=${item.id}`; $('#assetPublicLink').hidden = item.publication_state !== 'published';
+    $('#assetDisplayName').value = item.display_name || ''; $('#assetSourceRole').value = item.source_role || 'unknown';
+    $('#assetSourceCollection').value = item.source_collection || ''; $('#assetSourceOrdinal').value = item.source_ordinal ?? '';
+    $('#assetPublicationState').value = item.publication_state; $('#assetImageStatus').value = item.image_status;
+    $('#assetConfidence').value = item.confidence || ''; $('#assetIdentityBasis').value = item.identity_basis || '';
+    $('#assetDeliveryEligibility').value = item.delivery_eligibility || ''; $('#assetDeliveryEvidence').value = item.delivery_evidence_status || '';
+    $('#assetSpecialSignal').checked = Boolean(item.modified_or_special_signal); $('#assetReviewerNote').value = item.reviewer_note || '';
+    $('#assetRawFields').textContent = JSON.stringify(item.fields || {}, null, 2); $('#assetSaveResult').hidden = true;
+  }
+
+  async function importAssetManifest(event) {
+    event.preventDefault();
+    const file = $('#assetImportFile').files[0];
+    if (!file) return;
+    const button = $('#assetImportButton'); const original = button.textContent;
+    button.disabled = true; button.textContent = 'Validating and importing…'; $('#assetImportResult').hidden = true;
+    try {
+      const manifest = JSON.parse(await file.text());
+      const result = await api('/admin/assets/import', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({contributor:$('#assetImportContributor').value.trim(), public_attribution:$('#assetImportPublic').checked, manifest})});
+      $('#assetImportResult').hidden = false; $('#assetImportResult').className = 'inline-alert success';
+      $('#assetImportResult').textContent = `Imported ${number(result.created)} new and refreshed ${number(result.updated)} existing specimens. All remain in review.`;
+      toast('Asset manifest imported to review.'); $('#assetImportFile').value = ''; state.assetStatus = 'review'; $('#assetStatusFilter').value = 'review';
+      await Promise.all([loadAssets(), loadSummary(), loadAudit()]);
+    } catch (error) {
+      $('#assetImportResult').hidden = false; $('#assetImportResult').className = 'inline-alert error'; $('#assetImportResult').textContent = error instanceof SyntaxError ? 'The selected file is not valid JSON.' : error.message; toast($('#assetImportResult').textContent, true);
+    } finally { button.disabled = false; button.textContent = original; }
+  }
+
+  async function saveAsset(event) {
+    event.preventDefault(); if (!state.selectedAsset) return;
+    const payload = {
+      display_name: $('#assetDisplayName').value.trim(), source_role: $('#assetSourceRole').value,
+      source_collection: $('#assetSourceCollection').value.trim(), source_ordinal: $('#assetSourceOrdinal').value ? Number($('#assetSourceOrdinal').value) : null,
+      publication_state: $('#assetPublicationState').value, image_status: $('#assetImageStatus').value,
+      confidence: $('#assetConfidence').value.trim(), identity_basis: $('#assetIdentityBasis').value.trim(),
+      delivery_eligibility: $('#assetDeliveryEligibility').value.trim(), delivery_evidence_status: $('#assetDeliveryEvidence').value.trim(),
+      modified_or_special_signal: $('#assetSpecialSignal').checked, reviewer_note: $('#assetReviewerNote').value.trim(),
+    };
+    const button = $('#saveAsset'); const original = button.textContent; button.disabled = true; button.textContent = 'Saving…';
+    try {
+      const result = await api(`/admin/assets/${state.selectedAsset.id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+      state.selectedAsset = result.asset; $('#assetSaveResult').hidden = false; $('#assetSaveResult').className = 'inline-alert success'; $('#assetSaveResult').textContent = 'Asset specimen updated and logged.'; toast(`${result.asset.wc_id} updated.`);
+      await Promise.all([loadAssets(), loadSummary(), loadAudit()]); renderAssetForm();
+    } catch (error) { $('#assetSaveResult').hidden = false; $('#assetSaveResult').className = 'inline-alert error'; $('#assetSaveResult').textContent = error.message; toast(error.message, true); }
+    finally { button.disabled = false; button.textContent = original; }
+  }
+
+
   // ---------- Image review ----------
   async function loadImages() {
     const data = await api(`/admin/images?status=${encodeURIComponent(state.imageStatus)}&limit=200`);
@@ -537,6 +616,10 @@
   let catalogTimer;
   $('#catalogAdminSearch').addEventListener('input', () => { clearTimeout(catalogTimer); catalogTimer = setTimeout(loadCatalog, 300); });
   $('#catalogForm').addEventListener('submit', saveCatalog);
+  $('#assetImportForm').addEventListener('submit', importAssetManifest);
+  $('#assetAdminSearch').addEventListener('input', renderAssetQueue);
+  $('#assetStatusFilter').addEventListener('change', async () => { state.assetStatus = $('#assetStatusFilter').value; state.selectedAsset = null; $('#assetForm').hidden = true; $('#assetPlaceholder').hidden = false; await loadAssets(); });
+  $('#assetForm').addEventListener('submit', saveAsset);
   $('#imageSearch').addEventListener('input', renderImageQueue);
   $$('.image-status-tab').forEach((tab) => tab.addEventListener('click', async () => { state.imageStatus = tab.dataset.status; $$('.image-status-tab').forEach((item) => item.classList.toggle('active', item === tab)); clearImageDetail(); await loadImages(); }));
   $('#approveImage').addEventListener('click', () => reviewImage('approve'));

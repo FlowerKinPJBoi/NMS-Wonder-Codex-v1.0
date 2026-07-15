@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1.4.0">
-  <link rel="stylesheet" href="catalog.css?v=1.4.0">
-  <link rel="stylesheet" href="admin.css?v=1.4.0">
+  <link rel="stylesheet" href="catalog.css?v=1.9.0">
+  <link rel="stylesheet" href="admin.css?v=1.9.0">
 </head>
 <body class="admin-body">
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
@@ -48,6 +48,7 @@
         <button class="admin-mode active" data-mode="submissions" type="button">Data submissions</button>
         <button class="admin-mode" data-mode="verifications" type="button">Verifications <span id="verificationTabCount">0</span></button>
         <button class="admin-mode" data-mode="catalog" type="button">Catalog editor</button>
+        <button class="admin-mode" data-mode="assets" type="button">Assets <span id="assetTabCount">0</span></button>
         <button class="admin-mode" data-mode="images" type="button">Images <span id="imageTabCount">0</span></button>
       </div>
 
@@ -99,6 +100,30 @@
         </div>
       </section>
 
+      <section class="admin-mode-panel" data-panel="assets" hidden>
+        <form id="assetImportForm" class="asset-import-panel surface">
+          <div><p class="kicker">PEGASUS ASSET MANIFEST</p><h2>Import normalized asset evidence</h2><p>Accepts the Importer’s privacy-safe asset manifest only. Every imported item begins in review and remains unpublished until its source role is confirmed.</p></div>
+          <div class="form-grid"><label class="field">Contributor<input id="assetImportContributor" type="text" maxlength="120" required placeholder="Kuma The Wizard"></label><label class="field">Manifest JSON<input id="assetImportFile" type="file" accept="application/json,.json" required></label></div>
+          <label class="checkbox-row compact-check"><input id="assetImportPublic" type="checkbox" checked><span>Show this contributor name on published asset records.</span></label>
+          <div class="catalog-save-row"><button id="assetImportButton" class="button primary" type="submit">Import to review queue</button><div id="assetImportResult" class="inline-alert" hidden></div></div>
+        </form>
+        <div class="admin-workspace catalog-admin-workspace asset-admin-workspace">
+          <aside class="queue-panel"><div class="queue-toolbar"><label class="field">Publication state<select id="assetStatusFilter"><option value="review">Review</option><option value="published">Published</option><option value="hidden">Hidden</option><option value="all">All</option></select></label><input id="assetAdminSearch" type="search" placeholder="Search WC ID, type, name, source…"></div><div id="assetAdminList" class="queue-list"></div><div id="assetAdminEmpty" class="empty-state" hidden><span>◇</span><strong>No asset specimens found</strong></div></aside>
+          <section class="review-panel"><div id="assetPlaceholder" class="review-placeholder"><span>◇</span><h2>Select an asset specimen</h2><p>Confirm its owned-save role and identity before publishing. Acquisition locations are separate evidence.</p></div><form id="assetForm" class="catalog-editor" hidden>
+            <div class="review-header"><div><span id="assetWcId" class="wc-id">—</span><h2 id="assetRecordName">—</h2><p id="assetRecordData">—</p></div><a id="assetPublicLink" class="small-button" target="_blank" rel="noopener">Open public specimen</a></div>
+            <div class="form-grid"><label class="field">Display name<input id="assetDisplayName" type="text" maxlength="200"></label><label class="field">Source role<select id="assetSourceRole"><option value="unknown">Unknown — cannot publish</option><option value="current">Current</option><option value="owned_slot">Owned slot</option><option value="stored_slot">Stored slot</option><option value="fleet_member">Fleet member</option><option value="squadron_member">Squadron member</option><option value="archived">Archived</option><option value="historical">Historical</option><option value="template">Template</option></select></label></div>
+            <div class="form-grid"><label class="field">Source collection<input id="assetSourceCollection" type="text" maxlength="120"></label><label class="field">Source ordinal<input id="assetSourceOrdinal" type="number" min="0"></label></div>
+            <div class="form-grid"><label class="field">Publication state<select id="assetPublicationState"><option value="review">Review</option><option value="published">Published</option><option value="hidden">Hidden</option></select></label><label class="field">Image state<select id="assetImageStatus"><option value="needed">Needed</option><option value="pending">Pending</option><option value="available">Available</option></select></label></div>
+            <div class="form-grid"><label class="field">Confidence<input id="assetConfidence" type="text" maxlength="80"></label><label class="field">Identity basis<input id="assetIdentityBasis" type="text" maxlength="120"></label></div>
+            <div class="form-grid"><label class="field">Delivery eligibility<input id="assetDeliveryEligibility" type="text" maxlength="60"></label><label class="field">Delivery evidence status<input id="assetDeliveryEvidence" type="text" maxlength="60"></label></div>
+            <label class="checkbox-row compact-check"><input id="assetSpecialSignal" type="checkbox"><span>Modified or special-template signal — keep visibly flagged for review.</span></label>
+            <label class="field">Reviewer note<textarea id="assetReviewerNote" rows="4" maxlength="4000"></textarea></label>
+            <details class="raw-asset-details"><summary>Normalized fields</summary><pre id="assetRawFields" class="raw-preview"></pre></details>
+            <div class="catalog-save-row"><button id="saveAsset" class="button success" type="submit">Save asset specimen</button><div id="assetSaveResult" class="inline-alert" hidden></div></div>
+          </form></section>
+        </div>
+      </section>
+
       <section class="admin-mode-panel" data-panel="images" hidden>
         <div class="admin-workspace">
           <aside class="queue-panel"><div class="queue-toolbar"><div class="status-tabs" role="tablist"><button class="image-status-tab active" data-status="pending" type="button">Pending</button><button class="image-status-tab" data-status="approved" type="button">Approved</button><button class="image-status-tab" data-status="rejected" type="button">Rejected</button></div><input id="imageSearch" type="search" placeholder="Search contributor or WC ID…"></div><div id="imageList" class="queue-list"></div><div id="imageEmpty" class="empty-state" hidden><span>▧</span><strong>No images found</strong></div></aside>
@@ -117,6 +142,6 @@
   <div id="toast" class="toast" hidden></div>
   <script src="glyphs.js?v=1.6.0"></script>
   <script src="locations.js?v=1.6.0"></script>
-  <script src="admin.js?v=1.8.3"></script>
+  <script src="admin.js?v=1.9.0"></script>
 </body>
 </html>

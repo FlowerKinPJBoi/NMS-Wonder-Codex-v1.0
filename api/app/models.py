@@ -213,6 +213,58 @@ class ImageContribution(Base):
     public_attribution: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
+class AssetSpecimen(Base):
+    """A normalized procedural asset, independent of where it was acquired."""
+
+    __tablename__ = "asset_specimens"
+    __table_args__ = (UniqueConstraint("asset_key", name="uq_asset_specimen_key"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    asset_key: Mapped[str] = mapped_column(String(96), nullable=False, index=True)
+    asset_type: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    display_name: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    contributor: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    save_name: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    platform: Mapped[str] = mapped_column(String(40), default="", nullable=False)
+    public_attribution: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    source_role: Mapped[str] = mapped_column(String(40), default="unknown", nullable=False, index=True)
+    source_collection: Mapped[str] = mapped_column(String(120), default="", nullable=False)
+    source_ordinal: Mapped[int | None] = mapped_column(Integer)
+    identity_basis: Mapped[str] = mapped_column(String(120), default="normalized_asset_key", nullable=False)
+    publication_state: Mapped[str] = mapped_column(String(30), default="review", nullable=False, index=True)
+    confidence: Mapped[str] = mapped_column(String(80), default="Beta extracted", nullable=False)
+    modified_or_special_signal: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    delivery_eligibility: Mapped[str] = mapped_column(String(60), default="research_only", nullable=False)
+    delivery_evidence_status: Mapped[str] = mapped_column(String(60), default="not_evaluated", nullable=False)
+    image_status: Mapped[str] = mapped_column(String(30), default="needed", nullable=False, index=True)
+    reviewer_note: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    fields: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+
+    sightings: Mapped[list["AssetSighting"]] = relationship(cascade="all, delete-orphan")
+
+
+class AssetSighting(Base):
+    """A possible or verified acquisition location for an asset specimen."""
+
+    __tablename__ = "asset_sightings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    asset_id: Mapped[int] = mapped_column(ForeignKey("asset_specimens.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    contributor: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    galaxy_number: Mapped[int | None] = mapped_column(Integer)
+    galaxy_name: Mapped[str] = mapped_column(String(120), default="", nullable=False)
+    portal_glyphs: Mapped[str] = mapped_column(String(12), default="", nullable=False)
+    source: Mapped[str] = mapped_column(String(60), default="community_evidence", nullable=False)
+    status: Mapped[str] = mapped_column(String(30), default="pending", nullable=False, index=True)
+    notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    reviewer_note: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    public_attribution: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+
 class AuditEvent(Base):
     __tablename__ = "audit_events"
 

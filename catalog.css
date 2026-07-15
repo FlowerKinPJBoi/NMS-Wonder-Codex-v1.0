@@ -55,3 +55,19 @@
 .record-identity strong{color:#f1f5ff;font:700 1.22rem "Space Grotesk",sans-serif}
 .record-identity>p:last-child{margin:0;color:#aab8d4;font-size:.75rem}
 .record-identity code{color:#d9faff}
+
+/* v1.9 — procedural asset catalog lanes */
+.catalog-lanes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.catalog-lane{display:flex;align-items:center;gap:11px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:15px;color:var(--text);background:rgba(12,18,36,.78);text-align:left;cursor:pointer;overflow:hidden}
+.catalog-lane:hover,.catalog-lane.active{border-color:rgba(109,231,255,.42);background:linear-gradient(135deg,rgba(109,231,255,.09),rgba(157,140,255,.06))}
+.catalog-lane.active{box-shadow:inset 0 0 0 1px rgba(109,231,255,.12)}
+.catalog-lane img,.catalog-lane-mark{flex:0 0 68px;width:68px;height:46px;border-radius:9px;object-fit:cover;background:#060b18}
+.catalog-lane-mark{display:grid;place-items:center;color:var(--cyan);font-size:1.25rem;border:1px solid rgba(109,231,255,.2)}
+.catalog-lane>span:last-child{display:grid;gap:3px;min-width:0}.catalog-lane strong{font:700 .84rem "Space Grotesk",sans-serif}.catalog-lane small{overflow:hidden;color:var(--muted);font-size:.62rem;white-space:nowrap;text-overflow:ellipsis}.catalog-lane small b{color:var(--cyan)}
+.asset-identity{border:1px solid rgba(157,140,255,.28);background:linear-gradient(135deg,rgba(157,140,255,.08),rgba(109,231,255,.035))}
+.asset-identity-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#cbd6ed;font-size:.68rem;font-weight:800;text-transform:capitalize}
+.asset-class-badge{display:inline-flex;padding:.38rem .62rem;border:1px solid rgba(157,140,255,.38);border-radius:999px;color:#e6e0ff;background:rgba(157,140,255,.1);font:800 .69rem/1 "Space Grotesk",sans-serif;text-transform:uppercase}
+.asset-empty{display:grid;justify-items:center;padding-top:35px}.asset-empty img{width:min(520px,100%);aspect-ratio:16/9;border:1px solid rgba(109,231,255,.18);border-radius:16px;object-fit:cover;margin-bottom:22px}.asset-empty strong{color:var(--text);font:700 1.3rem "Space Grotesk",sans-serif}
+.asset-illustration-note{margin-top:10px;padding:10px 12px;border:1px solid rgba(109,231,255,.2);border-radius:11px;color:#b9c6df;background:rgba(109,231,255,.04);font-size:.74rem}
+@media(max-width:1050px){.catalog-lanes{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:680px){.catalog-lanes{grid-template-columns:1fr 1fr}.catalog-lane:first-child{grid-column:1/-1}.catalog-lane img,.catalog-lane-mark{flex-basis:56px;width:56px;height:40px}}

@@ -11,3 +11,5 @@
 
 /* v1.3 image review queue */
 .image-status-tab{flex:1;padding:.64rem .4rem;border:0;border-radius:9px;color:var(--muted);background:transparent;cursor:pointer;font:700 .78rem Inter,sans-serif}.image-status-tab.active{color:var(--cyan);background:rgba(109,231,255,.08)}.admin-image-preview{display:grid;place-items:center;min-height:360px;margin:18px 0;border:1px solid var(--line);border-radius:15px;overflow:hidden;background:#050914}.admin-image-preview img{display:block;max-width:100%;max-height:620px;object-fit:contain}
+.asset-import-panel{display:grid;gap:14px;margin-bottom:18px;padding:22px}.asset-import-panel h2{margin:.3rem 0;font:700 1.55rem "Space Grotesk",sans-serif}.asset-import-panel p{margin:.3rem 0;color:var(--muted)}
+.asset-admin-workspace{margin-top:0}.raw-asset-details{margin-top:14px;border:1px solid var(--line);border-radius:12px;background:rgba(5,9,20,.42)}.raw-asset-details summary{padding:12px;color:var(--cyan);cursor:pointer;font-weight:800}.raw-asset-details .raw-preview{max-height:320px;margin:0;border:0;border-top:1px solid var(--line);border-radius:0}

@@ -42,7 +42,7 @@ APPLICATIONS = (
         summary="Read-only local save analysis and privacy-safe WCCP contribution export.",
         safety_note="Public-test app: reads supported local save copies without modifying them.",
         expected_executable="WonderCodexImporter.exe",
-        suggested_version="0.2.0-beta",
+        suggested_version="0.2.1-beta",
         object_key="admin-apps/importer-beta/current.zip",
     ),
     AdminApplication(

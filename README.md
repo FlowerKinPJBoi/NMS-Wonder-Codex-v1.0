@@ -1,16 +1,17 @@
-# Wonder Codex v1.8.4
+# Wonder Codex v1.9.0
 
-Full website and API deployment package for:
+Full website and API deployment source for the first procedural asset-catalog release.
 
-- confirmed Universal Address → galaxy + portal glyph decoding;
-- UA-derived route display across Database, Record, Contributions, and Admin pages;
-- separate derived versus verified location status;
-- complete 1–256 galaxy-name lookup;
-- Pegasus Transit branding;
-- authenticated `/admin/apps/` private build distribution with expiring downloads and SHA-256 verification;
-- in-page Importer and Pegasus testing briefs with copyable checklists and downloadable result templates;
-- procedural flora/mineral name research dataset and experiment plan.
+This version adds:
 
-No database migration is required.
+- separate public catalog lanes for Wonders, starships, freighters, frigates, and multi-tools;
+- original Wonder Codex illustrative placeholders for every new asset type;
+- permanent `WC-SH`, `WC-FR`, `WC-FG`, and `WC-MT` specimen IDs;
+- a strict distinction between an owned procedural specimen and a verified acquisition sighting;
+- an admin-only Pegasus manifest importer and asset review/publish queue;
+- provenance fields for owned slots, fleet members, squadron members, archived records, and the current freighter;
+- explicit privacy rejection when a manifest claims to include a raw save, local path, account identifier, or inventory coordinates.
 
-See `CHANGELOG_v1.8.4.md` and `DEPLOY_PRIVATE_APPS_v1.8.4.md` for the test briefs, `CHANGELOG_v1.8.3.md` and `DEPLOY_PRIVATE_APPS_v1.8.3.md` for the private app vault, `CHANGELOG_v1.8.md` for the fauna-identity release, and `DEPLOY_WONDER_CODEX_v1.6.md` for the deployment foundation.
+Database migration `0005_asset_catalog` is required. With `RUN_MIGRATIONS_ON_START=true`, the API applies it during deployment.
+
+See `CHANGELOG_v1.9.0.md` and `DEPLOY_WONDER_CODEX_v1.9.0.md`.

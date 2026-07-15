@@ -126,3 +126,43 @@ class ImageReviewAction(BaseModel):
     note: str = Field(default="", max_length=4000)
     approval_role: Literal["primary", "alternate"] = "alternate"
 
+
+class AssetManifestImport(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    contributor: str = Field(min_length=1, max_length=120)
+    public_attribution: bool = True
+    manifest: dict[str, Any]
+
+    @field_validator("contributor")
+    @classmethod
+    def clean_contributor(cls, value: str) -> str:
+        return " ".join(value.strip().split())
+
+
+class AssetCatalogUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    display_name: str | None = Field(default=None, max_length=200)
+    source_role: Literal[
+        "current", "owned_slot", "stored_slot", "fleet_member", "squadron_member",
+        "archived", "historical", "template", "unknown",
+    ] | None = None
+    source_collection: str | None = Field(default=None, max_length=120)
+    source_ordinal: int | None = Field(default=None, ge=0)
+    identity_basis: str | None = Field(default=None, max_length=120)
+    publication_state: Literal["review", "published", "hidden"] | None = None
+    confidence: str | None = Field(default=None, max_length=80)
+    modified_or_special_signal: bool | None = None
+    delivery_eligibility: str | None = Field(default=None, max_length=60)
+    delivery_evidence_status: str | None = Field(default=None, max_length=60)
+    image_status: Literal["needed", "pending", "available"] | None = None
+    reviewer_note: str | None = Field(default=None, max_length=4000)
+
+    @field_validator(
+        "display_name", "source_collection", "identity_basis", "confidence",
+        "delivery_eligibility", "delivery_evidence_status", "reviewer_note",
+    )
+    @classmethod
+    def clean_asset_text(cls, value: str | None) -> str | None:
+        return " ".join(value.strip().split()) if value is not None else value

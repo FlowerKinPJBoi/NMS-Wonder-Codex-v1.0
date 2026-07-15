@@ -47,6 +47,26 @@
       label: 'Unclassified mineral',
       alt: 'Neutral crystalline scan illustration for a mineral awaiting a specimen image',
     },
+    'asset.starship': {
+      url: 'assets/archetypes/assets/starship.svg',
+      label: 'Procedural starship',
+      alt: 'Illustrative Wonder Codex scan of a procedural starship, not the exact specimen',
+    },
+    'asset.freighter': {
+      url: 'assets/archetypes/assets/freighter.svg',
+      label: 'Capital freighter',
+      alt: 'Illustrative Wonder Codex scan of a capital freighter, not the exact specimen',
+    },
+    'asset.frigate': {
+      url: 'assets/archetypes/assets/frigate.svg',
+      label: 'Fleet frigate',
+      alt: 'Illustrative Wonder Codex scan of a fleet frigate, not the exact specimen',
+    },
+    'asset.multitool': {
+      url: 'assets/archetypes/assets/multitool.svg',
+      label: 'Procedural multi-tool',
+      alt: 'Illustrative Wonder Codex scan of a procedural multi-tool, not the exact specimen',
+    },
     'other.unknown': {
       url: 'assets/archetypes/other/unknown.svg',
       label: 'Unclassified Wonder',
@@ -62,6 +82,13 @@
   });
 
   function defaultKey(record = {}) {
+    const assetKey = {
+      Starship: 'asset.starship',
+      Freighter: 'asset.freighter',
+      Frigate: 'asset.frigate',
+      Multitool: 'asset.multitool',
+    }[record.asset_type];
+    if (assetKey) return assetKey;
     return typeDefaults[record.discovery_type] || 'other.unknown';
   }
 
