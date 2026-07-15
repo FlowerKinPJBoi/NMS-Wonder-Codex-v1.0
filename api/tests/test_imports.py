@@ -11,7 +11,7 @@ from app.services.archetypes import (
     family_vp1s,
 )
 from app.services.catalog import serialize_discovery, wc_id
-from app.services.locations import decode_universal_address
+from app.services.locations import decode_portal_coordinates, decode_universal_address
 
 
 def sample_discovery() -> Discovery:
@@ -99,6 +99,19 @@ def test_confirmed_ua_decoding_vector():
     assert decoded["reality_index"] == 255
     assert decoded["galaxy_number"] == 256
     assert decoded["galaxy_name"] == "Odyalutai"
+
+
+def test_portal_coordinates_match_verified_pegasus_vectors():
+    current = decode_portal_coordinates("008B11112111")
+    assert current is not None
+    assert (current["x"], current["y"], current["z"]) == (273, 17, 274)
+    assert current["solar_system_index"] == 139
+
+    destination = decode_portal_coordinates("4079FB2FD9DD")
+    assert destination is not None
+    assert (destination["x"], destination["y"], destination["z"]) == (-1571, -5, 765)
+    assert destination["planet_index"] == 4
+    assert destination["solar_system_index"] == 121
 
 
 def test_padded_importer_ua_is_decoded():

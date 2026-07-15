@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 
 from .config import get_settings
 from .database import check_database, mark_database
-from .routers import admin, admin_apps, assets, health, images, public, submissions, verifications
+from .routers import admin, admin_apps, assets, galactic_map, health, images, public, submissions, verifications
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -102,6 +102,7 @@ def root():
 app.include_router(health.router)
 app.include_router(public.router)
 app.include_router(assets.public_router)
+app.include_router(galactic_map.router)
 app.include_router(submissions.router)
 app.include_router(verifications.router)
 app.include_router(images.router)

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore location-backed Wonder Codex discoveries as filterable galactic clusters.">
+  <meta name="theme-color" content="#080b16">
+  <title>Galactic Cluster Map | Wonder Codex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=1.4.0">
+  <link rel="stylesheet" href="map.css?v=1.10.0">
+</head>
+<body>
+  <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Galactic Cluster Map</small></span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
+    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="map.html" aria-current="page">Map</a><a href="contribute.html">Contribute</a><a href="database.html" class="nav-cta">Open catalog</a></nav>
+  </header>
+
+  <main class="map-page">
+    <section class="map-hero">
+      <div><p class="eyebrow">LOCATION-BACKED CATALOG EXPLORATION</p><h1>Find patterns across the <span>galaxy.</span></h1><p>Filter the Codex by fauna family or asset category, then zoom into catalog-density clusters. Every plotted Wonder has a decoded or reviewed travel address.</p></div>
+      <aside class="map-trust"><strong>Evidence boundary</strong><p>Seeds identify procedural specimens; they do not supply coordinates. Asset markers require a separately verified acquisition sighting.</p></aside>
+    </section>
+
+    <section class="map-shell">
+      <form id="mapFilters" class="map-toolbar surface">
+        <label>Galaxy<select id="galaxyFilter"></select></label>
+        <label>Catalog<select id="laneFilter"><option value="wonders">Wonders</option><option value="Starship">Starships</option><option value="Freighter">Freighters</option><option value="Frigate">Frigates</option><option value="Multitool">Multi-tools</option><option value="all">Everything with a route</option></select></label>
+        <label id="typeFilterField">Wonder type<select id="typeFilter"><option value="">All Wonders</option><option value="Animal">Fauna</option><option value="Flora">Flora</option><option value="Mineral">Minerals</option></select></label>
+        <label id="familyFilterField">Fauna family<select id="familyFilter"><option value="">All families</option></select></label>
+        <label>Route evidence<select id="qualityFilter"><option value="all">Derived + verified</option><option value="verified">Verified only</option><option value="derived">UA-derived only</option></select></label>
+        <label>Find within results<input id="mapSearch" type="search" placeholder="Blob, WC ID, name…"></label>
+        <label>Display<select id="displayMode"><option value="clusters">Clusters</option><option value="heatmap">Heatmap</option></select></label>
+      </form>
+
+      <div class="map-summary"><span id="mapCount">Preparing galactic coordinates…</span><span>Density reflects the current catalog, not guaranteed spawn probability.</span></div>
+
+      <div class="map-layout">
+        <section class="galactic-map surface" aria-label="Interactive X and Z galactic coordinate map">
+          <div class="map-stage" id="mapStage">
+            <canvas id="mapCanvas"></canvas>
+            <div id="mapEmpty" class="map-empty" hidden><strong>No plotted records</strong><p>Try another galaxy or broaden the filters.</p></div>
+            <div id="mapLoading" class="map-loading"><span></span><p>Plotting location evidence…</p></div>
+            <div class="map-axis map-axis-x">Galactic X</div><div class="map-axis map-axis-z">Galactic Z</div>
+          </div>
+          <div class="map-controls"><button id="zoomIn" type="button" aria-label="Zoom in">+</button><button id="zoomOut" type="button" aria-label="Zoom out">−</button><button id="resetView" type="button">Reset view</button><span>Drag to pan · wheel to zoom · select a cluster to inspect</span></div>
+        </section>
+
+        <aside class="map-inspector surface">
+          <div class="inspector-head"><p class="kicker">CLUSTER INSPECTOR</p><span id="zoomReadout">Galaxy view</span></div>
+          <div id="mapSelection" class="selection-empty"><span class="selection-orbit" aria-hidden="true"></span><strong>Select a point or cluster</strong><p>Coordinates, glyphs, family identity, and catalog links will appear here.</p></div>
+          <div class="hotspot-panel"><div><p class="kicker">DENSEST VISIBLE CLUSTERS</p><small id="hotspotBasis">Based on the current filter and zoom.</small></div><div id="hotspotList" class="hotspot-list"></div></div>
+        </aside>
+      </div>
+
+      <div class="map-method surface"><div><span>01</span><p><strong>Identity</strong>Fauna family and asset classification determine what is filtered.</p></div><div><span>02</span><p><strong>Location</strong>UA or reviewed glyph evidence supplies X/Y/Z independently of seed.</p></div><div><span>03</span><p><strong>Density</strong>Nearby catalog records form explorable clusters; sampling bias remains visible.</p></div></div>
+    </section>
+  </main>
+
+  <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Evidence first</small></span></a><p>Independent community research project. Not affiliated with Hello Games.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="map.html">Map</a><a href="contribute.html">Contribute</a><a href="import.html">Save data</a></div></footer>
+  <script src="script.js?v=1.4.0"></script>
+  <script src="locations.js?v=1.6.0"></script>
+  <script src="map.js?v=1.10.0"></script>
+</body>
+</html>

@@ -344,6 +344,33 @@ def decode_universal_address(value: Any) -> dict[str, Any] | None:
     }
 
 
+def decode_portal_coordinates(value: Any) -> dict[str, int | str] | None:
+    """Decode 12 portal glyph values into signed galactic voxel coordinates.
+
+    Portal addresses use ``P SSS YY ZZZ XXX``. X and Z are signed 12-bit
+    values and Y is a signed 8-bit value. Keeping this conversion beside the
+    UA decoder ensures Transit and the public map use the same coordinate
+    interpretation.
+    """
+    glyphs = re.sub(r"[^0-9A-F]", "", str(value or "").upper())
+    if len(glyphs) != 12:
+        return None
+
+    def signed(hex_value: str, bits: int) -> int:
+        number = int(hex_value, 16)
+        sign = 1 << (bits - 1)
+        return number - (1 << bits) if number & sign else number
+
+    return {
+        "portal_glyphs": glyphs,
+        "planet_index": int(glyphs[0:1], 16),
+        "solar_system_index": int(glyphs[1:4], 16),
+        "x": signed(glyphs[9:12], 12),
+        "y": signed(glyphs[4:6], 8),
+        "z": signed(glyphs[6:9], 12),
+    }
+
+
 def effective_location(
     *,
     ua: Any,
