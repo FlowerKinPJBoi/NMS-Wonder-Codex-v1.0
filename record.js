@@ -23,6 +23,38 @@
     return `<div class="data-item"><span>${escapeHtml(label)}</span>${code ? `<code>${escapeHtml(safe)}</code>` : `<strong>${escapeHtml(safe)}</strong>`}</div>`;
   }
 
+  function configurePegasusTransit(data) {
+    const button = $('#pegasusTransit');
+    const authorized = Boolean(sessionStorage.getItem('wc_admin_key') && sessionStorage.getItem('wc_admin_actor'));
+    const ready = Boolean(data.has_travel_address && data.galaxy_number && data.portal_glyphs);
+    button.disabled = !(authorized && ready);
+    button.textContent = authorized
+      ? ready ? 'PEGASUS TRANSIT — Download admin route' : 'PEGASUS TRANSIT — Route unavailable'
+      : 'PEGASUS TRANSIT — Authorized operators only';
+  }
+
+  function downloadPegasusTicket() {
+    if (!record?.has_travel_address) return;
+    const ticket = {
+      format: 'wonder-codex-transit/0.1',
+      wc_record_id: record.wc_id,
+      galaxy_number: record.galaxy_number,
+      galaxy_name: record.galaxy_name || '',
+      portal_glyphs: record.portal_glyphs,
+      universal_address: record.ua_normalized ? `0x${record.ua_normalized}` : record.ua || '',
+      generated_utc: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(ticket, null, 2)], {type:'application/vnd.wonder-codex.transit+json'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${record.wc_id}.wctransit`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(link.href), 0);
+    toast('Pegasus Transit route downloaded.');
+  }
+
   function renderFaunaIdentity(data) {
     const element = $('#recordIdentity');
     if (!data.fauna_family_label) {
@@ -146,6 +178,7 @@
     }
     $('#imageLink').href = `contribute.html?mode=image&record=${data.id}`;
     $('#verifyLink').href = `contribute.html?mode=verify&record=${data.id}`;
+    configurePegasusTransit(data);
     $('#recordLayout').hidden = false;
   }
 
@@ -169,5 +202,6 @@
 
   $('#copyMessage').addEventListener('click', async () => { if (record?.message_id) { await navigator.clipboard.writeText(record.message_id); toast('Message ID copied.'); } });
   $('#copyGlyphs').addEventListener('click', async () => { if (record?.portal_glyphs) { await WCGlyphs.copy(record.portal_glyphs); toast('Portal glyph code copied.'); } });
+  $('#pegasusTransit').addEventListener('click', downloadPegasusTicket);
   load();
 })();

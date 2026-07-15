@@ -24,8 +24,8 @@
     <section id="loginPanel" class="login-panel">
       <div class="login-card">
         <span class="login-glyph">✦</span><p class="kicker">RESTRICTED RESEARCH CONSOLE</p><h1>Review the evidence before it becomes official.</h1>
-        <p>The admin key is sent only in the protected API request header and is remembered for this browser tab only.</p>
-        <form id="loginForm" class="login-form"><label>Reviewer name<input id="actorInput" type="text" autocomplete="name" placeholder="PJ" required></label><label>Admin API key<input id="adminKeyInput" type="password" autocomplete="current-password" placeholder="Enter the DigitalOcean ADMIN_API_KEY" required></label><button class="button primary" type="submit">Unlock review console</button></form>
+        <p>Your named admin key is sent only in the protected API request headers and is remembered for this browser tab only.</p>
+        <form id="loginForm" class="login-form"><label>Reviewer name<input id="actorInput" type="text" autocomplete="name" placeholder="PJ or Boots" required></label><label>Admin API key<input id="adminKeyInput" type="password" autocomplete="current-password" placeholder="Enter your named Wonder Codex admin key" required></label><button class="button primary" type="submit">Unlock review console</button></form>
         <div id="loginError" class="inline-alert error" hidden></div>
       </div>
     </section>
@@ -117,6 +117,6 @@
   <div id="toast" class="toast" hidden></div>
   <script src="glyphs.js?v=1.6.0"></script>
   <script src="locations.js?v=1.6.0"></script>
-  <script src="admin.js?v=1.6.0"></script>
+  <script src="admin.js?v=1.8.1"></script>
 </body>
 </html>

@@ -15,7 +15,7 @@
   const number = (value) => Number(value || 0).toLocaleString();
   const dateTime = (value) => { if (!value) return '—'; const d = new Date(value); return Number.isNaN(d.valueOf()) ? '—' : d.toLocaleString(); };
   const shortDate = (value) => { if (!value) return '—'; const d = new Date(value); return Number.isNaN(d.valueOf()) ? '—' : d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}); };
-  const headers = () => ({'X-Admin-Key': state.key, 'Accept':'application/json'});
+  const headers = () => ({'X-Admin-Key': state.key, 'X-Admin-Actor': state.actor, 'Accept':'application/json'});
 
   function toast(message, error = false) {
     const element = $('#toast');
