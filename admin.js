@@ -478,23 +478,45 @@
     } finally { button.disabled = false; button.textContent = original; }
   }
 
-  async function saveAsset(event) {
-    event.preventDefault(); if (!state.selectedAsset) return;
+  async function saveAsset(event, publish = false) {
+    event?.preventDefault(); if (!state.selectedAsset) return;
+    if (publish && $('#assetSourceRole').value === 'unknown') {
+      $('#assetSaveResult').hidden = false; $('#assetSaveResult').className = 'inline-alert error';
+      $('#assetSaveResult').textContent = 'Classify the source role before publishing this specimen.';
+      return;
+    }
+    if (publish && !confirm(`Publish ${state.selectedAsset.wc_id} to the public asset catalog?`)) return;
     const payload = {
       display_name: $('#assetDisplayName').value.trim(), source_role: $('#assetSourceRole').value,
       source_collection: $('#assetSourceCollection').value.trim(), source_ordinal: $('#assetSourceOrdinal').value ? Number($('#assetSourceOrdinal').value) : null,
-      publication_state: $('#assetPublicationState').value, image_status: $('#assetImageStatus').value,
+      publication_state: publish ? 'published' : state.selectedAsset.publication_state, image_status: $('#assetImageStatus').value,
       confidence: $('#assetConfidence').value.trim(), identity_basis: $('#assetIdentityBasis').value.trim(),
       delivery_eligibility: $('#assetDeliveryEligibility').value.trim(), delivery_evidence_status: $('#assetDeliveryEvidence').value.trim(),
       modified_or_special_signal: $('#assetSpecialSignal').checked, reviewer_note: $('#assetReviewerNote').value.trim(),
     };
-    const button = $('#saveAsset'); const original = button.textContent; button.disabled = true; button.textContent = 'Saving…';
+    const button = publish ? $('#publishAsset') : $('#saveAsset');
+    const otherButton = publish ? $('#saveAsset') : $('#publishAsset');
+    const original = button.textContent;
+    button.disabled = true; otherButton.disabled = true; button.textContent = publish ? 'Publishing…' : 'Saving…';
     try {
       const result = await api(`/admin/assets/${state.selectedAsset.id}`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
-      state.selectedAsset = result.asset; $('#assetSaveResult').hidden = false; $('#assetSaveResult').className = 'inline-alert success'; $('#assetSaveResult').textContent = 'Asset specimen updated and logged.'; toast(`${result.asset.wc_id} updated.`);
-      await Promise.all([loadAssets(), loadSummary(), loadAudit()]); renderAssetForm();
-    } catch (error) { $('#assetSaveResult').hidden = false; $('#assetSaveResult').className = 'inline-alert error'; $('#assetSaveResult').textContent = error.message; toast(error.message, true); }
-    finally { button.disabled = false; button.textContent = original; }
+      const leavesReviewQueue = publish && state.assetStatus === 'review';
+      state.selectedAsset = result.asset;
+      await Promise.all([loadAssets(), loadSummary(), loadAudit()]);
+      if (leavesReviewQueue) {
+        state.selectedAsset = null; $('#assetForm').hidden = true; $('#assetPlaceholder').hidden = false;
+      } else {
+        renderAssetForm();
+        $('#assetSaveResult').hidden = false; $('#assetSaveResult').className = 'inline-alert success';
+        $('#assetSaveResult').textContent = publish ? 'Specimen published to the public catalog.' : 'Review changes saved and logged.';
+      }
+      toast(publish ? `${result.asset.wc_id} published and removed from the Review queue.` : `${result.asset.wc_id} review changes saved.`);
+    } catch (error) {
+      $('#assetSaveResult').hidden = false; $('#assetSaveResult').className = 'inline-alert error';
+      $('#assetSaveResult').textContent = error.message; toast(error.message, true);
+    } finally {
+      button.disabled = false; otherButton.disabled = false; button.textContent = original;
+    }
   }
 
 
@@ -619,7 +641,8 @@
   $('#assetImportForm').addEventListener('submit', importAssetManifest);
   $('#assetAdminSearch').addEventListener('input', renderAssetQueue);
   $('#assetStatusFilter').addEventListener('change', async () => { state.assetStatus = $('#assetStatusFilter').value; state.selectedAsset = null; $('#assetForm').hidden = true; $('#assetPlaceholder').hidden = false; await loadAssets(); });
-  $('#assetForm').addEventListener('submit', saveAsset);
+  $('#assetForm').addEventListener('submit', (event) => saveAsset(event, false));
+  $('#publishAsset').addEventListener('click', (event) => saveAsset(event, true));
   $('#imageSearch').addEventListener('input', renderImageQueue);
   $$('.image-status-tab').forEach((tab) => tab.addEventListener('click', async () => { state.imageStatus = tab.dataset.status; $$('.image-status-tab').forEach((item) => item.classList.toggle('active', item === tab)); clearImageDetail(); await loadImages(); }));
   $('#approveImage').addEventListener('click', () => reviewImage('approve'));
@@ -631,3 +654,4 @@
   if (savedActor) $('#actorInput').value = savedActor;
   if (savedKey) { $('#adminKeyInput').value = savedKey; unlock(); }
 })();
+
