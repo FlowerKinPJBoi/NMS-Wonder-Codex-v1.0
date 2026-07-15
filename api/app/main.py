@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 
 from .config import get_settings
 from .database import check_database, mark_database
-from .routers import admin, health, images, public, submissions, verifications
+from .routers import admin, admin_apps, health, images, public, submissions, verifications
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -63,7 +63,22 @@ app.add_middleware(
 @app.middleware("http")
 async def request_size_limit(request: Request, call_next):
     content_length = request.headers.get("content-length")
-    if content_length and int(content_length) > settings.max_request_bytes:
+    request_path = request.url.path.rstrip("/")
+    is_admin_app_upload = (
+        request.method == "POST"
+        and "/admin/apps/" in request_path
+        and request_path.endswith("/upload")
+    )
+    request_limit = (
+        settings.max_admin_app_bytes + 2_000_000
+        if is_admin_app_upload
+        else settings.max_request_bytes
+    )
+    try:
+        request_too_large = bool(content_length and int(content_length) > request_limit)
+    except ValueError:
+        request_too_large = True
+    if request_too_large:
         return JSONResponse(status_code=413, content={"detail": "Request body is too large."})
     return await call_next(request)
 
@@ -89,4 +104,5 @@ app.include_router(public.router)
 app.include_router(submissions.router)
 app.include_router(verifications.router)
 app.include_router(images.router)
+app.include_router(admin_apps.router)
 app.include_router(admin.router)
