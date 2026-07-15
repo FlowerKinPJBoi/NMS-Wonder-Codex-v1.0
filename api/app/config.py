@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from functools import lru_cache
 from typing import List
 
@@ -16,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Wonder Codex API"
-    app_version: str = "1.5.0"
+    app_version: str = "1.5.1"
     environment: str = "production"
     database_url: str = ""
     allowed_origins: List[str] = Field(
@@ -26,6 +27,7 @@ class Settings(BaseSettings):
         ]
     )
     admin_api_key: str = ""
+    admin_api_keys: dict[str, str] = Field(default_factory=dict)
     ip_hash_salt: str = "change-me"
     max_requests_per_hour: int = 5
     max_request_bytes: int = 30_000_000
@@ -66,6 +68,18 @@ class Settings(BaseSettings):
     def parse_origins(cls, value):
         if isinstance(value, str):
             return [item.strip() for item in value.split(",") if item.strip()]
+        return value
+
+    @field_validator("admin_api_keys", mode="before")
+    @classmethod
+    def parse_admin_api_keys(cls, value):
+        if value in (None, ""):
+            return {}
+        if isinstance(value, str):
+            parsed = json.loads(value)
+            if not isinstance(parsed, dict):
+                raise ValueError("ADMIN_API_KEYS must be a JSON object mapping operator names to keys.")
+            return parsed
         return value
 
     @property

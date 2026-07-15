@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 
 from app.models import Discovery, PetDiscoveryMatch
+from app.config import Settings
 from app.schemas import CatalogUpdate, LocationVerificationPayload
 from app.services.archetypes import (
     archetype_metadata,
@@ -67,6 +68,11 @@ def test_verification_normalizes_glyphs():
 def test_catalog_update_accepts_admin_actor():
     update = CatalogUpdate(actor="PJ", display_name="Long-neck fauna")
     assert update.actor == "PJ"
+
+
+def test_named_admin_keys_parse_from_environment_json():
+    settings = Settings(admin_api_keys='{"PJ":"pj-key","Boots":"boots-key"}')
+    assert settings.admin_api_keys == {"PJ": "pj-key", "Boots": "boots-key"}
 
 
 def test_private_attribution_masks_public_name():
