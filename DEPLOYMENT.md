@@ -25,7 +25,8 @@ variables. Never commit real values. The service currently recognizes:
 - `MAX_REQUESTS_PER_HOUR`
 - `ADMIN_API_KEY_PJ` and `ADMIN_API_KEY_BOOTS`
 - `ADMIN_API_KEYS` as an optional JSON-object alternative
-- `TESTER_API_KEYS` as a JSON object for restricted private-app and Transit testers
+- `TESTER_API_KEY_MENOMOO`, `TESTER_API_KEY_FLOPPYDONKEY`,
+  `TESTER_API_KEY_DARKBELLATOR`, and `TESTER_API_KEY_OLGRAVYLEG`
 - `SPACES_ACCESS_KEY`, `SPACES_SECRET_KEY`, `SPACES_REGION`,
   `SPACES_BUCKET`, `SPACES_ENDPOINT`, and `SPACES_CDN_URL`
 
@@ -33,13 +34,10 @@ Use independent random administrator keys. Keep the legacy `ADMIN_API_KEY`
 only while migrating an older client, then remove it from the service
 environment.
 
-Restricted testers belong in `TESTER_API_KEYS`, not `ADMIN_API_KEYS`. For the
-current test crew, add one encrypted Runtime environment variable on the API Web
-Service:
-
-```json
-{"Menomoo":"<unique-random-key>","FloppyDonkey":"<unique-random-key>","DarkBellator":"<unique-random-key>","OlGravyLeg":"<unique-random-key>"}
-```
+Restricted testers do not belong in `ADMIN_API_KEYS`. Add the four scalar
+variables listed above as separate encrypted Runtime values on the API Web
+Service. Use a different long random value for each person. Do not add the old
+`TESTER_API_KEYS` JSON variable; DigitalOcean's editor may reject its braces.
 
 Those keys can authorize Pegasus Transit and create private application
 downloads. They cannot open the review console, approve catalog data, upload
@@ -60,5 +58,5 @@ After both components are healthy:
 7. Confirm `/admin/apps/` reports private storage online before uploading a
    reviewed inner application ZIP.
 
-The v1.11.0 deployment requires `TESTER_API_KEYS` for the four new restricted
-testers. It requires no database migration.
+The v1.11.1 deployment uses four individual tester-key variables and requires no
+database migration. An obsolete `TESTER_API_KEYS` value is ignored.

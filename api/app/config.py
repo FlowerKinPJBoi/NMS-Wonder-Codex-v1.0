@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Wonder Codex API"
-    app_version: str = "1.11.0"
+    app_version: str = "1.11.1"
     environment: str = "production"
     database_url: str = ""
     allowed_origins: List[str] = Field(
@@ -30,7 +30,10 @@ class Settings(BaseSettings):
     admin_api_key_pj: str = ""
     admin_api_key_boots: str = ""
     admin_api_keys: dict[str, str] = Field(default_factory=dict)
-    tester_api_keys: dict[str, str] = Field(default_factory=dict)
+    tester_api_key_menomoo: str = ""
+    tester_api_key_floppydonkey: str = ""
+    tester_api_key_darkbellator: str = ""
+    tester_api_key_olgravyleg: str = ""
     ip_hash_salt: str = "change-me"
     max_requests_per_hour: int = 5
     max_request_bytes: int = 30_000_000
@@ -89,7 +92,7 @@ class Settings(BaseSettings):
             return [item.strip() for item in value.split(",") if item.strip()]
         return value
 
-    @field_validator("admin_api_keys", "tester_api_keys", mode="before")
+    @field_validator("admin_api_keys", mode="before")
     @classmethod
     def parse_named_api_keys(cls, value):
         if value in (None, ""):
@@ -102,6 +105,21 @@ class Settings(BaseSettings):
                 raise ValueError("Named API keys must map text operator names to text keys.")
             return parsed
         return value
+
+    @property
+    def tester_api_keys(self) -> dict[str, str]:
+        """Restricted operator keys kept as scalar environment variables.
+
+        DigitalOcean App Platform treats JSON braces as interpolation syntax in
+        its environment-variable editor. Individual values avoid that parser
+        entirely while preserving the named-key interface used by security.py.
+        """
+        return {
+            "Menomoo": self.tester_api_key_menomoo,
+            "FloppyDonkey": self.tester_api_key_floppydonkey,
+            "DarkBellator": self.tester_api_key_darkbellator,
+            "OlGravyLeg": self.tester_api_key_olgravyleg,
+        }
 
     @property
     def sqlalchemy_database_url(self) -> str:
