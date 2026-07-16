@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Wonder Codex API"
-    app_version: str = "1.10.0"
+    app_version: str = "1.11.0"
     environment: str = "production"
     database_url: str = ""
     allowed_origins: List[str] = Field(
@@ -30,6 +30,7 @@ class Settings(BaseSettings):
     admin_api_key_pj: str = ""
     admin_api_key_boots: str = ""
     admin_api_keys: dict[str, str] = Field(default_factory=dict)
+    tester_api_keys: dict[str, str] = Field(default_factory=dict)
     ip_hash_salt: str = "change-me"
     max_requests_per_hour: int = 5
     max_request_bytes: int = 30_000_000
@@ -88,15 +89,17 @@ class Settings(BaseSettings):
             return [item.strip() for item in value.split(",") if item.strip()]
         return value
 
-    @field_validator("admin_api_keys", mode="before")
+    @field_validator("admin_api_keys", "tester_api_keys", mode="before")
     @classmethod
-    def parse_admin_api_keys(cls, value):
+    def parse_named_api_keys(cls, value):
         if value in (None, ""):
             return {}
         if isinstance(value, str):
             parsed = json.loads(value)
             if not isinstance(parsed, dict):
-                raise ValueError("ADMIN_API_KEYS must be a JSON object mapping operator names to keys.")
+                raise ValueError("Named API keys must be a JSON object mapping operator names to keys.")
+            if not all(isinstance(name, str) and isinstance(key, str) for name, key in parsed.items()):
+                raise ValueError("Named API keys must map text operator names to text keys.")
             return parsed
         return value
 
