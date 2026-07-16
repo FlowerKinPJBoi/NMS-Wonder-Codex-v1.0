@@ -84,9 +84,11 @@ def test_named_tester_keys_accept_individual_values():
     settings = Settings(
         tester_api_key_menomoo="meno-key",
         tester_api_key_floppydonkey="floppy-key",
+        tester_api_key_monketsu="monk-key",
     )
     assert settings.tester_api_keys["Menomoo"] == "meno-key"
     assert settings.tester_api_keys["FloppyDonkey"] == "floppy-key"
+    assert settings.tester_api_keys["Monketsu"] == "monk-key"
 
 
 def test_named_admin_keys_accept_individual_environment_values(monkeypatch):
