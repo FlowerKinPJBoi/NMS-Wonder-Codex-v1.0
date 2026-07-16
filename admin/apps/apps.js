@@ -2,7 +2,7 @@
   'use strict';
 
   const API = '/api';
-  const state = {key:'', actor:'PJ', apps:[], maxUploadBytes:0};
+  const state = {key:'', actor:'PJ', apps:[], maxUploadBytes:0, permissions:{download:false,upload:false,transit:false}};
   const TEST_GUIDES = {
     'importer-beta': {
       title: 'Importer beta test brief',
@@ -55,7 +55,7 @@
     },
     'pegasus-transit': {
       title: 'Pegasus Transit operator test brief',
-      intro: 'PJ and Boots only. Use the exact selected character and a catalog .wctransit ticket. A failure is a stop condition: preserve the automatic backups before reopening the game.',
+      intro: 'Named Pegasus operators only. Use the exact selected character and an approved catalog .wctransit ticket. A failure is a stop condition: preserve the automatic backups before reopening the game.',
       steps: [
         'Save the selected character while flying in open space. Fully close No Man’s Sky.',
         'Create a private download above, compare SHA-256, extract the ZIP, and run WonderCodexPegasusTransitAdmin.exe normally—not as administrator.',
@@ -159,6 +159,7 @@
     sessionStorage.removeItem('wc_admin_actor');
     state.key = '';
     state.apps = [];
+    state.permissions = {download:false,upload:false,transit:false};
     $('#dashboard').hidden = true;
     $('#loginPanel').hidden = false;
     $('#lockButton').hidden = true;
@@ -191,7 +192,9 @@
 
   function applyData(data) {
     state.apps = data.items || [];
+    state.permissions = data.permissions || {download:false,upload:false,transit:false};
     state.maxUploadBytes = Number(data.max_upload_bytes || 0);
+    $('#reviewConsoleLink').hidden = !state.permissions.upload;
     const storageWarning = String(data.storage_warning || '').trim();
     const storageOnline = Boolean(data.storage_ready) && !storageWarning;
     $('#storageBadge').textContent = storageOnline ? 'Private storage online' : (data.storage_ready ? 'Storage check needs attention' : 'Storage setup required');
@@ -244,12 +247,13 @@
           <div class="hash-row"><code title="${escapeHtml(release.sha256)}">${escapeHtml(release.sha256 || 'SHA-256 unavailable')}</code><button class="copy-hash" type="button" data-copy-hash="${escapeHtml(app.slug)}">Copy</button></div>
           <button class="button primary download-button" type="button" data-download="${escapeHtml(app.slug)}">Create private download</button>
         </div>` : `<div class="release-panel release-empty"><strong>No build installed</strong><span>Upload the inner Actions build ZIP below. It must contain ${escapeHtml(app.slug === 'importer-beta' ? 'WonderCodexImporter.exe' : 'WonderCodexPegasusTransitAdmin.exe')} directly.</span></div>`;
+      const uploadMarkup = state.permissions.upload ? `<div class="upload-panel"><h3>${release ? 'Replace current build' : 'Install a build'}</h3><div class="upload-grid"><label>Version<input data-version="${escapeHtml(app.slug)}" value="${escapeHtml(release?.version || app.suggested_version)}" maxlength="40"></label><label>Inner build ZIP<input data-file="${escapeHtml(app.slug)}" type="file" accept=".zip,application/zip"></label></div><p class="upload-note">Maximum ${formatBytes(state.maxUploadBytes)}. The server checks the ZIP, expected executable, CRC, and SHA-256 before replacing the current release.</p><div class="upload-progress" aria-hidden="true"><span data-progress="${escapeHtml(app.slug)}"></span></div><div class="upload-actions"><button class="button secondary" type="button" data-upload="${escapeHtml(app.slug)}">Upload reviewed build</button><span class="upload-status" data-upload-status="${escapeHtml(app.slug)}"></span></div></div>` : `<div class="tester-scope-note"><strong>Restricted tester session</strong><span>You may download and test reviewed builds. Release replacement and the catalog review console remain administrator-only.</span></div>`;
       return `<article class="app-card${restricted ? ' restricted' : ''}" data-app="${escapeHtml(app.slug)}">
         <div class="app-card-head"><span class="app-symbol">${restricted ? '⌁' : '◇'}</span><span class="channel-pill">${escapeHtml(app.channel)}</span></div>
         <h2>${escapeHtml(app.title)}</h2><p class="app-summary">${escapeHtml(app.summary)}</p><div class="app-safety">${escapeHtml(app.safety_note)}</div>
         ${releaseMarkup}
         ${testSheetMarkup(app.slug)}
-        <div class="upload-panel"><h3>${release ? 'Replace current build' : 'Install a build'}</h3><div class="upload-grid"><label>Version<input data-version="${escapeHtml(app.slug)}" value="${escapeHtml(release?.version || app.suggested_version)}" maxlength="40"></label><label>Inner build ZIP<input data-file="${escapeHtml(app.slug)}" type="file" accept=".zip,application/zip"></label></div><p class="upload-note">Maximum ${formatBytes(state.maxUploadBytes)}. The server checks the ZIP, expected executable, CRC, and SHA-256 before replacing the current release.</p><div class="upload-progress" aria-hidden="true"><span data-progress="${escapeHtml(app.slug)}"></span></div><div class="upload-actions"><button class="button secondary" type="button" data-upload="${escapeHtml(app.slug)}">Upload reviewed build</button><span class="upload-status" data-upload-status="${escapeHtml(app.slug)}"></span></div></div>
+        ${uploadMarkup}
       </article>`;
     }).join('') || '<div class="app-loading">No private applications are registered.</div>';
 
