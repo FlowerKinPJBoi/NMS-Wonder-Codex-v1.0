@@ -14,6 +14,7 @@ def configure_keys(monkeypatch):
     monkeypatch.setenv("TESTER_API_KEY_DARKBELLATOR", "dark-secret")
     monkeypatch.setenv("TESTER_API_KEY_OLGRAVYLEG", "gravy-secret")
     monkeypatch.setenv("TESTER_API_KEY_MONKETSU", "monk-secret")
+    monkeypatch.setenv("TESTER_API_KEY_READYFIREAIM", "ready-secret")
     get_settings.cache_clear()
 
 
@@ -43,6 +44,19 @@ def test_monketsu_receives_restricted_app_and_transit_access(monkeypatch):
 
     with pytest.raises(HTTPException) as error:
         require_admin_key("monk-secret", "Monketsu")
+    assert error.value.status_code == 401
+    get_settings.cache_clear()
+
+
+def test_readyfireaim_receives_restricted_app_and_transit_access(monkeypatch):
+    configure_keys(monkeypatch)
+    session = require_operator_key("ready-secret", "ReadyFireAim")
+    assert session.actor == "ReadyFireAim"
+    assert session.scopes == frozenset({"apps:download", "transit"})
+    assert session.can_upload_private_apps is False
+
+    with pytest.raises(HTTPException) as error:
+        require_admin_key("ready-secret", "ReadyFireAim")
     assert error.value.status_code == 401
     get_settings.cache_clear()
 
