@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1.11.0">
-  <link rel="stylesheet" href="importer.css?v=1.5.0">
+  <link rel="stylesheet" href="importer.css?v=1.5.1">
   <style>
     .stars { pointer-events: none !important; }
     .native-file-picker { cursor: pointer; user-select: none; }
@@ -27,60 +27,11 @@
     <section class="import-hero">
       <p class="eyebrow">CONTRIBUTIONS HUB — SAVE DATA</p>
       <h1>Turn a character save into <span>reviewed Wonder data.</span></h1>
-      <p class="hero-copy">Choose a decoded character JSON, a Steam/GOG save folder, or an Xbox/Game Pass PC WGS folder. Save slots are reconstructed and decoded locally; raw save data is never uploaded.</p>
+      <p class="hero-copy">Choose a decoded character JSON. Wonder Codex analyzes it locally in your browser and shows the normalized records before anything can be submitted.</p>
     </section>
 
     <section class="section importer-panel" id="privacy">
-      <div class="privacy-banner"><strong>Local processing</strong><span>Your raw character JSON stays on this device. Only the normalized Wonder records shown in the preview are submitted to the review queue.</span></div>
-      <div class="save-finder-panel" id="saveFinder">
-        <div class="save-finder-heading">
-          <div><p class="kicker">WONDER SAVE FINDER — v1.5 ALPHA</p><h2>Select a Steam/GOG or Xbox/Game Pass PC save folder.</h2><p>Grant read-only access to the folder you choose. Wonder Codex reconstructs save slots and decodes HG data locally in your browser before handing the selected character to the existing Wonder analyzer.</p></div>
-          <span class="finder-status-chip">Local decoding</span>
-        </div>
-
-        <div class="finder-platform-grid">
-          <article class="finder-path-guide">
-            <div class="finder-path-row">
-              <div><strong>Steam / GOG on Windows</strong><p>Select the NMS folder or the account folder beginning with <code>st_</code>.</p></div>
-              <div class="finder-path-copy"><code id="steamSavePath">%AppData%\HelloGames\NMS</code><button class="mini-copy" id="copySteamPath" type="button">Copy path</button></div>
-            </div>
-            <ol>
-              <li>Click <strong>Choose Steam/GOG save folder</strong>.</li>
-              <li>Press <kbd>Ctrl</kbd> + <kbd>L</kbd>, paste the path above, and press <kbd>Enter</kbd>.</li>
-              <li>Select <code>NMS</code> or the <code>st_…</code> account folder.</li>
-            </ol>
-            <div class="save-finder-actions compact">
-              <button class="button primary" id="chooseSteamFolder" type="button">Choose Steam/GOG folder</button>
-              <label class="button secondary folder-fallback" for="saveFolderInput">Steam folder — fallback</label>
-              <input id="saveFolderInput" type="file" webkitdirectory directory multiple hidden>
-            </div>
-          </article>
-
-          <article class="finder-path-guide xbox-guide">
-            <div class="finder-path-row">
-              <div><strong>Xbox App / Game Pass PC</strong><p>Select the package folder, <code>SystemAppData</code>, <code>wgs</code>, or the long account folder containing <code>containers.index</code>.</p></div>
-              <div class="finder-path-copy"><code id="xboxSavePath">%LOCALAPPDATA%\Packages\HelloGames.NoMansSky_bs190hzg1sesy\SystemAppData\wgs</code><button class="mini-copy" id="copyXboxPath" type="button">Copy path</button></div>
-            </div>
-            <ol>
-              <li>Click <strong>Choose Xbox/Game Pass folder</strong>.</li>
-              <li>Press <kbd>Ctrl</kbd> + <kbd>L</kbd>, paste the path above, and press <kbd>Enter</kbd>.</li>
-              <li>Select <code>wgs</code> or its long account-ID folder.</li>
-            </ol>
-            <div class="save-finder-actions compact">
-              <button class="button primary" id="chooseXboxFolder" type="button">Choose Xbox/Game Pass folder</button>
-              <label class="button secondary folder-fallback" for="xboxFolderInput">Game Pass folder — fallback</label>
-              <input id="xboxFolderInput" type="file" webkitdirectory directory multiple hidden>
-            </div>
-          </article>
-        </div>
-
-        <div class="finder-privacy-note"><strong>Read-only and local:</strong> selecting a folder does not upload it. Only normalized Wonder records shown in the preview can be sent to the review queue.</div>
-        <p class="finder-support" id="saveFinderSupport">Choose a platform folder above. Steam HG slots and Xbox WGS container data are decoded on this device. A manual decoded-JSON option remains below.</p>
-        <div class="save-finder-results" id="saveFinderResults" hidden></div>
-        <div class="save-finder-actions manifest-actions"><button class="button secondary" id="downloadSaveManifest" type="button" hidden>Download metadata-only scan manifest</button></div>
-        <div class="finder-next"><strong>Alpha testing</strong><span>Folder layouts vary. Failed slots remain local and can be documented through the redacted scan manifest.</span></div>
-      </div>
-      <div class="source-divider"><span>or choose a decoded JSON manually</span></div>
+      <div class="privacy-banner"><strong>Local processing</strong><span>Your original character JSON stays on this device. Only the normalized Wonder records shown in the preview can be submitted to the review queue.</span></div>
       <div class="upload-box" id="dropZone">
         <input id="fileInput" type="file" accept=".json,.txt,application/json" hidden>
         <div class="upload-icon">⇧</div>
@@ -88,6 +39,33 @@
         <p>Drop the file here or choose it from your computer.</p>
         <label class="button primary native-file-picker" for="fileInput">Choose JSON file</label>
         <p class="file-name" id="fileName">No file selected</p>
+        <div class="json-data-disclosure" aria-label="JSON data use summary">
+          <div class="data-disclosure-heading">
+            <p class="kicker">WHAT WONDER CODEX READS</p>
+            <h3>Clear data boundaries before you begin.</h3>
+          </div>
+          <div class="data-disclosure-grid">
+            <section>
+              <h4>Read locally from the JSON</h4>
+              <ul>
+                <li><strong>Save identity:</strong> save name and platform label.</li>
+                <li><strong>DiscoveryData:</strong> discovery type, Universal Address, VP values, discovery owner, and platform.</li>
+                <li><strong>PetData:</strong> Creature ID/type, Universal Address, creature/species/genus seeds, and secondary seed for exact DiscoveryData matching.</li>
+                <li><strong>GenerationID records:</strong> counted for the analysis summary only.</li>
+              </ul>
+            </section>
+            <section>
+              <h4>Retained only after you press Submit</h4>
+              <ul>
+                <li><strong>Submission details:</strong> contributor name, public/private attribution choice, save name, platform, and summary counts.</li>
+                <li><strong>Normalized discoveries:</strong> DiscoveryData values, calculated Wonder Projector Message ID, owner/platform, and JSON record path.</li>
+                <li><strong>Exact pet matches:</strong> Creature ID/type, matched discovery values, secondary-seed comparison, Message ID, and JSON record paths.</li>
+                <li><strong>Review issues:</strong> matching or normalization notes needed by Wonder Codex reviewers.</li>
+              </ul>
+            </section>
+          </div>
+          <p class="data-exclusion-note"><strong>Not retained:</strong> the original JSON, inventory, bases, missions, account identifiers, unrelated player progress, complete PetData or GenerationID records, or local file-system paths. A salted IP hash and browser user-agent are stored separately for rate limiting and security.</p>
+        </div>
       </div>
       <div class="form-row">
         <label>Contributor name<input id="contributor" type="text" placeholder="Explorer name or community handle"></label>
@@ -128,9 +106,9 @@
     </section>
   </main>
 
-  <footer><div><strong>Wonder Codex</strong><p>Evidence first. Conclusions second.</p><a href="privacy.html">Analytics privacy</a></div><div class="footer-note"><p>Web Importer v1.5.0 — Steam HG + Xbox/Game Pass WGS alpha</p><p>Independent community project. Not affiliated with Hello Games.</p></div></footer>
+  <footer><div><strong>Wonder Codex</strong><p>Evidence first. Conclusions second.</p><a href="privacy.html">Analytics privacy</a></div><div class="footer-note"><p>Web Importer v1.5.1 — decoded JSON contribution</p><p>Independent community project. Not affiliated with Hello Games.</p></div></footer>
   <script src="analytics.js?v=1.13.0"></script>
   <script src="script.js?v=1.11.0"></script>
-  <script src="importer.js?v=1.5.0"></script>
+  <script src="importer.js?v=1.5.1"></script>
 </body>
 </html>
