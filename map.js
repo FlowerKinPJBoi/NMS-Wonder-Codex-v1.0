@@ -12,6 +12,7 @@
     points: [], clusters: [], hotspots: [], loading: false, request: 0,
     centerX: 0, centerZ: 0, scale: .16, minScale: .08, maxScale: 5,
     width: 0, height: 0, dpr: 1, drag: null, selected: null,
+    controller: null, drawFrame: 0, zoomLabel: '',
   };
 
   function populateGalaxies() {
@@ -90,18 +91,25 @@
 
   async function loadPoints({reset = true} = {}) {
     const request = ++state.request;
+    state.controller?.abort();
+    const controller = new AbortController();
+    state.controller = controller;
     state.loading = true;
     $('#mapLoading').hidden = false;
     $('#mapEmpty').hidden = true;
     $('#mapCount').textContent = 'Plotting location evidence…';
     updateUrl();
     try {
-      const response = await fetch(`${API}/map-points?${mapQuery()}`, {headers:{Accept:'application/json'}});
+      const response = await fetch(`${API}/map-points?${mapQuery()}`, {
+        headers:{Accept:'application/json'},
+        signal: controller.signal,
+      });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.detail || `Map request failed (${response.status}).`);
       if (request !== state.request) return;
       state.points = data.items || [];
       state.hotspots = buildHotspots(state.points);
+      renderHotspots();
       state.selected = null;
       if (reset) resetView(false);
       $('#mapSelection').className = 'selection-empty';
@@ -111,6 +119,7 @@
       $('#mapEmpty').hidden = state.points.length > 0;
       draw();
     } catch (error) {
+      if (error.name === 'AbortError') return;
       if (request !== state.request) return;
       state.points = [];
       state.hotspots = [];
@@ -135,7 +144,7 @@
     context.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
     state.minScale = Math.max(.055, Math.min(state.width, state.height) / 4600);
     if (state.scale < state.minScale) state.scale = state.minScale;
-    draw();
+    scheduleDraw();
   }
 
   function resetView(render = true) {
@@ -276,9 +285,20 @@
     drawHotspotHalos(state.hotspots);
     const clusters = createClusters();
     drawClusters(clusters);
-    renderHotspots();
     const zoom = state.scale / state.minScale;
-    $('#zoomReadout').textContent = zoom < 1.35 ? 'Galaxy view' : `${zoom.toFixed(1)}× zoom`;
+    const label = zoom < 1.35 ? 'Galaxy view' : `${zoom.toFixed(1)}× zoom`;
+    if (label !== state.zoomLabel) {
+      state.zoomLabel = label;
+      $('#zoomReadout').textContent = label;
+    }
+  }
+
+  function scheduleDraw() {
+    if (state.drawFrame) return;
+    state.drawFrame = requestAnimationFrame(() => {
+      state.drawFrame = 0;
+      draw();
+    });
   }
 
   function renderHotspots() {
@@ -310,7 +330,8 @@
     state.centerX = cluster.worldX; state.centerZ = cluster.worldZ;
     state.scale = Math.min(state.maxScale, Math.max(state.scale * 2.5, state.minScale * 3));
     draw();
-    const refreshed = state.clusters.find((item) => item.points.some((point) => cluster.points.some((selected) => selected.key === point.key)));
+    const selectedKeys = new Set(cluster.points.map((point) => point.key));
+    const refreshed = state.clusters.find((item) => item.points.some((point) => selectedKeys.has(point.key)));
     if (refreshed) renderSelection(refreshed);
   }
 
@@ -321,7 +342,7 @@
     state.scale = next;
     state.centerX = beforeX - (screenX - state.width / 2) / next;
     state.centerZ = beforeZ - (screenY - state.height / 2) / next;
-    draw();
+    scheduleDraw();
   }
 
   stage.addEventListener('wheel', (event) => {
@@ -339,7 +360,7 @@
     const dx = event.clientX - state.drag.x, dy = event.clientY - state.drag.y;
     if (Math.abs(dx) + Math.abs(dy) > 4) state.drag.moved = true;
     state.centerX = state.drag.centerX - dx / state.scale; state.centerZ = state.drag.centerZ - dy / state.scale;
-    draw();
+    scheduleDraw();
   });
   stage.addEventListener('pointerup', (event) => {
     const drag = state.drag; state.drag = null; stage.classList.remove('dragging');
@@ -356,7 +377,7 @@
 
   let timer;
   $('#mapFilters').addEventListener('change', (event) => {
-    if (event.target.id === 'displayMode') { updateUrl(); draw(); return; }
+    if (event.target.id === 'displayMode') { updateUrl(); scheduleDraw(); return; }
     if (event.target.id === 'laneFilter') updateFilterAvailability();
     if (event.target.id === 'typeFilter') {
       if (event.target.value !== 'Animal') $('#familyFilter').value = '';
