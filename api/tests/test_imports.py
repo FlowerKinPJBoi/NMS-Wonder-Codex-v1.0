@@ -10,7 +10,7 @@ from app.services.archetypes import (
     discovery_match_key,
     family_vp1s,
 )
-from app.services.catalog import serialize_discovery, wc_id
+from app.services.catalog import is_publicly_listed_discovery_type, serialize_discovery, wc_id
 from app.services.locations import decode_portal_coordinates, decode_universal_address
 
 
@@ -53,6 +53,11 @@ def test_wc_id_and_catalog_serialization():
     payload = serialize_discovery(row, detail=True)
     assert payload["has_location"] is True
     assert payload["portal_glyphs"] == "0123456789AB"
+
+
+def test_solar_systems_are_retained_but_not_publicly_listed():
+    assert is_publicly_listed_discovery_type("Animal") is True
+    assert is_publicly_listed_discovery_type("SolarSystem") is False
 
 
 def test_verification_normalizes_glyphs():
