@@ -17,14 +17,14 @@ from ..services.admin_apps import (
     store_release,
     validate_version,
 )
-from ..services.security import require_admin_key
+from ..services.security import OperatorSession, require_admin_key, require_operator_key
 
 router = APIRouter(prefix="/admin/apps", tags=["admin-apps"])
 logger = logging.getLogger(__name__)
 
 
 @router.get("")
-def list_private_apps(actor: str = Depends(require_admin_key)):
+def list_private_apps(operator: OperatorSession = Depends(require_operator_key)):
     settings = get_settings()
     items = []
     storage_warnings: list[str] = []
@@ -47,7 +47,12 @@ def list_private_apps(actor: str = Depends(require_admin_key)):
     storage_warning = " ".join(dict.fromkeys(storage_warnings))
     return {
         "items": items,
-        "operator": actor,
+        "operator": operator.actor,
+        "permissions": {
+            "download": "apps:download" in operator.scopes,
+            "upload": operator.can_upload_private_apps,
+            "transit": "transit" in operator.scopes,
+        },
         "storage_ready": settings.spaces_private_ready,
         "storage_warning": storage_warning,
         "max_upload_bytes": settings.max_admin_app_bytes,
@@ -97,7 +102,10 @@ async def upload_private_app(
 
 
 @router.post("/{slug}/download")
-def create_private_download(slug: str, actor: str = Depends(require_admin_key)):
+def create_private_download(
+    slug: str,
+    operator: OperatorSession = Depends(require_operator_key),
+):
     settings = get_settings()
     application = application_for(slug)
     release = release_status(application)
@@ -109,5 +117,5 @@ def create_private_download(slug: str, actor: str = Depends(require_admin_key)):
         "expires_seconds": settings.admin_app_download_seconds,
         "filename": filename,
         "sha256": release.get("sha256", ""),
-        "requested_by": actor,
+        "requested_by": operator.actor,
     }
