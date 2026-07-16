@@ -28,8 +28,8 @@ variables. Never commit real values. The service currently recognizes:
 - `ADMIN_API_KEY_PJ` and `ADMIN_API_KEY_BOOTS`
 - `ADMIN_API_KEYS` as an optional JSON-object alternative
 - `TESTER_API_KEY_MENOMOO`, `TESTER_API_KEY_FLOPPYDONKEY`,
-  `TESTER_API_KEY_DARKBELLATOR`, `TESTER_API_KEY_OLGRAVYLEG`, and
-  `TESTER_API_KEY_MONKETSU`
+  `TESTER_API_KEY_DARKBELLATOR`, `TESTER_API_KEY_OLGRAVYLEG`,
+  `TESTER_API_KEY_MONKETSU`, and `TESTER_API_KEY_READYFIREAIM`
 - `SPACES_ACCESS_KEY`, `SPACES_SECRET_KEY`, `SPACES_REGION`,
   `SPACES_BUCKET`, `SPACES_ENDPOINT`, and `SPACES_CDN_URL`
 
@@ -37,7 +37,7 @@ Use independent random administrator keys. Keep the legacy `ADMIN_API_KEY`
 only while migrating an older client, then remove it from the service
 environment.
 
-Restricted testers do not belong in `ADMIN_API_KEYS`. Add the five scalar
+Restricted testers do not belong in `ADMIN_API_KEYS`. Add the six scalar
 variables listed above as separate encrypted Runtime values on the API Web
 Service. Use a different long random value for each person. Do not add the old
 `TESTER_API_KEYS` JSON variable; DigitalOcean's editor may reject its braces.
