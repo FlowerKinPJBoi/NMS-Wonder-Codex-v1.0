@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1.11.0">
-  <link rel="stylesheet" href="catalog.css?v=1.8.0">
+  <link rel="stylesheet" href="catalog.css?v=1.12.0">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
@@ -30,7 +30,7 @@
           <div class="record-heading"><div><span id="wcId" class="wc-id">—</span><h1 id="recordName">—</h1><p id="recordAttribution">—</p></div><span id="recordType" class="type-chip">—</span></div>
           <div id="recordIdentity" class="fauna-identity record-identity" hidden></div>
           <div id="recordBadges" class="record-badge-row"></div>
-          <div class="message-box"><span class="kicker">MESSAGE ID</span><code id="messageId">—</code><button id="copyMessage" class="text-button" type="button">Copy Message ID</button></div>
+          <div class="message-box"><span class="kicker">WONDER PROJECTOR MESSAGE ID</span><code id="messageId">—</code><button id="copyMessage" class="text-button" type="button">Copy Wonder Projector Message ID</button></div>
           <h2>Discovery data</h2>
           <div id="dataList" class="data-list"></div>
           <div id="catalogNote" class="notice" hidden></div>
@@ -47,11 +47,10 @@
             <button id="copyGlyphs" class="text-button" type="button" hidden>Copy glyph code</button>
           </div>
           <div class="record-actions">
-            <a id="imageLink" class="button primary" href="contribute.html?mode=image">Contribute an image</a>
-            <a id="verifyLink" class="button secondary" href="contribute.html?mode=verify">Verify this location</a>
+            <a id="evidenceLink" class="button primary" href="contribute.html?mode=evidence">Contribute image or location evidence</a>
             <button id="pegasusTransit" class="button warp-button" type="button" disabled>PEGASUS TRANSIT — Authorized operators only</button>
           </div>
-          <div class="notice" style="margin-top:16px"><strong>Travel responsibly.</strong><br>Confirmed UA decoding may display a portal route before that individual record has been revisited. Public transit requests remain in research; signed-in administrators can download a private operator route.</div>
+          <div class="notice" style="margin-top:16px"><strong>Travel responsibly.</strong><br>A route derived from saved discovery data may appear before that individual record has been revisited. Public transit requests remain in research; signed-in administrators can download a private operator route.</div>
         </aside>
       </div>
     </section>
@@ -63,6 +62,6 @@
   <script src="glyphs.js?v=1.6.0"></script>
   <script src="locations.js?v=1.6.0"></script>
   <script src="archetypes.js?v=1.7.0"></script>
-  <script src="record.js?v=1.8.1"></script>
+  <script src="record.js?v=1.12.0"></script>
 </body>
 </html>
