@@ -1,5 +1,13 @@
 # Wonder Codex changelog
 
+## v1.11.2 — Galactic map performance
+
+- Stopped loading large raw discovery and PetData JSON columns for map views.
+- Added short-lived shared caching for privacy-safe map responses.
+- Cancelled superseded filter requests and coalesced pan/zoom drawing into one
+  animation frame.
+- Stopped rebuilding the hotspot DOM during every canvas redraw.
+
 ## v1.11.1 — DigitalOcean tester-key hotfix
 
 - Replaced the JSON `TESTER_API_KEYS` setting with four encrypted scalar tester
