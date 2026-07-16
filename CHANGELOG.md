@@ -1,5 +1,19 @@
 # Wonder Codex changelog
 
+## v1.13.0 — Private owner analytics
+
+- Added privacy-safe, first-party page and feature analytics without third-party
+  trackers, cookies, raw IP storage, or raw browser user-agent storage.
+- Added an owner-only dashboard at `/admin/analytics/` protected by PJ's named
+  administrator credential; other administrators and testers are refused.
+- Added visit totals, page trends, live anonymous sessions, referrers, coarse
+  device/browser/OS summaries, popular records and assets, feature filters,
+  contributions, imports, downloads, and recent anonymous journeys.
+- Excluded all administrator routes and honored Do Not Track and Global Privacy
+  Control browser signals.
+- Added 90-day detailed-event retention with permanent daily aggregate counts
+  and an explicit public analytics privacy notice.
+
 ## v1.12.0 — Simplified public records and evidence contributions
 
 - Removed raw Universal Address and VP hex fields from public discovery record

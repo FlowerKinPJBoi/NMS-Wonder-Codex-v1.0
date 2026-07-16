@@ -52,6 +52,7 @@
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(link.href), 0);
+    window.WonderAnalytics?.track('transit_ticket_download', {entity_type:'discovery', entity_id:record.wc_id, download_type:'wctransit'});
     toast('Pegasus Transit route downloaded.');
   }
 
@@ -179,6 +180,14 @@
     $('#evidenceLink').href = `contribute.html?mode=evidence&record=${data.id}`;
     configurePegasusTransit(data);
     $('#recordLayout').hidden = false;
+    window.WonderAnalytics?.track('record_view', {
+      entity_type: 'discovery',
+      entity_id: data.wc_id,
+      discovery_type: data.discovery_type,
+      fauna_family: data.fauna_family_id || '',
+      location_status: data.travel_status || data.location_status || '',
+      image_status: data.image_status || '',
+    });
   }
 
   async function load() {

@@ -143,6 +143,20 @@
       if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
       state.total = data.total || 0; state.items = reset ? (data.items || []) : state.items.concat(data.items || []); state.offset = state.items.length;
       render(); $('#loadMore').hidden = !data.has_more;
+      if (reset && window.WonderAnalytics) {
+        const q = $('#catalogSearch').value.trim();
+        WonderAnalytics.track('catalog_filter', {
+          catalog_lane: state.lane,
+          discovery_type: isAssetLane() ? '' : $('#typeFilter').value,
+          fauna_family: isAssetLane() ? '' : $('#familyFilter').value,
+          location_status: $('#locationFilter').value,
+          image_status: $('#imageFilter').value,
+          query_kind: WonderAnalytics.queryKind(q),
+          query_length: q.length,
+          has_query: Boolean(q),
+          result_count: state.total,
+        });
+      }
     } catch (error) {
       $('#catalogGrid').innerHTML = `<div class="empty-catalog surface"><strong>Catalog unavailable</strong><p>${escapeHtml(error.message)}</p></div>`;
       $('#catalogCount').textContent = 'Unable to load records.'; $('#loadMore').hidden = true;

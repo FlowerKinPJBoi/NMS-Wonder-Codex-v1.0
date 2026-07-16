@@ -1,4 +1,4 @@
-# Wonder Codex v1.12.0
+# Wonder Codex v1.13.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.

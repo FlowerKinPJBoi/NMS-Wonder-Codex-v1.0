@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Wonder Codex API"
-    app_version: str = "1.12.0"
+    app_version: str = "1.13.0"
     environment: str = "production"
     database_url: str = ""
     allowed_origins: List[str] = Field(
@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     tester_api_key_olgravyleg: str = ""
     ip_hash_salt: str = "change-me"
     max_requests_per_hour: int = 5
+    analytics_enabled: bool = True
+    analytics_owner_actor: str = "PJ"
+    analytics_retention_days: int = 90
+    analytics_max_events_per_minute: int = 120
     max_request_bytes: int = 30_000_000
     max_discoveries_per_submission: int = 20_000
     max_matches_per_submission: int = 2_000

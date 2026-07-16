@@ -4,11 +4,11 @@ import pytest
 from fastapi import HTTPException
 
 from app.config import get_settings
-from app.services.security import require_admin_key, require_operator_key
+from app.services.security import require_admin_key, require_operator_key, require_owner_key
 
 
 def configure_keys(monkeypatch):
-    monkeypatch.setenv("ADMIN_API_KEYS", '{"PJ":"pj-secret"}')
+    monkeypatch.setenv("ADMIN_API_KEYS", '{"PJ":"pj-secret","Boots":"boots-secret"}')
     monkeypatch.setenv("TESTER_API_KEY_MENOMOO", "meno-secret")
     monkeypatch.setenv("TESTER_API_KEY_FLOPPYDONKEY", "floppy-secret")
     monkeypatch.setenv("TESTER_API_KEY_DARKBELLATOR", "dark-secret")
@@ -47,4 +47,31 @@ def test_obsolete_malformed_json_variable_cannot_break_startup(monkeypatch):
     get_settings.cache_clear()
     session = require_operator_key("meno-secret", "Menomoo")
     assert session.actor == "Menomoo"
+    get_settings.cache_clear()
+
+
+def test_pj_named_key_unlocks_owner_analytics(monkeypatch):
+    configure_keys(monkeypatch)
+    session = require_owner_key("pj-secret", "PJ")
+    assert session.actor == "PJ"
+    assert "owner:analytics" in session.scopes
+    get_settings.cache_clear()
+
+
+def test_other_valid_admin_is_refused_owner_analytics(monkeypatch):
+    configure_keys(monkeypatch)
+    with pytest.raises(HTTPException) as error:
+        require_owner_key("boots-secret", "Boots")
+    assert error.value.status_code == 403
+    get_settings.cache_clear()
+
+
+def test_legacy_shared_key_cannot_claim_owner_identity(monkeypatch):
+    monkeypatch.delenv("ADMIN_API_KEYS", raising=False)
+    monkeypatch.setenv("ADMIN_API_KEY", "legacy-secret")
+    monkeypatch.setenv("ANALYTICS_OWNER_ACTOR", "PJ")
+    get_settings.cache_clear()
+    with pytest.raises(HTTPException) as error:
+        require_owner_key("legacy-secret", "PJ")
+    assert error.value.status_code == 401
     get_settings.cache_clear()
