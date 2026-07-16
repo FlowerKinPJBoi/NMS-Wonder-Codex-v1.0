@@ -1,5 +1,12 @@
 # Wonder Codex changelog
 
+## v1.11.3 — Map display and catalog visibility hotfix
+
+- Fixed the completed map-loading layer remaining visible over a successfully
+  rendered cluster map.
+- Removed Solar System records from the public catalog, public totals, and
+  cluster map without deleting them or changing importer/contribution capture.
+
 ## v1.11.2 — Galactic map performance
 
 - Stopped loading large raw discovery and PetData JSON columns for map views.
