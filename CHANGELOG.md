@@ -1,5 +1,13 @@
 # Wonder Codex changelog
 
+## v1.11.1 — DigitalOcean tester-key hotfix
+
+- Replaced the JSON `TESTER_API_KEYS` setting with four encrypted scalar tester
+  variables accepted by DigitalOcean App Platform.
+- Made obsolete or malformed `TESTER_API_KEYS` values harmless to API startup.
+- Preserved restricted download and Pegasus Transit scopes for the four named
+  testers.
+
 ## v1.11.0 — Galactic community foundation
 
 - Added a public contributor leaderboard with original C, B, A, and S galactic
