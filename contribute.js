@@ -5,11 +5,12 @@
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-  const state = {imageRecord: null, verifyRecord: null};
+  const state = {record: null, submitting: false};
 
   function setMode(mode) {
-    const valid = ['save','image','verify','research'];
-    const selected = valid.includes(mode) ? mode : 'save';
+    const aliases = {image: 'evidence', verify: 'evidence'};
+    const requested = aliases[mode] || mode;
+    const selected = ['save','evidence','research'].includes(requested) ? requested : 'save';
     $$('.contribution-tab').forEach((tab) => tab.classList.toggle('active', tab.dataset.mode === selected));
     $$('[data-section]').forEach((section) => section.hidden = section.dataset.section !== selected);
     const url = new URL(location.href);
@@ -22,11 +23,11 @@
     if (record.has_travel_address) {
       const verified = record.has_location;
       const derived = record.travel_status === 'derived';
-      const label = verified ? 'Verified location' : derived ? 'UA-derived route' : 'Catalog route';
+      const label = verified ? 'Verified location' : derived ? 'Automatically derived route' : 'Catalog route';
       const copy = verified
         ? 'Travel address reviewed and approved.'
         : derived
-          ? 'Decoded from the Universal Address. Please revisit and submit confirmation.'
+          ? 'Decoded automatically from saved discovery data. Please revisit and submit confirmation.'
           : 'Travel address is available but not yet verified.';
       return `<div class="location-panel ${verified ? 'verified' : derived ? 'derived' : ''}"><span class="status-chip ${escapeHtml(record.travel_status)}">${escapeHtml(label)}</span><h3>Galaxy ${record.galaxy_number}${record.galaxy_name ? ` — ${escapeHtml(record.galaxy_name)}` : ''}</h3><div class="portal-glyph-row compact">${WCGlyphs.codeHtml(record.portal_glyphs,{compact:true})}</div><p class="glyph-code">${escapeHtml(record.portal_glyphs)}</p><p>${escapeHtml(copy)}</p></div>`;
     }
@@ -41,9 +42,9 @@
     return `<button class="record-option ${active ? 'active' : ''}" type="button" data-id="${record.id}"><strong>${escapeHtml(record.wc_id)} — ${escapeHtml(record.display_name)}</strong><small>${escapeHtml(record.discovery_type)} • ${escapeHtml(record.contributor || record.owner || 'Unknown')}</small></button>`;
   }
 
-  function makeRecordSearch(inputSelector, resultsSelector, mode) {
-    const input = $(inputSelector);
-    const results = $(resultsSelector);
+  function makeRecordSearch() {
+    const input = $('#evidenceRecordSearch');
+    const results = $('#evidenceRecordResults');
     let timer;
     async function search() {
       const q = input.value.trim();
@@ -53,15 +54,15 @@
         const response = await fetch(`${API}/discoveries?q=${encodeURIComponent(q)}&limit=12`);
         const data = await response.json();
         if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
-        const current = mode === 'image' ? state.imageRecord : state.verifyRecord;
-        results.innerHTML = data.items?.length ? data.items.map((record) => optionMarkup(record, current?.id === record.id)).join('') : '<div class="notice">No published records found.</div>';
-        results.querySelectorAll('.record-option').forEach((button) => button.addEventListener('click', () => selectRecord(mode, Number(button.dataset.id))));
+        results.innerHTML = data.items?.length
+          ? data.items.map((record) => optionMarkup(record, state.record?.id === record.id)).join('')
+          : '<div class="notice">No published records found.</div>';
+        results.querySelectorAll('.record-option').forEach((button) => button.addEventListener('click', () => selectRecord(Number(button.dataset.id))));
       } catch (error) {
         results.innerHTML = `<div class="notice error">${escapeHtml(error.message)}</div>`;
       }
     }
     input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(search, 280); });
-    return search;
   }
 
   async function fetchRecord(id) {
@@ -71,37 +72,60 @@
     return data;
   }
 
-  async function selectRecord(mode, id) {
+  async function selectRecord(id) {
     try {
       const record = WCLocation.enrich(await fetchRecord(id));
-      if (mode === 'image') {
-        state.imageRecord = record;
-        $('#imageSelected').innerHTML = selectedMarkup(record);
-        $('#imageSelected').hidden = false;
-        $('#imageRecordResults').innerHTML = '';
-        $('#imageRecordSearch').value = `${record.wc_id} — ${record.display_name}`;
-        $('#submitImage').disabled = false;
+      state.record = record;
+      $('#evidenceSelected').innerHTML = selectedMarkup(record);
+      $('#evidenceSelected').hidden = false;
+      $('#evidenceRecordResults').innerHTML = '';
+      $('#evidenceRecordSearch').value = `${record.wc_id} — ${record.display_name}`;
+      $('#verifyTravelPanel').innerHTML = locationPanel(record);
+      if (record.has_travel_address) {
+        $('#verifyGalaxyNumber').value = record.galaxy_number || '';
+        $('#verifyGalaxyName').value = record.galaxy_name || '';
+        $('#verifyGlyphs').value = record.portal_glyphs || '';
       } else {
-        state.verifyRecord = record;
-        $('#verifySelected').innerHTML = selectedMarkup(record);
-        $('#verifySelected').hidden = false;
-        $('#verifyRecordResults').innerHTML = '';
-        $('#verifyRecordSearch').value = `${record.wc_id} — ${record.display_name}`;
-        $('#verifyTravelPanel').innerHTML = locationPanel(record);
-        if (record.has_travel_address) {
-          $('#verifyGalaxyNumber').value = record.galaxy_number || '';
-          $('#verifyGalaxyName').value = record.galaxy_name || '';
-          $('#verifyGlyphs').value = record.portal_glyphs || '';
-          $('#verifyGlyphs').dispatchEvent(new Event('input'));
-        }
-        $('#submitVerification').disabled = false;
+        $('#verifyGalaxyNumber').value = '';
+        $('#verifyGalaxyName').value = '';
+        $('#verifyGlyphs').value = '';
       }
+      $('#verifyGlyphs').dispatchEvent(new Event('input'));
+      updateSubmitState();
     } catch (error) {
-      const result = mode === 'image' ? $('#imageSelected') : $('#verificationResult');
+      const result = $('#evidenceResult');
       result.textContent = error.message;
       result.className = 'notice error';
       result.hidden = false;
     }
+  }
+
+  function selectedEvidence() {
+    return {
+      image: $('#includeImageEvidence').checked,
+      location: $('#includeLocationEvidence').checked,
+    };
+  }
+
+  function updateSubmitState() {
+    const selected = selectedEvidence();
+    $('#submitEvidence').disabled = state.submitting || !state.record || (!selected.image && !selected.location);
+  }
+
+  function toggleEvidencePanels() {
+    const selected = selectedEvidence();
+    $('#imageEvidenceFields').hidden = !selected.image;
+    $('#locationEvidenceFields').hidden = !selected.location;
+    $('#imageEvidenceGuide').hidden = !selected.image;
+    $('#locationEvidenceGuide').hidden = !selected.location;
+    $('#evidenceGuideEmpty').hidden = selected.image || selected.location;
+    updateSubmitState();
+  }
+
+  function setEvidenceIntent(image, locationEvidence) {
+    $('#includeImageEvidence').checked = image;
+    $('#includeLocationEvidence').checked = locationEvidence;
+    toggleEvidencePanels();
   }
 
   function previewImage() {
@@ -111,108 +135,117 @@
     if (!file.type.startsWith('image/')) { preview.innerHTML = '<span>Please choose a PNG, JPEG, or WebP image.</span>'; return; }
     const url = URL.createObjectURL(file);
     preview.innerHTML = `<img src="${url}" alt="Local screenshot preview">`;
-    const image = preview.querySelector('img');
-    image.addEventListener('load', () => URL.revokeObjectURL(url), {once:true});
+    preview.querySelector('img').addEventListener('load', () => URL.revokeObjectURL(url), {once:true});
   }
 
+  async function responseData(response) {
+    let data = {};
+    try { data = await response.json(); } catch {}
+    if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
+    return data;
+  }
 
-  async function submitImage(event) {
-    event.preventDefault();
-    const result = $('#imageResult');
-    result.hidden = false;
-    result.className = 'notice';
-    if (!state.imageRecord) { result.textContent = 'Select a Wonder record first.'; result.classList.add('error'); return; }
-    const contributor = $('#imageContributor').value.trim();
+  async function submitImage(contributor, publicAttribution) {
     const file = $('#imageFile').files[0];
-    if (!contributor) { result.textContent = 'Enter your contributor name.'; result.classList.add('error'); return; }
-    if (!file) { result.textContent = 'Choose a screenshot file.'; result.classList.add('error'); return; }
-    if (!$('#imagePermission').checked) { result.textContent = 'Confirm that Wonder Codex may display the image with attribution.'; result.classList.add('error'); return; }
-
     const form = new FormData();
-    form.append('discovery_id', state.imageRecord.id);
+    form.append('discovery_id', state.record.id);
     form.append('contributor', contributor);
     form.append('image_role', $('#imageRole').value);
     form.append('caption', $('#imageCaption').value.trim());
     form.append('permission_confirmed', 'true');
-    form.append('public_attribution', String(!$('#imagePrivateAttribution').checked));
-    form.append('website', $('#imageWebsite').value);
+    form.append('public_attribution', String(publicAttribution));
+    form.append('website', $('#evidenceWebsite').value);
     form.append('image', file, file.name);
-
-    const button = $('#submitImage');
-    button.disabled = true;
-    button.textContent = 'Uploading privately…';
-    result.textContent = 'Preparing the screenshot and placing it in the Admin Images queue…';
-    try {
-      const response = await fetch(`${API}/images`, {method:'POST', body:form});
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
-      result.className = 'notice success';
-      result.innerHTML = `<strong>Image received!</strong><br>${escapeHtml(data.wc_id)} is now in the Admin Images queue.<br>${data.public_attribution ? 'Public attribution selected.' : 'Your public attribution will be Anonymous Contributor.'}<br>Reference: <code>${escapeHtml(data.image_id)}</code>`;
-      button.textContent = 'Submitted ✓';
-    } catch (error) {
-      result.className = 'notice error';
-      result.textContent = `Image submission failed: ${error.message}`;
-      button.disabled = false;
-      button.textContent = 'Submit image for review';
-    }
+    return responseData(await fetch(`${API}/images`, {method:'POST', body:form}));
   }
 
-  async function submitVerification(event) {
-    event.preventDefault();
-    const result = $('#verificationResult');
-    result.hidden = false;
-    result.className = 'notice';
-    if (!state.verifyRecord) { result.textContent = 'Select a Wonder record first.'; result.classList.add('error'); return; }
-    const contributor = $('#verifyContributor').value.trim();
-    if (!contributor) { result.textContent = 'Enter your contributor name.'; result.classList.add('error'); return; }
-    const glyphs = WCGlyphs.normalize($('#verifyGlyphs').value);
-    if (glyphs && glyphs.length !== 12) { result.textContent = 'Enter all 12 portal glyph values or leave the glyph field blank.'; result.classList.add('error'); return; }
-
+  async function submitLocation(contributor, publicAttribution) {
     const payload = {
-      discovery_id: state.verifyRecord.id,
+      discovery_id: state.record.id,
       contributor,
       galaxy_number: $('#verifyGalaxyNumber').value ? Number($('#verifyGalaxyNumber').value) : null,
       galaxy_name: $('#verifyGalaxyName').value.trim(),
-      portal_glyphs: glyphs,
+      portal_glyphs: WCGlyphs.normalize($('#verifyGlyphs').value),
       reached_system: $('#verifyReached').checked,
       discovery_present: $('#verifyPresent').checked,
       projector_confirmed: $('#verifyProjector').checked,
       notes: $('#verifyNotes').value.trim(),
-      public_attribution: !$('#verifyPrivateAttribution').checked,
-      website: $('#verificationWebsite').value,
+      public_attribution: publicAttribution,
+      website: $('#evidenceWebsite').value,
     };
+    return responseData(await fetch(`${API}/verifications`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)}));
+  }
 
-    const button = $('#submitVerification');
-    button.disabled = true;
-    button.textContent = 'Submitting verification…';
-    result.textContent = 'Sending normalized verification evidence to the review queue…';
-    try {
-      const response = await fetch(`${API}/verifications`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
-      result.className = 'notice success';
-      result.innerHTML = `<strong>Verification received!</strong><br>${escapeHtml(data.wc_id)} is now in the Admin Verifications queue.<br>${data.public_attribution ? 'Public attribution selected.' : 'Your public attribution will be Anonymous Contributor.'}<br>Reference: <code>${escapeHtml(data.verification_id)}</code>`;
-      button.textContent = 'Submitted ✓';
-    } catch (error) {
-      result.className = 'notice error';
-      result.textContent = `Submission failed: ${error.message}`;
-      button.disabled = false;
-      button.textContent = 'Submit verification for review';
+  async function submitEvidence(event) {
+    event.preventDefault();
+    const result = $('#evidenceResult');
+    result.hidden = false;
+    result.className = 'notice';
+    const selected = selectedEvidence();
+    if (!state.record) { result.textContent = 'Select a Wonder record first.'; result.classList.add('error'); return; }
+    if (!selected.image && !selected.location) { result.textContent = 'Choose image evidence, location verification, or both.'; result.classList.add('error'); return; }
+    const contributor = $('#evidenceContributor').value.trim();
+    if (!contributor) { result.textContent = 'Enter your contributor name.'; result.classList.add('error'); return; }
+    if (selected.image && !$('#imageFile').files[0]) { result.textContent = 'Choose a screenshot file for the image evidence.'; result.classList.add('error'); return; }
+    if (selected.image && !$('#imagePermission').checked) { result.textContent = 'Confirm that Wonder Codex may display the submitted image after approval.'; result.classList.add('error'); return; }
+    const glyphs = WCGlyphs.normalize($('#verifyGlyphs').value);
+    if (selected.location && glyphs && glyphs.length !== 12) { result.textContent = 'Enter all 12 portal glyph values or leave the glyph field blank.'; result.classList.add('error'); return; }
+
+    const publicAttribution = !$('#evidencePrivateAttribution').checked;
+    const button = $('#submitEvidence');
+    state.submitting = true;
+    updateSubmitState();
+    button.textContent = selected.image && selected.location ? 'Submitting image and location…' : 'Submitting evidence…';
+    result.textContent = 'Sending your evidence to the private review queues…';
+
+    const outcomes = [];
+    if (selected.image) {
+      try {
+        const data = await submitImage(contributor, publicAttribution);
+        outcomes.push({kind:'Image', ok:true, reference:data.image_id});
+        $('#includeImageEvidence').checked = false;
+        $('#includeImageEvidence').disabled = true;
+      } catch (error) { outcomes.push({kind:'Image', ok:false, error:error.message}); }
     }
+    if (selected.location) {
+      try {
+        const data = await submitLocation(contributor, publicAttribution);
+        outcomes.push({kind:'Location verification', ok:true, reference:data.verification_id});
+        $('#includeLocationEvidence').checked = false;
+        $('#includeLocationEvidence').disabled = true;
+      } catch (error) { outcomes.push({kind:'Location verification', ok:false, error:error.message}); }
+    }
+
+    state.submitting = false;
+    toggleEvidencePanels();
+    const successes = outcomes.filter((item) => item.ok);
+    const failures = outcomes.filter((item) => !item.ok);
+    const lines = outcomes.map((item) => item.ok
+      ? `<li><strong>${escapeHtml(item.kind)} received</strong> — reference <code>${escapeHtml(item.reference)}</code></li>`
+      : `<li><strong>${escapeHtml(item.kind)} failed</strong> — ${escapeHtml(item.error)}</li>`).join('');
+    result.className = `notice ${failures.length ? (successes.length ? '' : 'error') : 'success'}`.trim();
+    result.innerHTML = `<strong>${failures.length ? (successes.length ? 'Part of your evidence was received.' : 'Evidence submission failed.') : 'Evidence received!'}</strong><ul>${lines}</ul>${publicAttribution ? 'Public attribution selected.' : 'Your public attribution will be Anonymous Contributor.'}${successes.length && failures.length ? '<br>The completed item is locked to prevent a duplicate; retry only the remaining evidence.' : ''}`;
+    button.textContent = failures.length ? 'Retry remaining evidence' : 'Submitted ✓';
+    updateSubmitState();
   }
 
   $$('.contribution-tab').forEach((tab) => tab.addEventListener('click', () => setMode(tab.dataset.mode)));
-  makeRecordSearch('#imageRecordSearch','#imageRecordResults','image');
-  makeRecordSearch('#verifyRecordSearch','#verifyRecordResults','verify');
+  makeRecordSearch();
+  $('#includeImageEvidence').addEventListener('change', toggleEvidencePanels);
+  $('#includeLocationEvidence').addEventListener('change', toggleEvidencePanels);
   $('#imageFile').addEventListener('change', previewImage);
-  $('#imageForm').addEventListener('submit', submitImage);
-  $('#verificationForm').addEventListener('submit', submitVerification);
+  $('#evidenceForm').addEventListener('submit', submitEvidence);
   WCGlyphs.bindKeypad('#verifyGlyphs','#verifyGlyphKeypad','#verifyGlyphPreview','#verifyGlyphStatus');
   $('#verifyGlyphLegend').innerHTML = WCGlyphs.values.map((glyph) => WCGlyphs.glyphHtml(glyph)).join('');
 
   const params = new URLSearchParams(location.search);
-  setMode(params.get('mode') || 'save');
+  const requestedMode = params.get('mode') || 'save';
+  const requestedEvidence = params.get('evidence') || '';
+  setMode(requestedMode);
+  setEvidenceIntent(
+    requestedMode === 'image' || requestedEvidence === 'image' || requestedEvidence === 'both',
+    requestedMode === 'verify' || requestedEvidence === 'location' || requestedEvidence === 'both',
+  );
   const recordId = params.get('record');
-  const mode = params.get('mode');
-  if (recordId && /^\d+$/.test(recordId) && (mode === 'image' || mode === 'verify')) selectRecord(mode, Number(recordId));
+  if (recordId && /^\d+$/.test(recordId) && ['evidence','image','verify'].includes(requestedMode)) selectRecord(Number(recordId));
 })();

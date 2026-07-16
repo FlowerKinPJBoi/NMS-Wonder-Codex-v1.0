@@ -1,5 +1,15 @@
 # Wonder Codex changelog
 
+## v1.12.0 — Simplified public records and evidence contributions
+
+- Removed raw Universal Address and VP hex fields from public discovery record
+  pages while retaining them in the API, database, importer, and admin tools.
+- Renamed the public Message ID presentation to Wonder Projector Message ID.
+- Combined image submissions and location verifications into one evidence flow
+  where contributors can select either evidence type or both.
+- Preserved separate moderated image and verification queues behind the unified
+  public form.
+
 ## v1.11.3 — Map display and catalog visibility hotfix
 
 - Fixed the completed map-loading layer remaining visible over a successfully
