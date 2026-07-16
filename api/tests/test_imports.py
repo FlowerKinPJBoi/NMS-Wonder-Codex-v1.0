@@ -75,6 +75,11 @@ def test_named_admin_keys_parse_from_environment_json():
     assert settings.admin_api_keys == {"PJ": "pj-key", "Boots": "boots-key"}
 
 
+def test_named_tester_keys_parse_from_environment_json():
+    settings = Settings(tester_api_keys='{"Menomoo":"meno-key","FloppyDonkey":"floppy-key"}')
+    assert settings.tester_api_keys == {"Menomoo": "meno-key", "FloppyDonkey": "floppy-key"}
+
+
 def test_named_admin_keys_accept_individual_environment_values(monkeypatch):
     monkeypatch.setenv("ADMIN_API_KEY_PJ", "pj-key")
     monkeypatch.setenv("ADMIN_API_KEY_BOOTS", "boots-key")

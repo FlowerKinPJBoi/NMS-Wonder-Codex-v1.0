@@ -1,5 +1,18 @@
 # Wonder Codex changelog
 
+## v1.11.0 — Galactic community foundation
+
+- Added a public contributor leaderboard with original C, B, A, and S galactic
+  rank badges.
+- Added weekly contribution missions based only on published or approved public
+  evidence.
+- Added original Pegasus-constellation ambience without replacing the existing
+  Wonder Codex visual system.
+- Added scoped tester credentials for private-app downloads and Pegasus Transit
+  without review-console or build-upload authority.
+- Kept PJ and Boots as full administrators and kept all secret values in
+  encrypted deployment configuration.
+
 ## v1.10.0 — Galactic Cluster Map beta
 
 - Added the interactive Galactic Cluster Map at `map.html`.

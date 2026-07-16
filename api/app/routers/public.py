@@ -16,8 +16,17 @@ from ..services.archetypes import (
     family_vp1s,
 )
 from ..services.catalog import public_contributor, serialize_discovery
+from ..services.contributors import build_contributor_leaderboard
 
 router = APIRouter(tags=["public"])
+
+
+@router.get("/contributors")
+def contributors(
+    limit: int = Query(default=100, ge=1, le=250),
+    session: Session = Depends(get_session),
+):
+    return build_contributor_leaderboard(session, limit=limit)
 
 
 def image_delivery_url(image: ImageContribution | None) -> str:
