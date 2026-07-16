@@ -13,7 +13,7 @@ from ..services.archetypes import (
     discovery_match_key,
 )
 from ..services.assets import asset_wc_id
-from ..services.catalog import display_name, wc_id
+from ..services.catalog import PUBLIC_HIDDEN_DISCOVERY_TYPES, display_name, wc_id
 from ..services.locations import GALAXY_NAMES, decode_portal_coordinates, effective_location
 
 
@@ -71,7 +71,9 @@ def list_map_points(
         ).all()
         exact_index = build_exact_match_index(matches)
         family_index = build_vp1_family_index(matches)
-        query = select(Discovery).options(load_only(
+        query = select(Discovery).where(
+            Discovery.discovery_type.notin_(PUBLIC_HIDDEN_DISCOVERY_TYPES)
+        ).options(load_only(
             Discovery.id,
             Discovery.discovery_type,
             Discovery.ua,
