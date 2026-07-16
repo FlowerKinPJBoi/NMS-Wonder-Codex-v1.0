@@ -13,6 +13,7 @@ def configure_keys(monkeypatch):
     monkeypatch.setenv("TESTER_API_KEY_FLOPPYDONKEY", "floppy-secret")
     monkeypatch.setenv("TESTER_API_KEY_DARKBELLATOR", "dark-secret")
     monkeypatch.setenv("TESTER_API_KEY_OLGRAVYLEG", "gravy-secret")
+    monkeypatch.setenv("TESTER_API_KEY_MONKETSU", "monk-secret")
     get_settings.cache_clear()
 
 
@@ -29,6 +30,19 @@ def test_tester_key_cannot_enter_admin_review_console(monkeypatch):
     configure_keys(monkeypatch)
     with pytest.raises(HTTPException) as error:
         require_admin_key("meno-secret", "Menomoo")
+    assert error.value.status_code == 401
+    get_settings.cache_clear()
+
+
+def test_monketsu_receives_restricted_app_and_transit_access(monkeypatch):
+    configure_keys(monkeypatch)
+    session = require_operator_key("monk-secret", "Monketsu")
+    assert session.actor == "Monketsu"
+    assert session.scopes == frozenset({"apps:download", "transit"})
+    assert session.can_upload_private_apps is False
+
+    with pytest.raises(HTTPException) as error:
+        require_admin_key("monk-secret", "Monketsu")
     assert error.value.status_code == 401
     get_settings.cache_clear()
 

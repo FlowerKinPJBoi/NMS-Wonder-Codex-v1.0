@@ -1,5 +1,12 @@
 # Wonder Codex changelog
 
+## v1.13.1 — Monketsu restricted app access
+
+- Added Monketsu as a named restricted tester for the private application vault
+  and Pegasus Transit.
+- Preserved administrator-only catalog review, release upload, and PJ-only
+  analytics restrictions.
+
 ## v1.13.0 — Private owner analytics
 
 - Added privacy-safe, first-party page and feature analytics without third-party
