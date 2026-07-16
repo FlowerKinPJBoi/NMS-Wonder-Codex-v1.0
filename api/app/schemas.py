@@ -166,3 +166,28 @@ class AssetCatalogUpdate(BaseModel):
     @classmethod
     def clean_asset_text(cls, value: str | None) -> str | None:
         return " ".join(value.strip().split()) if value is not None else value
+
+
+class AnalyticsEventPayload(BaseModel):
+    """A deliberately small, allowlisted public analytics envelope."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    session_id: str = Field(min_length=16, max_length=100, pattern=r"^[A-Za-z0-9._:-]+$")
+    event_type: Literal[
+        "page_view",
+        "catalog_filter",
+        "map_filter",
+        "record_view",
+        "asset_view",
+        "contribution_started",
+        "contribution_completed",
+        "import_analyzed",
+        "import_submitted",
+        "download",
+        "transit_ticket_download",
+    ]
+    path: str = Field(default="/", max_length=500)
+    title: str = Field(default="", max_length=200)
+    referrer: str = Field(default="", max_length=1000)
+    properties: dict[str, Any] = Field(default_factory=dict, max_length=30)

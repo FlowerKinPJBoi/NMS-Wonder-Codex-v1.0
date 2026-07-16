@@ -118,6 +118,20 @@
       $('#mapCount').textContent = `${number(state.points.length)} ${noun} in Galaxy ${data.galaxy_number} — ${data.galaxy_name}${data.truncated ? ` · showing first ${number(data.returned)}` : ''}`;
       $('#mapEmpty').hidden = state.points.length > 0;
       draw();
+      if (window.WonderAnalytics) {
+        const q = $('#mapSearch').value.trim();
+        WonderAnalytics.track('map_filter', {
+          map_galaxy: $('#galaxyFilter').value,
+          map_lane: $('#laneFilter').value,
+          map_quality: $('#qualityFilter').value,
+          discovery_type: $('#typeFilter').value,
+          fauna_family: $('#familyFilter').value,
+          query_kind: WonderAnalytics.queryKind(q),
+          query_length: q.length,
+          has_query: Boolean(q),
+          result_count: state.points.length,
+        });
+      }
     } catch (error) {
       if (error.name === 'AbortError') return;
       if (request !== state.request) return;

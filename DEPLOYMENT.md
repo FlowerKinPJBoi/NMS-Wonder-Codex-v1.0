@@ -23,6 +23,8 @@ variables. Never commit real values. The service currently recognizes:
 - `RUN_MIGRATIONS_ON_START`
 - `IP_HASH_SALT`
 - `MAX_REQUESTS_PER_HOUR`
+- `ANALYTICS_ENABLED`, `ANALYTICS_OWNER_ACTOR`,
+  `ANALYTICS_RETENTION_DAYS`, and `ANALYTICS_MAX_EVENTS_PER_MINUTE`
 - `ADMIN_API_KEY_PJ` and `ADMIN_API_KEY_BOOTS`
 - `ADMIN_API_KEYS` as an optional JSON-object alternative
 - `TESTER_API_KEY_MENOMOO`, `TESTER_API_KEY_FLOPPYDONKEY`,
@@ -57,6 +59,12 @@ After both components are healthy:
    console or replacement-build controls, and can authorize Pegasus Transit.
 7. Confirm `/admin/apps/` reports private storage online before uploading a
    reviewed inner application ZIP.
+8. Browse two or three public pages, then confirm PJ can open
+   `https://wondercodex.com/admin/analytics/` with the existing named PJ admin
+   credential. Confirm a Boots or tester credential is refused there.
 
-The v1.11.1 deployment uses four individual tester-key variables and requires no
-database migration. An obsolete `TESTER_API_KEYS` value is ignored.
+The v1.13.0 deployment adds analytics database migration `0006`. With
+`RUN_MIGRATIONS_ON_START=true`, the API applies it automatically. No new
+environment variable is required: analytics defaults to enabled, owner `PJ`,
+90-day anonymous journey retention, and 120 events per minute per volatile
+rate-limit key. Detailed activity expires; daily aggregate totals remain.

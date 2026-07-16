@@ -17,6 +17,10 @@
     if (item.has_location) $('#assetLocation').innerHTML = `<p class="kicker">VERIFIED ACQUISITION SIGHTING</p><h2>Galaxy ${escapeHtml(item.galaxy_number)}${item.galaxy_name ? ` — ${escapeHtml(item.galaxy_name)}` : ''}</h2><div class="portal-glyph-row compact">${WCGlyphs.codeHtml(item.portal_glyphs,{compact:true})}</div><p class="glyph-code">${escapeHtml(item.portal_glyphs)}</p>`;
     else $('#assetLocation').innerHTML = `<p class="kicker">ACQUISITION EVIDENCE</p><h2>Location not established</h2><p>This specimen was normalized from owned-save data. A repeatable public acquisition route has not yet been verified.</p>`;
     $('#assetLayout').hidden = false;
+    window.WonderAnalytics?.track('asset_view', {
+      entity_type: item.asset_type || 'asset', entity_id: item.wc_id,
+      catalog_lane: item.asset_type || '', location_status: item.location_status || '', image_status: item.image_status || '',
+    });
   }
 
   if (!Number.isInteger(id) || id < 1) { $('#assetError').textContent = 'This asset record link is invalid.'; $('#assetError').hidden = false; return; }

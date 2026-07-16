@@ -192,6 +192,11 @@
     if (selected.location && glyphs && glyphs.length !== 12) { result.textContent = 'Enter all 12 portal glyph values or leave the glyph field blank.'; result.classList.add('error'); return; }
 
     const publicAttribution = !$('#evidencePrivateAttribution').checked;
+    const evidenceType = selected.image && selected.location ? 'both' : selected.image ? 'image' : 'location';
+    window.WonderAnalytics?.track('contribution_started', {
+      entity_type:'discovery', entity_id:state.record.wc_id, evidence_type:evidenceType,
+      public_attribution:publicAttribution,
+    });
     const button = $('#submitEvidence');
     state.submitting = true;
     updateSubmitState();
@@ -227,6 +232,10 @@
     result.innerHTML = `<strong>${failures.length ? (successes.length ? 'Part of your evidence was received.' : 'Evidence submission failed.') : 'Evidence received!'}</strong><ul>${lines}</ul>${publicAttribution ? 'Public attribution selected.' : 'Your public attribution will be Anonymous Contributor.'}${successes.length && failures.length ? '<br>The completed item is locked to prevent a duplicate; retry only the remaining evidence.' : ''}`;
     button.textContent = failures.length ? 'Retry remaining evidence' : 'Submitted ✓';
     updateSubmitState();
+    if (successes.length) window.WonderAnalytics?.track('contribution_completed', {
+      entity_type:'discovery', entity_id:state.record.wc_id, evidence_type:evidenceType,
+      public_attribution:publicAttribution,
+    });
   }
 
   $$('.contribution-tab').forEach((tab) => tab.addEventListener('click', () => setMode(tab.dataset.mode)));
