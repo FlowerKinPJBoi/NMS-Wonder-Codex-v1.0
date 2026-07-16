@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Wonder Codex API"
-    app_version: str = "1.13.0"
+    app_version: str = "1.13.1"
     environment: str = "production"
     database_url: str = ""
     allowed_origins: List[str] = Field(
@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     tester_api_key_floppydonkey: str = ""
     tester_api_key_darkbellator: str = ""
     tester_api_key_olgravyleg: str = ""
+    tester_api_key_monketsu: str = ""
     ip_hash_salt: str = "change-me"
     max_requests_per_hour: int = 5
     analytics_enabled: bool = True
@@ -123,6 +124,7 @@ class Settings(BaseSettings):
             "FloppyDonkey": self.tester_api_key_floppydonkey,
             "DarkBellator": self.tester_api_key_darkbellator,
             "OlGravyLeg": self.tester_api_key_olgravyleg,
+            "Monketsu": self.tester_api_key_monketsu,
         }
 
     @property
