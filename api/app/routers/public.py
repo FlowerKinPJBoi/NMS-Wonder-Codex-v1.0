@@ -15,7 +15,11 @@ from ..services.archetypes import (
     discovery_match_key,
     family_vp1s,
 )
-from ..services.catalog import public_contributor, serialize_discovery
+from ..services.catalog import (
+    PUBLIC_HIDDEN_DISCOVERY_TYPES,
+    public_contributor,
+    serialize_discovery,
+)
 from ..services.contributors import build_contributor_leaderboard
 
 router = APIRouter(tags=["public"])
@@ -42,8 +46,10 @@ def pet_identity_context(
 
 @router.get("/stats")
 def public_stats(session: Session = Depends(get_session)):
+    listed = Discovery.discovery_type.notin_(PUBLIC_HIDDEN_DISCOVERY_TYPES)
     type_rows = session.execute(
         select(Discovery.discovery_type, func.count(Discovery.id))
+        .where(listed)
         .group_by(Discovery.discovery_type)
     ).all()
     type_counts = {str(name): int(count) for name, count in type_rows}
@@ -53,7 +59,9 @@ def public_stats(session: Session = Depends(get_session)):
     )
 
     return {
-        "published_discoveries": session.scalar(select(func.count()).select_from(Discovery)) or 0,
+        "published_discoveries": session.scalar(
+            select(func.count()).select_from(Discovery).where(listed)
+        ) or 0,
         "published_pet_matches": session.scalar(select(func.count()).select_from(PetDiscoveryMatch)) or 0,
         "pending_submissions": session.scalar(
             select(func.count()).select_from(SubmissionBatch).where(SubmissionBatch.status == "pending")
@@ -65,10 +73,16 @@ def public_stats(session: Session = Depends(get_session)):
             select(func.count()).select_from(LocationVerification).where(LocationVerification.status == "pending")
         ) or 0,
         "verified_locations": session.scalar(
-            select(func.count()).select_from(Discovery).where(Discovery.location_status == "verified")
+            select(func.count()).select_from(Discovery).where(
+                listed,
+                Discovery.location_status == "verified",
+            )
         ) or 0,
         "images_needed": session.scalar(
-            select(func.count()).select_from(Discovery).where(Discovery.image_status == "needed")
+            select(func.count()).select_from(Discovery).where(
+                listed,
+                Discovery.image_status == "needed",
+            )
         ) or 0,
         "contributors": (session.scalar(
             select(func.count(distinct(Discovery.contributor))).select_from(Discovery).where(Discovery.public_attribution.is_(True))
@@ -129,7 +143,7 @@ def list_discoveries(
     session: Session = Depends(get_session),
 ):
     exact_matches, vp1_index = pet_identity_context(session)
-    conditions = []
+    conditions = [Discovery.discovery_type.notin_(PUBLIC_HIDDEN_DISCOVERY_TYPES)]
     if discovery_type:
         conditions.append(Discovery.discovery_type == discovery_type)
     if location_status:
