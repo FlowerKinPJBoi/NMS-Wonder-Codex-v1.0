@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Generated output and private application packages
+dist/
+build/
+artifacts/
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.exe
+*.dll
+*.pdb
+
+# No Man's Sky private/raw data
+*.hg
+containers.index
+Slot*.json
+slot*.json
+save*.json
+wgs/
+WGS/
+private-fixtures/
+
+# Editors and operating systems
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

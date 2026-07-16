@@ -1,17 +1,33 @@
-# Wonder Codex v1.9.0
+# Wonder Codex v1.10.0
 
-Full website and API deployment source for the first procedural asset-catalog release.
+Production source for the public Wonder Codex website and API at
+`wondercodex.com`.
 
-This version adds:
+## Repository contents
 
-- separate public catalog lanes for Wonders, starships, freighters, frigates, and multi-tools;
-- original Wonder Codex illustrative placeholders for every new asset type;
-- permanent `WC-SH`, `WC-FR`, `WC-FG`, and `WC-MT` specimen IDs;
-- a strict distinction between an owned procedural specimen and a verified acquisition sighting;
-- an admin-only Pegasus manifest importer and asset review/publish queue;
-- provenance fields for owned slots, fleet members, squadron members, archived records, and the current freighter;
-- explicit privacy rejection when a manifest claims to include a raw save, local path, account identifier, or inventory coordinates.
+- Root HTML, CSS, and JavaScript: the deployable static site.
+- `assets/`: Wonder Codex glyph and archetype artwork.
+- `api/`: FastAPI service, migrations, and API tests.
+- `admin/`: browser-based private review and app-vault interfaces.
+- `research/`: curated public research fixtures used by the site.
 
-Database migration `0005_asset_catalog` is required. With `RUN_MIGRATIONS_ON_START=true`, the API applies it during deployment.
+The current release includes the Wonder and procedural-asset catalogs,
+contribution and verification workflows, private review tools, original
+placeholder artwork, and the Galactic Cluster Map beta.
 
-See `CHANGELOG_v1.9.0.md` and `DEPLOY_WONDER_CODEX_v1.9.0.md`.
+## Repository boundary
+
+This public repository does **not** contain the Wonder Codex Importer, Pegasus
+Transit Admin, Capture Companion, compiled private applications, raw No Man's
+Sky saves, decoded private JSON, or production credentials. Those application
+sources live in the private `Wonder-Codex-Importer` repository.
+
+## Deployment
+
+DigitalOcean deploys two components from this repository:
+
+1. a Static Site from the repository root;
+2. an API Web Service from `/api`, routed at `/api`.
+
+See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the current deployment checklist and
+[`CHANGELOG.md`](CHANGELOG.md) for release notes.
