@@ -18,7 +18,7 @@
     item = WCLocation.enrich(item);
     if (item.has_travel_address) {
       const galaxy = `${item.galaxy_number}${item.galaxy_name ? ` — ${escapeHtml(item.galaxy_name)}` : ''}`;
-      const source = item.has_location ? 'Community verified' : item.travel_status === 'derived' ? 'UA-derived route' : 'Catalog route';
+      const source = item.has_location ? 'Community verified' : item.travel_status === 'derived' ? 'Automatically derived route' : 'Catalog route';
       return `<div class="location-mini ${escapeHtml(item.travel_status)}"><strong>Galaxy ${galaxy}</strong><div class="portal-glyph-row compact">${WCGlyphs.codeHtml(item.portal_glyphs,{compact:true})}</div><p>${escapeHtml(source)}</p></div>`;
     }
     const label = item.location_status === 'pending' ? 'Location awaiting review' : item.location_status === 'disputed' ? 'Location disputed' : 'Location verification needed';
@@ -39,7 +39,7 @@
     const exact = item.fauna_identity_source === 'exact_pet_match';
     const behavior = exact && item.fauna_behavior ? `Behavior: ${escapeHtml(item.fauna_behavior)}` : 'Behavior not inferred';
     const evidenceCount = Number(item.fauna_family_evidence_count || 0);
-    const evidence = exact ? 'Exact PetData match' : `${escapeHtml(item.fauna_identity_label || 'Confirmed VP1 family mapping')}${evidenceCount ? ` · ${number(evidenceCount)} supporting exact match${evidenceCount === 1 ? '' : 'es'}` : ''}`;
+    const evidence = exact ? 'Exact companion match' : `Confirmed family mapping${evidenceCount ? ` · ${number(evidenceCount)} supporting exact match${evidenceCount === 1 ? '' : 'es'}` : ''}`;
     return `<div class="fauna-identity card-identity ${exact ? 'exact' : 'inferred'}"><div class="fauna-identity-heading"><span class="fauna-family-badge">${escapeHtml(item.fauna_family_label)} family</span><span class="fauna-behavior">${behavior}</span></div><small>${evidence}</small></div>`;
   }
 
@@ -129,8 +129,8 @@
   function updateLaneUi() {
     $$('.catalog-lane').forEach((button) => { const active = button.dataset.catalogLane === state.lane; button.classList.toggle('active', active); button.setAttribute('aria-selected', active ? 'true' : 'false'); });
     const assets = isAssetLane(); $('#typeFilterField').hidden = assets; $('#familyFilterField').hidden = assets;
-    $('#catalogSearch').placeholder = assets ? `WC ID, name, class, contributor…` : 'WC ID, fauna family, contributor, UA, galaxy…';
-    $('#catalogContext').textContent = assets ? 'A procedural specimen and its acquisition location are reviewed as separate evidence.' : 'UA-derived routes are labeled separately from community-verified locations.';
+    $('#catalogSearch').placeholder = assets ? `WC ID, name, class, contributor…` : 'WC ID, fauna family, contributor, galaxy…';
+    $('#catalogContext').textContent = assets ? 'A procedural specimen and its acquisition location are reviewed as separate evidence.' : 'Automatically derived routes are labeled separately from community-verified locations.';
   }
 
   async function load(reset = true) {
