@@ -15,6 +15,7 @@ from app.services.admin_apps import (
     safe_filename,
     validate_version,
 )
+from app.services.security import OperatorSession
 
 
 def build_zip(filename: str, body: bytes = b"test executable") -> io.BytesIO:
@@ -79,9 +80,22 @@ def test_storage_status_failure_does_not_lock_operator_out(monkeypatch):
         raise HTTPException(status_code=502, detail="Could not inspect private application storage.")
 
     monkeypatch.setattr(admin_apps_router, "release_status", fail_status)
-    response = admin_apps_router.list_private_apps(actor="PJ")
+    response = admin_apps_router.list_private_apps(
+        operator=OperatorSession("PJ", frozenset({"admin", "apps:download", "apps:upload", "transit"}))
+    )
 
     assert response["operator"] == "PJ"
+    assert response["permissions"] == {"download": True, "upload": True, "transit": True}
     assert len(response["items"]) == 2
     assert all(item["release"] is None for item in response["items"])
     assert response["storage_warning"] == "Could not inspect private application storage."
+
+
+def test_restricted_tester_can_open_vault_without_upload_authority(monkeypatch):
+    monkeypatch.setattr(admin_apps_router, "release_status", lambda _application: None)
+    response = admin_apps_router.list_private_apps(
+        operator=OperatorSession("Menomoo", frozenset({"apps:download", "transit"}))
+    )
+
+    assert response["operator"] == "Menomoo"
+    assert response["permissions"] == {"download": True, "upload": False, "transit": True}
