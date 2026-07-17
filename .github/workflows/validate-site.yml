@@ -37,3 +37,6 @@ jobs:
           while IFS= read -r -d '' file; do
             node --check "$file"
           done < <(find . -path './.git' -prune -o -name '*.js' -type f -print0)
+
+      - name: Test Wonder Projector decoder vectors
+        run: node tests/projector_decoder.test.js
