@@ -1,5 +1,14 @@
 # Wonder Codex changelog
 
+## v1.13.3 — Capture Companion private vault release
+
+- Added Wonder Codex Capture Companion as a third private application with an
+  isolated storage object and strict inner-ZIP executable validation.
+- Added the v0.1.1-alpha testing brief, screenshots, privacy stop rules, and
+  downloadable test report to the private app vault.
+- Updated the suggested Importer and Pegasus Transit release versions to
+  v0.2.2-beta and v0.3.1-alpha.
+
 ## v1.13.2 — ReadyFireAim restricted app access
 
 - Added ReadyFireAim as a named restricted tester for the private application
