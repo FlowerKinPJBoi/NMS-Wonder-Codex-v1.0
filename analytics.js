@@ -12,6 +12,7 @@
     'fauna_family', 'location_status', 'image_status', 'query_kind',
     'query_length', 'result_count', 'has_query', 'map_galaxy', 'map_lane',
     'map_quality', 'evidence_type', 'download_type', 'public_attribution',
+    'decoder_result',
   ]);
 
   function newSessionId() {

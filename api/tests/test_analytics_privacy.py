@@ -30,6 +30,7 @@ def test_properties_are_allowlisted_and_bounded():
         "query_length": 18,
         "result_count": 5000000,
         "public_attribution": False,
+        "decoder_result": "success",
         "raw_search_text": "should not be stored",
         "password": "never",
     })
@@ -39,6 +40,7 @@ def test_properties_are_allowlisted_and_bounded():
         "query_length": 18,
         "result_count": 1_000_000,
         "public_attribution": False,
+        "decoder_result": "success",
     }
 
 

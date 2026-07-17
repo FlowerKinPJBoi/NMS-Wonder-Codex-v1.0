@@ -28,6 +28,7 @@ TEXT_PROPERTIES: dict[str, int] = {
     "map_quality": 30,
     "evidence_type": 30,
     "download_type": 40,
+    "decoder_result": 20,
 }
 INTEGER_PROPERTIES = {"query_length", "result_count"}
 BOOLEAN_PROPERTIES = {"has_query", "public_attribution"}

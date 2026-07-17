@@ -186,6 +186,7 @@ class AnalyticsEventPayload(BaseModel):
         "import_submitted",
         "download",
         "transit_ticket_download",
+        "projector_decode",
     ]
     path: str = Field(default="/", max_length=500)
     title: str = Field(default="", max_length=200)

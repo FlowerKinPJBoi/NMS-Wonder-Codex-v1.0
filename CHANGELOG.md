@@ -1,5 +1,18 @@
 # Wonder Codex changelog
 
+## v1.14.0 — Wonder Projector Decoder
+
+- Added a public, browser-only Wonder Projector Decoder for supported fauna,
+  flora, and mineral Message IDs.
+- Decodes the embedded Universal Address into galaxy number, galaxy name, and
+  the twelve-glyph portal route without uploading or retaining the Message ID.
+- Added a real Blob Message ID as the input example and a one-click example
+  loader.
+- Added copyable glyph output and an operator-only Pegasus Transit ticket while
+  keeping all save-writing capability restricted to the private app.
+- Added decoder navigation, privacy-safe success/error analytics, and regression
+  vectors for the known Blob route.
+
 ## v1.13.3 — Capture Companion private vault release
 
 - Added Wonder Codex Capture Companion as a third private application with an
