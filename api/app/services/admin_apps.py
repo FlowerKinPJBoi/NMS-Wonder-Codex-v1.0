@@ -42,8 +42,22 @@ APPLICATIONS = (
         summary="Read-only local save analysis and privacy-safe WCCP contribution export.",
         safety_note="Public-test app: reads supported local save copies without modifying them.",
         expected_executable="WonderCodexImporter.exe",
-        suggested_version="0.2.1-beta",
+        suggested_version="0.2.2-beta",
         object_key="admin-apps/importer-beta/current.zip",
+    ),
+    AdminApplication(
+        slug="capture-companion",
+        title="Wonder Codex Capture Companion",
+        channel="Private capture alpha",
+        platform="Windows x64",
+        summary="Read-only local discovery and screenshot pairing for trusted PC testers.",
+        safety_note=(
+            "Private alpha: watches only the selected screenshot folder, never modifies saves, "
+            "and never uploads automatically."
+        ),
+        expected_executable="WonderCodexCaptureCompanion.exe",
+        suggested_version="0.1.1-alpha",
+        object_key="admin-apps/capture-companion/current.zip",
     ),
     AdminApplication(
         slug="pegasus-transit",
@@ -53,7 +67,7 @@ APPLICATIONS = (
         summary="Private PJ/Boots transit console for verified Wonder Codex routes.",
         safety_note="Admin-only save writer: always creates a recovery backup before a transit write.",
         expected_executable="WonderCodexPegasusTransitAdmin.exe",
-        suggested_version="0.3.0-alpha",
+        suggested_version="0.3.1-alpha",
         object_key="admin-apps/pegasus-transit/current.zip",
     ),
 )
