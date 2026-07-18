@@ -1,5 +1,12 @@
 # Wonder Codex changelog
 
+## v1.14.1 — Visceral restricted app access
+
+- Added Visceral as a named restricted tester for the private application vault
+  and Pegasus Transit.
+- Preserved administrator-only catalog review, release upload, and PJ-only
+  analytics restrictions.
+
 ## v1.14.0 — Wonder Projector Decoder
 
 - Added a public, browser-only Wonder Projector Decoder for supported fauna,
