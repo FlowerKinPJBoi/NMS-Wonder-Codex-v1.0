@@ -193,6 +193,38 @@ def test_confirmed_pet_match_selects_supported_fauna_archetype():
     assert metadata["fauna_identity_source"] == "exact_pet_match"
 
 
+def test_all_projector_capture_families_select_their_supported_archetypes():
+    expected = {
+        "ANTELOPE": "fauna.antelope",
+        "BLOB": "fauna.blob",
+        "BONECOW": "fauna.bonecow",
+        "CAT": "fauna.cat",
+        "COW": "fauna.cow",
+        "FLOATSPIDER": "fauna.floatspider",
+        "FLYINGBEETLE": "fauna.flyingbeetle",
+        "GRUNT": "fauna.grunt",
+        "HERMITCRAB": "fauna.hermitcrab",
+        "LARGEBUTTERFLY": "fauna.largebutterfly",
+        "PROTOFLYER": "fauna.protoflyer",
+        "ROBOTANTELOPE": "fauna.robotantelope",
+        "SIXLEGCOW": "fauna.sixlegcow",
+        "SPIDER": "fauna.spider",
+        "STRIDER": "fauna.strider",
+        "TREX": "fauna.trex",
+        "TRICERATOPS": "fauna.triceratops",
+        "TWOLEGANTELOPE": "fauna.twolegantelope",
+        "WALKINGBUILDING": "fauna.walkingbuilding",
+        "WEIRDFLOAT": "fauna.weirdfloat",
+    }
+    row = sample_discovery()
+
+    for creature_id, archetype_key in expected.items():
+        metadata = archetype_metadata(row, sample_pet_match(row, creature_id))
+        assert metadata["archetype_key"] == archetype_key
+        assert metadata["fauna_family_id"] == creature_id
+        assert metadata["archetype_source"] == "confirmed_pet_match"
+
+
 def test_unambiguous_vp1_mapping_labels_related_discoveries_without_copying_behavior():
     row = sample_discovery()
     match = sample_pet_match(row, "TREX", "Predator")
