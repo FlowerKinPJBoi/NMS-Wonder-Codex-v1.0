@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#080b16">
+  <title>Owner Feedback | Wonder Codex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css?v=1.11.0">
+  <link rel="stylesheet" href="/admin.css?v=1.9.1">
+  <link rel="stylesheet" href="/admin/feedback/feedback-admin.css?v=1.15.0">
+</head>
+<body class="admin-body">
+  <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
+  <header class="site-header admin-header">
+    <a class="brand" href="/index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Owner Feedback</small></span></a>
+    <div class="admin-head-actions"><span id="connectionBadge" class="connection-badge">Locked</span><button id="lockButton" class="small-button" type="button" hidden>Lock feedback</button><a class="small-button" href="/admin/analytics/">Analytics</a><a class="small-button" href="/admin.html">Review console</a><a class="small-button" href="/index.html">Public site</a></div>
+  </header>
+
+  <main class="admin-shell feedback-admin-shell">
+    <section id="loginPanel" class="login-panel">
+      <div class="login-card"><span class="login-glyph">✦</span><p class="kicker">OWNER-ONLY RESEARCH CONSOLE</p><h1>Hear directly from explorers.</h1><p>This console accepts PJ’s named admin credential only. Questionnaire answers and pricing signals are not part of public analytics.</p><form id="loginForm" class="login-form"><label>Owner name<input id="actorInput" type="text" autocomplete="name" value="PJ" required></label><label>Admin API key<input id="adminKeyInput" type="password" autocomplete="current-password" placeholder="Enter your PJ admin key" required></label><button class="button primary" type="submit">Open feedback console</button></form><div id="loginError" class="inline-alert error" hidden></div></div>
+    </section>
+
+    <section id="dashboard" hidden>
+      <div class="admin-title-row"><div><p class="kicker">PRODUCT &amp; PRICING RESEARCH</p><h1>Explorer Feedback</h1><p>Ease of use, visual experience, usefulness, open comments, and future member-credit preferences.</p></div><div class="feedback-actions"><button id="downloadButton" class="button secondary" type="button">Download CSV</button><button id="refreshButton" class="button primary" type="button">Refresh</button><span id="lastRefresh">Not refreshed</span></div></div>
+
+      <div class="feedback-kpis"><article><span>Responses</span><strong id="totalResponses">—</strong><small>Deliberate questionnaires</small></article><article><span>Ease of use</span><strong id="easeAverage">—</strong><small>Average out of 5</small></article><article><span>UI experience</span><strong id="uiAverage">—</strong><small>Average out of 5</small></article><article><span>Usefulness</span><strong id="usefulnessAverage">—</strong><small>Average out of 5</small></article></div>
+
+      <div class="feedback-signal-grid"><section class="feedback-panel"><p class="kicker">MONTHLY PREFERENCE</p><h2>Pricing signals</h2><div id="pricingSignals" class="signal-list"></div><p id="customAverage" class="panel-note"></p></section><section class="feedback-panel"><p class="kicker">EXPECTED ALLOTMENT</p><h2>Credits by price</h2><div id="creditExpectations" class="signal-list"></div></section><section class="feedback-panel"><p class="kicker">CREDIT DEMAND</p><h2>Likely uses</h2><div id="creditUses" class="signal-list"></div></section></div>
+      <div class="feedback-signal-grid two"><section class="feedback-panel"><p class="kicker">TEST COVERAGE</p><h2>Pages and tools reviewed</h2><div id="pageAreas" class="signal-list"></div></section><section class="feedback-panel"><p class="kicker">TASK OUTCOME</p><h2>Could explorers finish?</h2><div id="taskSuccess" class="signal-list"></div></section></div>
+
+      <section class="feedback-panel response-panel"><div class="response-heading"><div><p class="kicker">RAW RESPONSES</p><h2>What explorers said</h2></div><p>Newest first. Optional community names remain private to PJ.</p></div><div id="responses" class="response-list"></div></section>
+      <section class="privacy-panel"><strong>Privacy boundary</strong><span>Only deliberate questionnaire answers and optional community names appear here. No payment details, raw IP addresses, browser fingerprints, uploaded files, or account identifiers are collected.</span></section>
+    </section>
+  </main>
+  <div id="toast" class="toast" hidden></div>
+  <script src="/admin/feedback/feedback-admin.js?v=1.15.0"></script>
+</body>
+</html>

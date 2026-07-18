@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Share product feedback and pricing preferences for the future Wonder Codex service.">
+  <meta name="theme-color" content="#080b16">
+  <title>Shape Wonder Codex | Feedback Questionnaire</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=1.11.0">
+  <link rel="stylesheet" href="feedback.css?v=1.15.0">
+</head>
+<body>
+  <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Explorer Feedback</small></span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
+    <nav id="primaryNav" aria-label="Primary navigation"><a href="index.html">Home</a><a href="database.html">Database</a><a href="map.html">Map</a><a href="decoder.html">Decoder</a><a href="contribute.html">Contribute</a><a href="feedback.html" class="nav-cta" aria-current="page">Feedback</a></nav>
+  </header>
+
+  <main>
+    <section class="feedback-hero shell">
+      <div><p class="eyebrow">COMMUNITY PRODUCT RESEARCH</p><h1>Help us build the service <span>explorers actually want.</span></h1><p>Your experience will guide the next round of design, usability work, and future member-credit planning. The questionnaire takes about four minutes.</p></div>
+      <aside aria-label="Pricing research notice"><strong>No purchase. No commitment.</strong><p>The prices below are research options, not active subscriptions. Wonder Codex does not collect payment information here.</p></aside>
+    </section>
+
+    <section class="feedback-layout shell">
+      <aside class="feedback-progress" aria-label="Questionnaire progress">
+        <p class="kicker">YOUR FLIGHT PATH</p>
+        <ol>
+          <li class="active" data-progress-step="1"><span>01</span><div><strong>Your visit</strong><small>What you tested</small></div></li>
+          <li data-progress-step="2"><span>02</span><div><strong>Your experience</strong><small>What worked</small></div></li>
+          <li data-progress-step="3"><span>03</span><div><strong>Future value</strong><small>Price and credits</small></div></li>
+          <li data-progress-step="4"><span>04</span><div><strong>Review</strong><small>Send to PJ</small></div></li>
+        </ol>
+        <div class="privacy-note"><strong>Privacy boundary</strong><p>Answers are stored for PJ’s product research. Your community name is optional. Please do not include passwords, save files, account IDs, or private information.</p></div>
+      </aside>
+
+      <div class="feedback-surface">
+        <div class="step-meter"><span id="stepLabel">Step 1 of 4</span><div><i id="stepFill"></i></div></div>
+        <form id="feedbackForm" novalidate>
+          <section class="feedback-step" data-step="1">
+            <p class="kicker">STEP 01 — YOUR VISIT</p><h2>What did you explore?</h2><p class="step-intro">Tell us which part of Wonder Codex this response is about.</p>
+            <div class="form-grid">
+              <label class="field">Community name <span>Optional</span><input name="respondent_name" type="text" maxlength="120" autocomplete="nickname" placeholder="Your Discord or explorer name"></label>
+              <label class="field">Which best describes you?<select name="visitor_type" required><option value="">Choose one…</option><option value="alpha_beta_tester">Alpha or beta tester</option><option value="contributor">Contributor</option><option value="explorer">Explorer / catalog user</option><option value="first_time_visitor">First-time visitor</option><option value="admin_operator">Admin or operator</option><option value="other">Other</option></select></label>
+            </div>
+            <label class="field">What are you reviewing?<select name="page_area" required><option value="">Choose a page or tool…</option><option value="overall_site">Overall Wonder Codex site</option><option value="database_catalog">Wonder Database / catalog</option><option value="cluster_map">Galactic Cluster Map</option><option value="projector_decoder">Wonder Projector Decoder</option><option value="contribution_importer">Contributions / Importer</option><option value="private_apps">Private application vault</option><option value="pegasus_transit">Pegasus Transit</option><option value="capture_companion">Capture Companion</option><option value="other">Other page or tool</option></select></label>
+            <fieldset class="question-block"><legend>Were you able to do what you came to do?</legend><div class="choice-grid four"><label><input type="radio" name="task_success" value="yes" required><span><strong>Yes</strong><small>Completed it</small></span></label><label><input type="radio" name="task_success" value="partly"><span><strong>Partly</strong><small>Some friction</small></span></label><label><input type="radio" name="task_success" value="no"><span><strong>No</strong><small>Could not finish</small></span></label><label><input type="radio" name="task_success" value="browsing"><span><strong>Just browsing</strong><small>No task planned</small></span></label></div></fieldset>
+          </section>
+
+          <section class="feedback-step" data-step="2" hidden>
+            <p class="kicker">STEP 02 — YOUR EXPERIENCE</p><h2>How did it feel to use?</h2><p class="step-intro">Use the three scales, then tell us what should stay or change.</p>
+            <fieldset class="rating-block"><legend>How easy was it to use?</legend><div class="rating-row"><span>Difficult</span><div><label><input type="radio" name="ease_score" value="1" required><b>1</b></label><label><input type="radio" name="ease_score" value="2"><b>2</b></label><label><input type="radio" name="ease_score" value="3"><b>3</b></label><label><input type="radio" name="ease_score" value="4"><b>4</b></label><label><input type="radio" name="ease_score" value="5"><b>5</b></label></div><span>Very easy</span></div></fieldset>
+            <fieldset class="rating-block"><legend>How would you rate the visual and UI experience?</legend><div class="rating-row"><span>Poor</span><div><label><input type="radio" name="ui_score" value="1" required><b>1</b></label><label><input type="radio" name="ui_score" value="2"><b>2</b></label><label><input type="radio" name="ui_score" value="3"><b>3</b></label><label><input type="radio" name="ui_score" value="4"><b>4</b></label><label><input type="radio" name="ui_score" value="5"><b>5</b></label></div><span>Excellent</span></div></fieldset>
+            <fieldset class="rating-block"><legend>How useful is this page or tool?</legend><div class="rating-row"><span>Not useful</span><div><label><input type="radio" name="usefulness_score" value="1" required><b>1</b></label><label><input type="radio" name="usefulness_score" value="2"><b>2</b></label><label><input type="radio" name="usefulness_score" value="3"><b>3</b></label><label><input type="radio" name="usefulness_score" value="4"><b>4</b></label><label><input type="radio" name="usefulness_score" value="5"><b>5</b></label></div><span>Extremely useful</span></div></fieldset>
+            <label class="field">What was most useful?<textarea name="most_useful" rows="3" maxlength="2000" placeholder="The feature, information, or moment that helped most…"></textarea></label>
+            <label class="field">What felt confusing or needs to change?<textarea name="improvements" rows="4" maxlength="4000" placeholder="Navigation, wording, layout, missing instructions, errors, or anything that slowed you down…"></textarea></label>
+            <label class="field">What is one feature you wish it had?<textarea name="missing_feature" rows="3" maxlength="2000" placeholder="A page, filter, service, or capability you would add…"></textarea></label>
+          </section>
+
+          <section class="feedback-step" data-step="3" hidden>
+            <p class="kicker">STEP 03 — FUTURE VALUE</p><h2>What would a polished service be worth?</h2><p class="step-intro">Possible memberships would provide a monthly allotment of service credits for things such as Pegasus transit, delivery, sourcing, or priority requests. These options are research only.</p>
+            <fieldset class="question-block"><legend>Which monthly option feels closest to fair?</legend><div class="price-grid"><label><input type="radio" name="price_choice" value="5" required><span><strong>$5 <small>/ month</small></strong><em>Monthly service-credit allotment</em></span></label><label><input type="radio" name="price_choice" value="10"><span><strong>$10 <small>/ month</small></strong><em>Larger monthly credit allotment</em></span></label><label><input type="radio" name="price_choice" value="custom"><span><strong>My own amount</strong><em>Enter what feels fair to you</em></span></label><label><input type="radio" name="price_choice" value="none"><span><strong>I wouldn’t pay</strong><em>Still useful feedback—no judgment</em></span></label></div></fieldset>
+            <div id="customPricePanel" class="conditional-panel" hidden><div class="field"><label for="customMonthlyPrice">Your fair monthly amount</label><div class="money-input"><span>$</span><input id="customMonthlyPrice" name="custom_monthly_price" type="number" min="1" max="1000" step="0.01" inputmode="decimal" placeholder="7.50"></div></div></div>
+            <div id="creditPanel" class="conditional-panel" hidden>
+              <label class="field">How many service credits should that monthly amount include?<input name="monthly_credits" type="number" min="1" max="1000" step="1" inputmode="numeric" placeholder="For example: 10"></label>
+              <fieldset class="question-block compact"><legend>What would you most likely spend credits on? <span>Choose any</span></legend><div class="check-grid"><label><input type="checkbox" name="credit_uses" value="transit"><span>Pegasus transit</span></label><label><input type="checkbox" name="credit_uses" value="delivery"><span>Item delivery</span></label><label><input type="checkbox" name="credit_uses" value="sourcing"><span>Discovery sourcing</span></label><label><input type="checkbox" name="credit_uses" value="priority_requests"><span>Priority requests</span></label><label><input type="checkbox" name="credit_uses" value="supporter_only_tools"><span>Supporter-only tools</span></label></div></fieldset>
+            </div>
+            <div class="research-callout"><strong>Why ask about credits?</strong><p>The goal is to learn what members consider a fair exchange before setting any tier, credit quantity, or service capacity. Your answer is not a pledge or preorder.</p></div>
+          </section>
+
+          <section class="feedback-step" data-step="4" hidden>
+            <p class="kicker">STEP 04 — REVIEW</p><h2>One last look before transmission.</h2><p class="step-intro">Your answers go to PJ’s private product-research view.</p>
+            <div id="reviewSummary" class="review-summary"></div>
+            <label class="field">Anything else you would like PJ to know? <span>Optional</span><textarea name="additional_notes" rows="4" maxlength="4000" placeholder="Final thoughts, context, or a message for the Wonder Codex team…"></textarea></label>
+            <label class="consent-row"><input name="research_consent" type="checkbox" required><span><strong>I understand this is product research, not a purchase.</strong> Wonder Codex may use my answers to plan features, pricing, credits, and testing priorities.</span></label>
+            <input name="website" class="honeypot" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <div id="formError" class="form-message error" role="alert" hidden></div>
+          </section>
+
+          <div class="form-actions"><button id="backButton" class="button secondary" type="button" hidden>← Back</button><span></span><button id="nextButton" class="button primary" type="button">Continue →</button><button id="submitButton" class="button primary" type="submit" hidden>Send feedback to PJ</button></div>
+        </form>
+        <section id="successPanel" class="success-panel" hidden><span>✦</span><p class="kicker">TRANSMISSION RECEIVED</p><h2>Thank you, Explorer.</h2><p>Your response is safely stored for Wonder Codex product planning. It will help shape the next release and the future credit model.</p><a class="button primary" href="index.html">Return to Wonder Codex</a></section>
+      </div>
+    </section>
+  </main>
+
+  <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Built with explorer feedback</small></span></a><p>Independent community research project. Not affiliated with Hello Games.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="map.html">Map</a><a href="decoder.html">Decoder</a><a href="contribute.html">Contribute</a><a href="privacy.html">Privacy</a></div></footer>
+  <script src="analytics.js?v=1.15.0"></script>
+  <script src="script.js?v=1.11.0"></script>
+  <script src="feedback.js?v=1.15.0"></script>
+</body>
+</html>
