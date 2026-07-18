@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from decimal import Decimal
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -168,6 +169,91 @@ class AssetCatalogUpdate(BaseModel):
         return " ".join(value.strip().split()) if value is not None else value
 
 
+FeedbackCreditUse = Literal[
+    "transit",
+    "delivery",
+    "sourcing",
+    "priority_requests",
+    "supporter_only_tools",
+]
+
+
+class FeedbackPayload(BaseModel):
+    """Intentional product feedback; never accepted through passive analytics."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    respondent_name: str = Field(default="", max_length=120)
+    visitor_type: Literal[
+        "alpha_beta_tester",
+        "contributor",
+        "explorer",
+        "first_time_visitor",
+        "admin_operator",
+        "other",
+    ]
+    page_area: Literal[
+        "overall_site",
+        "database_catalog",
+        "cluster_map",
+        "projector_decoder",
+        "contribution_importer",
+        "private_apps",
+        "pegasus_transit",
+        "capture_companion",
+        "other",
+    ]
+    ease_score: int = Field(ge=1, le=5)
+    ui_score: int = Field(ge=1, le=5)
+    usefulness_score: int = Field(ge=1, le=5)
+    task_success: Literal["yes", "partly", "no", "browsing"]
+    most_useful: str = Field(default="", max_length=2000)
+    improvements: str = Field(default="", max_length=4000)
+    missing_feature: str = Field(default="", max_length=2000)
+    price_choice: Literal["5", "10", "custom", "none"]
+    custom_monthly_price: Decimal | None = Field(
+        default=None,
+        gt=0,
+        le=1000,
+        max_digits=6,
+        decimal_places=2,
+    )
+    monthly_credits: int | None = Field(default=None, ge=1, le=1000)
+    credit_uses: list[FeedbackCreditUse] = Field(default_factory=list, max_length=5)
+    additional_notes: str = Field(default="", max_length=4000)
+    research_consent: Literal[True]
+    website: str = Field(default="", max_length=200)  # honeypot
+
+    @field_validator("respondent_name")
+    @classmethod
+    def clean_name(cls, value: str) -> str:
+        return " ".join(value.replace("\x00", "").strip().split())
+
+    @field_validator("most_useful", "improvements", "missing_feature", "additional_notes")
+    @classmethod
+    def clean_long_text(cls, value: str) -> str:
+        return value.replace("\x00", "").strip()
+
+    @field_validator("credit_uses")
+    @classmethod
+    def unique_credit_uses(cls, value: list[FeedbackCreditUse]) -> list[FeedbackCreditUse]:
+        return list(dict.fromkeys(value))
+
+    @model_validator(mode="after")
+    def validate_pricing_signal(self):
+        if self.price_choice == "none":
+            if self.custom_monthly_price is not None or self.monthly_credits is not None or self.credit_uses:
+                raise ValueError("No-pay responses cannot include a price, credit amount, or credit uses.")
+            return self
+        if self.price_choice == "custom" and self.custom_monthly_price is None:
+            raise ValueError("Enter the custom monthly amount you would consider fair.")
+        if self.price_choice != "custom" and self.custom_monthly_price is not None:
+            raise ValueError("A custom amount is accepted only with the custom pricing option.")
+        if self.monthly_credits is None:
+            raise ValueError("Enter how many monthly credits should come with that amount.")
+        return self
+
+
 class AnalyticsEventPayload(BaseModel):
     """A deliberately small, allowlisted public analytics envelope."""
 
@@ -187,6 +273,7 @@ class AnalyticsEventPayload(BaseModel):
         "download",
         "transit_ticket_download",
         "projector_decode",
+        "feedback_submitted",
     ]
     path: str = Field(default="/", max_length=500)
     title: str = Field(default="", max_length=200)

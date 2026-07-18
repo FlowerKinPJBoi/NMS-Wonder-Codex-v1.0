@@ -1,5 +1,19 @@
 # Wonder Codex changelog
 
+## v1.15.0 — Explorer feedback and pricing research
+
+- Added a public four-step feedback questionnaire covering ease of use, UI
+  experience, usefulness, task completion, desired changes, and missing features.
+- Added $5/month, $10/month, custom-price, and “I wouldn’t pay” research options.
+- Made the possible $5 and $10 memberships explicit monthly service-credit
+  allotments and asks respondents how many credits each price should include.
+- Added a separate privacy-safe feedback table with bounded text, strict option
+  validation, a honeypot, origin checks, and a dedicated rate limit.
+- Added a PJ-only feedback console with summaries, raw responses, and CSV export.
+- Kept questionnaire content separate from anonymous traffic analytics and
+  collected no payment details, raw IP addresses, browser fingerprints, files,
+  save data, or account identifiers.
+
 ## v1.14.1 — Visceral restricted app access
 
 - Added Visceral as a named restricted tester for the private application vault

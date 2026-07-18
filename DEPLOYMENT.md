@@ -64,9 +64,12 @@ After both components are healthy:
 8. Browse two or three public pages, then confirm PJ can open
    `https://wondercodex.com/admin/analytics/` with the existing named PJ admin
    credential. Confirm a Boots or tester credential is refused there.
+9. Open `https://wondercodex.com/feedback.html`, move through all four steps,
+   and submit one clearly labeled test response. Confirm the success panel appears.
+10. Open `https://wondercodex.com/admin/feedback/` with PJ's named credential,
+    confirm the test response and pricing summary appear, then download the CSV.
 
-The v1.13.0 deployment adds analytics database migration `0006`. With
+The v1.15.0 deployment adds questionnaire database migration `0007`. With
 `RUN_MIGRATIONS_ON_START=true`, the API applies it automatically. No new
-environment variable is required: analytics defaults to enabled, owner `PJ`,
-90-day anonymous journey retention, and 120 events per minute per volatile
-rate-limit key. Detailed activity expires; daily aggregate totals remain.
+environment variable is required. Feedback defaults to ten submissions per
+hour per temporary salted rate-limit key; the raw IP is not persisted.

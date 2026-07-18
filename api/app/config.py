@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Wonder Codex API"
-    app_version: str = "1.14.1"
+    app_version: str = "1.15.0"
     environment: str = "production"
     database_url: str = ""
     allowed_origins: List[str] = Field(
@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     analytics_owner_actor: str = "PJ"
     analytics_retention_days: int = 90
     analytics_max_events_per_minute: int = 120
+    feedback_max_submissions_per_hour: int = 10
     max_request_bytes: int = 30_000_000
     max_discoveries_per_submission: int = 20_000
     max_matches_per_submission: int = 2_000

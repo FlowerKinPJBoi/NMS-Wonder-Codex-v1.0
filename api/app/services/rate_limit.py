@@ -10,6 +10,7 @@ from ..config import get_settings
 
 _windows: dict[str, deque[float]] = defaultdict(deque)
 _analytics_windows: dict[str, deque[float]] = defaultdict(deque)
+_feedback_windows: dict[str, deque[float]] = defaultdict(deque)
 
 
 def client_ip(request: Request) -> str:
@@ -45,4 +46,20 @@ def enforce_analytics(request: Request) -> None:
         window.popleft()
     if len(window) >= settings.analytics_max_events_per_minute:
         raise HTTPException(status_code=429, detail="Analytics event limit reached.")
+    window.append(now)
+
+
+def enforce_feedback(request: Request) -> None:
+    """Rate-limit questionnaire posts without persisting a visitor identifier."""
+    settings = get_settings()
+    ip = client_ip(request)
+    rate_key = hashlib.sha256(
+        f"feedback-rate:{settings.ip_hash_salt}:{ip}".encode("utf-8")
+    ).hexdigest()
+    now = time.time()
+    window = _feedback_windows[rate_key]
+    while window and window[0] < now - 3600:
+        window.popleft()
+    if len(window) >= settings.feedback_max_submissions_per_hour:
+        raise HTTPException(status_code=429, detail="Feedback limit reached. Please try again later.")
     window.append(now)

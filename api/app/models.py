@@ -276,6 +276,30 @@ class AuditEvent(Base):
     detail: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
 
 
+class FeedbackResponse(Base):
+    """Deliberate questionnaire answers kept separate from anonymous analytics."""
+
+    __tablename__ = "feedback_responses"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+    respondent_name: Mapped[str] = mapped_column(String(120), default="", nullable=False)
+    visitor_type: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    page_area: Mapped[str] = mapped_column(String(60), nullable=False, index=True)
+    ease_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    ui_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    usefulness_score: Mapped[int] = mapped_column(Integer, nullable=False)
+    task_success: Mapped[str] = mapped_column(String(30), nullable=False, index=True)
+    most_useful: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    improvements: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    missing_feature: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    price_choice: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
+    custom_price_cents: Mapped[int | None] = mapped_column(Integer)
+    monthly_credits: Mapped[int | None] = mapped_column(Integer)
+    credit_uses: Mapped[list[str]] = mapped_column(JSONB, nullable=False)
+    additional_notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
+
+
 class AnalyticsEvent(Base):
     """Short-lived, privacy-safe anonymous activity used for visit journeys."""
 
