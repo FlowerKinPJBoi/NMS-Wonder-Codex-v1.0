@@ -1,6 +1,6 @@
 # Wonder Codex archetypes
 
-These SVGs are representative catalog illustrations, never specimen evidence.
+These assets are representative catalog illustrations, never specimen evidence.
 
 Display precedence:
 
@@ -9,7 +9,9 @@ Display precedence:
 3. A category-specific asset illustration for starships, freighters, frigates, or multi-tools.
 4. The neutral fauna, flora, mineral, or other category fallback.
 
-The browser registry is in `archetypes.js`. The public API allowlist and exact-match resolver are in `api/app/services/archetypes.py`. A new family is complete only when it has an SVG and matching entries in both registries.
+The browser registry is in `archetypes.js`. The public API allowlist and exact-match resolver are in `api/app/services/archetypes.py`. A new family is complete only when it has an asset and matching entries in both registries.
+
+The WebP family plates under `fauna/projector/` are original Wonder Codex artwork derived from user-supplied in-game Wonder Projector captures. They preserve family-level silhouettes and identifying anatomy without claiming to depict the exact catalog specimen.
 
 Every placeholder must retain an explicit “representative archetype” or “not a specimen image” label. Flora and mineral fallbacks intentionally describe only the category until a real screenshot is approved.
 
