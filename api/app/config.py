@@ -131,6 +131,7 @@ class Settings(BaseSettings):
             "Monketsu": self.tester_api_key_monketsu,
             "ReadyFireAim": self.tester_api_key_readyfireaim,
             "Visceral": self.tester_api_key_visceral,
+            "Ekimo": self.tester_api_key_ekimo,
         }
 
     @property
