@@ -38,7 +38,7 @@ Use independent random administrator keys. Keep the legacy `ADMIN_API_KEY`
 only while migrating an older client, then remove it from the service
 environment.
 
-Restricted testers do not belong in `ADMIN_API_KEYS`. Add the seven scalar
+Restricted testers do not belong in `ADMIN_API_KEYS`. Add the eight scalar
 variables listed above as separate encrypted Runtime values on the API Web
 Service. Use a different long random value for each person. Do not add the old
 `TESTER_API_KEYS` JSON variable; DigitalOcean's editor may reject its braces.
