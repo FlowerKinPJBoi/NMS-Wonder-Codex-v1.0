@@ -95,7 +95,7 @@
     };
     primary.src = archetype.url;
     primary.alt = archetype.alt;
-    $('#recordImageCaption').textContent = `${archetype.label} • Representative archetype — not this exact specimen${note ? ` • ${note}` : ''}`;
+    $('#recordImageCaption').textContent = `${data.archetype_label || archetype.label} • Representative archetype — not this exact specimen${note ? ` • ${note}` : ''}`;
     $('#recordThumbnails').innerHTML = '';
     $('#recordThumbnails').hidden = true;
     gallery.hidden = false;
