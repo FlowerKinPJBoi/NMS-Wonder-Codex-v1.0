@@ -262,5 +262,26 @@ def test_unknown_or_nonfauna_record_uses_neutral_category_fallback():
     row.discovery_type = "Flora"
     metadata = archetype_metadata(row)
     assert metadata["archetype_key"] == "flora.unknown"
-    assert metadata["archetype_source"] == "category_fallback"
+    assert metadata["archetype_source"] == "vp1_family_signal"
     assert metadata["fauna_family_id"] == ""
+    assert metadata["wonder_family_label"].startswith("Flora family F-")
+    assert metadata["wonder_individual_reference"].startswith("F-")
+    assert metadata["wonder_individual_name_status"] == "encoded_not_decoded"
+    assert metadata["wonder_projector_fingerprint_status"] == "complete"
+
+
+def test_captured_generated_name_is_presented_without_decoding_or_guessing():
+    row = sample_discovery()
+    row.discovery_type = "Mineral"
+    row.display_name = "Nadyrodite"
+    metadata = archetype_metadata(row)
+    assert metadata["wonder_individual_name"] == "Nadyrodite"
+    assert metadata["wonder_individual_name_status"] == "captured"
+    assert metadata["wonder_individual_signal_label"] == "Captured in-game name: Nadyrodite"
+
+
+def test_family_reference_is_stable_but_does_not_expose_vp1():
+    first = archetype_metadata(sample_discovery())
+    second = archetype_metadata(sample_discovery())
+    assert first["wonder_family_reference"] == second["wonder_family_reference"]
+    assert "0x3" not in first["wonder_family_reference"]

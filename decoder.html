@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1.14.0">
   <link rel="stylesheet" href="catalog.css?v=1.12.0">
-  <link rel="stylesheet" href="decoder.css?v=1.14.0">
+  <link rel="stylesheet" href="decoder.css?v=1.15.1">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
@@ -44,6 +44,17 @@
         </form>
       </article>
 
+      <article class="randomizer-console surface">
+        <div class="randomizer-copy"><p class="kicker">WONDER RANDOMIZER • RESEARCH BETA</p><h2>Open a random Wonder.</h2><p>Choose a documented catalog specimen, or create a research remix from confirmed Flora and Mineral VP0/VP1 components. Research remixes are valid Projector IDs, but are not claimed as naturally discovered specimens.</p></div>
+        <div class="randomizer-controls">
+          <label for="randomWonderMode">Randomizer mode
+            <select id="randomWonderMode"><option value="catalog">Documented catalog Wonder</option><option value="flora">Research remix — Flora</option><option value="mineral">Research remix — Mineral</option></select>
+          </label>
+          <button id="randomWonder" class="button primary" type="button">Random Wonder <span aria-hidden="true">✦</span></button>
+        </div>
+        <div id="randomWonderStatus" class="randomizer-status" aria-live="polite">Documented mode selects an existing public catalog fingerprint. Research modes recombine controlled census components.</div>
+      </article>
+
       <section id="decoderResult" class="decoder-result" aria-live="polite" hidden>
         <article class="decoder-route surface">
           <div class="decoder-route-heading">
@@ -56,6 +67,7 @@
             <div><span>Route source</span><strong id="decoderRouteSource">—</strong></div>
             <div><span>Evidence state</span><strong id="decoderRouteStatus">—</strong></div>
           </div>
+          <div class="decoder-identity-model"><strong>Projector identity model</strong><p id="decoderIdentityModel">VP1 carries the visual-family signal. VP0 carries the generated-name and individual-variation signal. The complete Message ID is the exact specimen fingerprint.</p></div>
           <div class="decoder-glyph-wrap">
             <div id="decoderGlyphs"></div>
             <p id="decoderGlyphCode" class="glyph-code"></p>
@@ -80,7 +92,7 @@
   <script src="script.js?v=1.11.0"></script>
   <script src="glyphs.js?v=1.6.0"></script>
   <script src="locations.js?v=1.6.0"></script>
-  <script src="projector.js?v=1.14.0"></script>
-  <script src="decoder.js?v=1.14.0"></script>
+  <script src="projector.js?v=1.15.1"></script>
+  <script src="decoder.js?v=1.15.1"></script>
 </body>
 </html>

@@ -34,20 +34,29 @@
     return `<div class="location-mini ${pending ? 'pending' : ''}"><strong>${pending ? 'Acquisition sighting under review' : 'Acquisition location not established'}</strong><p>The owned specimen is cataloged; a public acquisition route still needs evidence.</p></div>`;
   }
 
-  function faunaIdentityMarkup(item) {
-    if (!item.fauna_family_label) return '';
+  function wonderIdentityMarkup(item) {
+    if (!item.wonder_family_label && !item.fauna_family_label) return '';
     const exact = item.fauna_identity_source === 'exact_pet_match';
-    const behavior = exact && item.fauna_behavior ? `Behavior: ${escapeHtml(item.fauna_behavior)}` : 'Behavior not inferred';
+    const behavior = exact && item.fauna_behavior ? `Behavior: ${item.fauna_behavior}` : 'Behavior not inferred';
     const evidenceCount = Number(item.fauna_family_evidence_count || 0);
-    const evidence = exact ? 'Exact companion match' : `Confirmed family mapping${evidenceCount ? ` · ${number(evidenceCount)} supporting exact match${evidenceCount === 1 ? '' : 'es'}` : ''}`;
-    return `<div class="fauna-identity card-identity ${exact ? 'exact' : 'inferred'}"><div class="fauna-identity-heading"><span class="fauna-family-badge">${escapeHtml(item.fauna_family_label)} family</span><span class="fauna-behavior">${behavior}</span></div><small>${evidence}</small></div>`;
+    const family = item.wonder_family_label || `${item.fauna_family_label} family`;
+    const individual = item.wonder_individual_name_status === 'captured'
+      ? `Named specimen: ${item.wonder_individual_name}`
+      : `Individual signal ${item.wonder_individual_reference || 'encoded'}`;
+    const evidence = exact
+      ? `Exact companion match${evidenceCount ? ` · ${number(evidenceCount)} supporting match${evidenceCount === 1 ? '' : 'es'}` : ''}`
+      : item.wonder_family_source === 'confirmed_vp1_mapping'
+        ? `Confirmed VP1 family mapping${evidenceCount ? ` · ${number(evidenceCount)} exact match${evidenceCount === 1 ? '' : 'es'}` : ''}`
+        : 'VP1 visual-family signal · VP0 individual/name signal';
+    return `<div class="fauna-identity card-identity ${exact ? 'exact' : 'inferred'}"><div class="fauna-identity-heading"><span class="fauna-family-badge">${escapeHtml(family)}</span><span class="fauna-behavior">${escapeHtml(exact ? behavior : individual)}</span></div><small>${escapeHtml(evidence)}</small></div>`;
   }
 
   function imageMarkup(item, name) {
     const archetype = WCArchetypes.resolve(item);
+    const representativeLabel = item.archetype_label || archetype.label;
     const approvedUrl = String(item.primary_image_url || '').trim();
     const isArchetype = !approvedUrl;
-    const assetLabel = item.asset_type ? 'Illustrative reconstruction — not an image of this exact specimen.' : `${archetype.label} · Representative archetype — not this exact specimen.`;
+    const assetLabel = item.asset_type ? 'Illustrative reconstruction — not an image of this exact specimen.' : `${representativeLabel} · Representative archetype — not this exact specimen.`;
     return `<div class="wonder-card-image ${isArchetype ? 'is-archetype' : 'is-approved'}">
       <img src="${escapeHtml(approvedUrl || archetype.url)}" alt="${escapeHtml(isArchetype ? archetype.alt : name)}" loading="lazy" data-archetype-fallback="${escapeHtml(archetype.url)}" data-archetype-alt="${escapeHtml(archetype.alt)}">
       <div class="archetype-label"${isArchetype ? '' : ' hidden'}><span>${item.asset_type ? 'Illustrative archetype' : 'Representative archetype'}</span><small>${escapeHtml(assetLabel)}</small></div>
@@ -72,7 +81,7 @@
     return `<article class="wonder-card">${imageMarkup(item, item.display_name)}
       <div class="wonder-card-top"><span class="wc-id">${escapeHtml(item.wc_id)}</span><span class="type-chip">${escapeHtml(typeLabel(item.discovery_type))}</span></div>
       <h2>${escapeHtml(item.display_name)}</h2><p>Contributed by ${escapeHtml(item.contributor || item.owner || 'Unknown explorer')}</p>
-      ${faunaIdentityMarkup(item)}
+      ${wonderIdentityMarkup(item)}
       <div class="card-badges"><span class="status-chip ${escapeHtml(item.travel_status)}">Location ${escapeHtml(item.travel_status)}</span><span class="status-chip ${item.image_status === 'available' ? 'verified' : 'needed'}">Image ${escapeHtml(item.image_status)}</span><span class="status-chip ${item.projector_status === 'verified' ? 'verified' : ''}">Projector ${escapeHtml(item.projector_status.replaceAll('_',' '))}</span></div>
       ${locationMarkup(item)}
       <div class="wonder-card-actions"><a class="mini-link primary" href="record.html?id=${item.id}">View record</a><a class="mini-link" href="contribute.html?mode=image&record=${item.id}">Add image</a><a class="mini-link" href="contribute.html?mode=verify&record=${item.id}">Verify</a></div>

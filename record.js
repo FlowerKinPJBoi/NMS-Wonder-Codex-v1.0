@@ -56,23 +56,28 @@
     toast('Pegasus Transit route downloaded.');
   }
 
-  function renderFaunaIdentity(data) {
+  function renderWonderIdentity(data) {
     const element = $('#recordIdentity');
-    if (!data.fauna_family_label) {
+    if (!data.wonder_family_label && !data.fauna_family_label) {
       element.hidden = true;
       element.innerHTML = '';
       return;
     }
     const exact = data.fauna_identity_source === 'exact_pet_match';
     const evidenceCount = Number(data.fauna_family_evidence_count || 0);
-    const evidence = exact
-      ? 'Exact companion match'
-      : `Confirmed family mapping${evidenceCount ? ` · supported by ${number(evidenceCount)} exact match${evidenceCount === 1 ? '' : 'es'}` : ''}`;
+    const family = data.wonder_family_label || `${data.fauna_family_label} family`;
+    const evidence = exact ? 'Exact companion match'
+      : data.wonder_family_source === 'confirmed_vp1_mapping'
+        ? `Confirmed family mapping${evidenceCount ? ` · supported by ${number(evidenceCount)} exact match${evidenceCount === 1 ? '' : 'es'}` : ''}`
+        : 'VP1 visual-family signal from controlled Wonder Projector research';
+    const individual = data.wonder_individual_name_status === 'captured'
+      ? `Captured in-game name: ${data.wonder_individual_name}`
+      : `Individual/name signal ${data.wonder_individual_reference || 'encoded'} — exact name not decoded yet`;
     element.classList.toggle('exact', exact);
     element.classList.toggle('inferred', !exact);
-    element.innerHTML = `<p class="kicker">FAUNA IDENTITY</p>
-      <div class="fauna-identity-heading"><strong>${escapeHtml(data.fauna_family_label)} family</strong><span class="fauna-behavior">${exact && data.fauna_behavior ? `Behavior: ${escapeHtml(data.fauna_behavior)}` : 'Behavior not inferred'}</span></div>
-      <p>${escapeHtml(evidence)} · Technical family ID <code>${escapeHtml(data.fauna_family_id)}</code></p>`;
+    element.innerHTML = `<p class="kicker">WONDER IDENTITY</p>
+      <div class="fauna-identity-heading"><strong>${escapeHtml(family)}</strong><span class="fauna-behavior">${escapeHtml(individual)}</span></div>
+      <p>${escapeHtml(evidence)} · ${escapeHtml(data.wonder_projector_fingerprint_label || 'Projector fingerprint under review')}</p>`;
     element.hidden = false;
   }
 
@@ -90,7 +95,7 @@
     };
     primary.src = archetype.url;
     primary.alt = archetype.alt;
-    $('#recordImageCaption').textContent = `${archetype.label} • Representative archetype — not this exact specimen${note ? ` • ${note}` : ''}`;
+    $('#recordImageCaption').textContent = `${data.archetype_label || archetype.label} • Representative archetype — not this exact specimen${note ? ` • ${note}` : ''}`;
     $('#recordThumbnails').innerHTML = '';
     $('#recordThumbnails').hidden = true;
     gallery.hidden = false;
@@ -131,15 +136,15 @@
     $('#recordName').textContent = data.display_name;
     $('#recordType').textContent = data.discovery_type === 'Animal' ? 'Fauna' : data.discovery_type;
     $('#recordAttribution').textContent = `Contributed by ${data.contributor || data.owner || 'Unknown explorer'}${data.save_name ? ` • ${data.save_name}` : ''}`;
-    renderFaunaIdentity(data);
+    renderWonderIdentity(data);
     $('#recordBadges').innerHTML = badge('Location', data.travel_status) + badge('Projector', data.projector_status) + badge('Image', data.image_status);
     renderImages(data.images || [], data);
     $('#messageId').textContent = data.message_id || 'No Wonder Projector Message ID available';
     $('#copyMessage').hidden = !data.message_id;
-    const identityData = data.fauna_family_label ? [
-      item('Fauna family', data.fauna_family_label, false),
-      item('Behavior', data.fauna_identity_source === 'exact_pet_match' ? data.fauna_behavior || 'Not recorded' : 'Not inferred', false),
-      item('Identity evidence', data.fauna_identity_label, false),
+    const identityData = data.wonder_family_label ? [
+      item('Visual family', data.wonder_family_label, false),
+      item('Individual identity', data.wonder_individual_name || data.wonder_individual_reference || 'Encoded', false),
+      item('Identity evidence', data.wonder_projector_fingerprint_label, false),
     ] : [];
     $('#dataList').innerHTML = [
       ...identityData,

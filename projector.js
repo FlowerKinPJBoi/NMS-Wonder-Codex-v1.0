@@ -6,6 +6,9 @@
     ['4:2:2', {id: 'Flora', label: 'Flora', vpCount: 2}],
     ['5:2:2', {id: 'Mineral', label: 'Mineral', vpCount: 2}],
   ]);
+  const PROJECTOR_ENCODERS = new Map(
+    [...PROJECTOR_TYPES.values()].map((item) => [item.id, item]),
+  );
 
   function normalizeBase64(value) {
     const compact = String(value || '').trim().replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/');
@@ -36,6 +39,33 @@
     return value;
   }
 
+  function writeUInt64LittleEndian(bytes, offset, value) {
+    let remaining = value;
+    for (let index = 0; index < 8; index += 1) {
+      bytes[offset + index] = Number(remaining & 0xFFn);
+      remaining >>= 8n;
+    }
+  }
+
+  function normalizeUInt64(value, label) {
+    let normalized;
+    try {
+      normalized = typeof value === 'bigint' ? value : BigInt(String(value || '').trim());
+    } catch {
+      throw new Error(`${label} must be a hexadecimal or integer value.`);
+    }
+    if (normalized < 0n || normalized >= (1n << 64n)) {
+      throw new Error(`${label} must fit in an unsigned 64-bit value.`);
+    }
+    return normalized;
+  }
+
+  function bytesToBase64(bytes) {
+    let binary = '';
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    return btoa(binary);
+  }
+
   function decodeMessageId(value) {
     const bytes = decodeBytes(value);
     if (bytes.length < 16 || (bytes.length - 16) % 8 !== 0) {
@@ -56,6 +86,11 @@
       throw new Error('The Message ID contains an invalid Universal Address.');
     }
 
+    const vpValues = [];
+    for (let index = 0; index < vpCount; index += 1) {
+      vpValues.push(readUInt64LittleEndian(bytes, 16 + (index * 8)));
+    }
+
     return {
       messageId: normalizeBase64(value),
       universalAddress,
@@ -65,8 +100,28 @@
       vpCount,
       discoveryType: projectorType.id,
       discoveryLabel: projectorType.label,
+      vpValues,
+      vpHex: vpValues.map((vp) => `0x${vp.toString(16).toUpperCase().padStart(16, '0')}`),
     };
   }
 
-  window.WCProjector = {decodeMessageId};
+  function encodeMessageId({universalAddress, discoveryType, vpValues}) {
+    const projectorType = PROJECTOR_ENCODERS.get(String(discoveryType || '').trim());
+    if (!projectorType) throw new Error('Only fauna, flora, and mineral Wonder Projector IDs can be encoded.');
+    if (!Array.isArray(vpValues) || vpValues.length !== projectorType.vpCount) {
+      throw new Error(`${projectorType.label} requires exactly ${projectorType.vpCount} VP values.`);
+    }
+    const ua = normalizeUInt64(universalAddress, 'Universal Address');
+    if (ua >= (1n << 56n)) throw new Error('The Universal Address must fit in 56 bits.');
+    const normalizedVps = vpValues.map((value, index) => normalizeUInt64(value, `VP${index}`));
+    const bytes = new Uint8Array(16 + (normalizedVps.length * 8));
+    writeUInt64LittleEndian(bytes, 0, ua);
+    const view = new DataView(bytes.buffer);
+    view.setInt32(8, projectorType.id === 'Animal' ? 3 : projectorType.id === 'Flora' ? 4 : 5, true);
+    view.setInt32(12, projectorType.vpCount, true);
+    normalizedVps.forEach((value, index) => writeUInt64LittleEndian(bytes, 16 + (index * 8), value));
+    return bytesToBase64(bytes);
+  }
+
+  window.WCProjector = {decodeMessageId, encodeMessageId};
 })();

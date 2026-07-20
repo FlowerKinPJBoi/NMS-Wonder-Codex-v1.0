@@ -10,6 +10,10 @@
 .decoder-example code{color:#cbd8f4;overflow-wrap:anywhere}
 .decoder-example button{padding:0;border:0;color:var(--cyan);background:transparent;cursor:pointer;font-weight:800}
 .decoder-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.randomizer-console{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(270px,.75fr);gap:28px;align-items:center;margin-top:18px;padding:clamp(22px,4vw,34px);background:radial-gradient(circle at 95% 10%,rgba(157,140,255,.18),transparent 18rem),linear-gradient(145deg,rgba(18,26,51,.9),rgba(8,13,28,.9))}
+.randomizer-copy h2{margin:.45rem 0 .65rem;font:700 clamp(1.6rem,3vw,2.25rem)/1.08 "Space Grotesk",sans-serif}.randomizer-copy>p:last-child{margin:0;color:var(--muted);font-size:.88rem}
+.randomizer-controls{display:grid;gap:12px}.randomizer-controls label{display:grid;gap:7px;color:var(--muted);font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}.randomizer-controls select{width:100%;min-height:48px;padding:.75rem;border:1px solid var(--line);border-radius:11px;color:var(--text);background:#090f20}.randomizer-controls .button{width:100%}
+.randomizer-status{grid-column:1/-1;padding:12px 14px;border-left:2px solid var(--violet);color:#cbd3ed;background:rgba(157,140,255,.06);font-size:.78rem}
 .decoder-privacy{display:flex;gap:10px;align-items:flex-start;margin:4px 0 0;color:#c9f8df;font-size:.8rem}
 .decoder-privacy span:first-child{color:var(--green);font-weight:900}
 .decoder-result{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);gap:18px;margin-top:18px}
@@ -21,6 +25,7 @@
 .decoder-facts div{padding:12px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.025)}
 .decoder-facts span{display:block;color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:.07em}
 .decoder-facts strong{display:block;margin-top:4px;font-size:.86rem}
+.decoder-identity-model{margin:18px 0;padding:14px;border:1px solid rgba(157,140,255,.22);border-radius:12px;background:rgba(157,140,255,.055)}.decoder-identity-model strong{color:#d7d0ff;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em}.decoder-identity-model p{margin:6px 0 0;color:var(--muted);font-size:.8rem}
 .decoder-glyph-wrap{padding:17px;border:1px solid rgba(109,231,255,.2);border-radius:15px;background:rgba(109,231,255,.035)}
 .decoder-glyph-wrap .glyph-code{margin:13px 0 7px}
 .decoder-glyph-wrap .text-button{display:inline-flex;padding:0;border:0;color:var(--cyan);background:transparent;cursor:pointer;font-weight:800}
@@ -29,5 +34,5 @@
 .decoder-transit-panel p{margin:0 0 18px;color:var(--muted);font-size:.88rem}
 .decoder-transit-panel .button{width:100%}
 .decoder-caveat{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:.74rem!important}
-@media(max-width:820px){.decoder-result{grid-template-columns:1fr}.decoder-route-heading{flex-direction:column}.decoder-type-chip{align-self:flex-start}}
+@media(max-width:820px){.decoder-result,.randomizer-console{grid-template-columns:1fr}.decoder-route-heading{flex-direction:column}.decoder-type-chip{align-self:flex-start}}
 @media(max-width:560px){.decoder-page-shell{width:min(calc(100% - 24px),1040px)}.decoder-facts{grid-template-columns:1fr}.decoder-actions .button{width:100%}.decoder-example{display:grid}.decoder-route,.decoder-transit-panel{padding:18px}}
