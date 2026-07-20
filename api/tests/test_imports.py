@@ -87,6 +87,7 @@ def test_named_tester_keys_accept_individual_values():
         tester_api_key_monketsu="monk-key",
         tester_api_key_readyfireaim="ready-key",
         tester_api_key_visceral="visceral-key",
+        tester_api_key_ekimo="ekimo-key",
     )
     assert settings.tester_api_keys["Menomoo"] == "meno-key"
     assert settings.tester_api_keys["FloppyDonkey"] == "floppy-key"
