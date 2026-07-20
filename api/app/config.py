@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     tester_api_key_monketsu: str = ""
     tester_api_key_readyfireaim: str = ""
     tester_api_key_visceral: str = ""
+    tester_api_key_ekimo: str = ""
     ip_hash_salt: str = "change-me"
     max_requests_per_hour: int = 5
     analytics_enabled: bool = True
