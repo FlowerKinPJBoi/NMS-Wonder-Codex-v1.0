@@ -94,6 +94,7 @@ def test_named_tester_keys_accept_individual_values():
     assert settings.tester_api_keys["Monketsu"] == "monk-key"
     assert settings.tester_api_keys["ReadyFireAim"] == "ready-key"
     assert settings.tester_api_keys["Visceral"] == "visceral-key"
+    assert settings.tester_api_keys["Ekimo"] == "ekimo-key"
 
 
 def test_named_admin_keys_accept_individual_environment_values(monkeypatch):
