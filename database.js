@@ -53,9 +53,10 @@
 
   function imageMarkup(item, name) {
     const archetype = WCArchetypes.resolve(item);
+    const representativeLabel = item.archetype_label || archetype.label;
     const approvedUrl = String(item.primary_image_url || '').trim();
     const isArchetype = !approvedUrl;
-    const assetLabel = item.asset_type ? 'Illustrative reconstruction — not an image of this exact specimen.' : `${archetype.label} · Representative archetype — not this exact specimen.`;
+    const assetLabel = item.asset_type ? 'Illustrative reconstruction — not an image of this exact specimen.' : `${representativeLabel} · Representative archetype — not this exact specimen.`;
     return `<div class="wonder-card-image ${isArchetype ? 'is-archetype' : 'is-approved'}">
       <img src="${escapeHtml(approvedUrl || archetype.url)}" alt="${escapeHtml(isArchetype ? archetype.alt : name)}" loading="lazy" data-archetype-fallback="${escapeHtml(archetype.url)}" data-archetype-alt="${escapeHtml(archetype.alt)}">
       <div class="archetype-label"${isArchetype ? '' : ' hidden'}><span>${item.asset_type ? 'Illustrative archetype' : 'Representative archetype'}</span><small>${escapeHtml(assetLabel)}</small></div>
