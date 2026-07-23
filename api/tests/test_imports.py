@@ -10,7 +10,13 @@ from app.services.archetypes import (
     discovery_match_key,
     family_vp1s,
 )
-from app.services.catalog import serialize_discovery, wc_id
+from app.services.catalog import is_publicly_listed_discovery_type, serialize_discovery, wc_id
+from app.services.descriptors import (
+    DESCRIPTOR_PROFILE_VERSION,
+    descriptor_profile,
+    normalize_descriptor_tokens,
+    visual_profile_fingerprint,
+)
 from app.services.locations import decode_portal_coordinates, decode_universal_address
 
 
@@ -55,6 +61,11 @@ def test_wc_id_and_catalog_serialization():
     assert payload["portal_glyphs"] == "0123456789AB"
 
 
+def test_solar_systems_are_retained_but_not_publicly_listed():
+    assert is_publicly_listed_discovery_type("Animal") is True
+    assert is_publicly_listed_discovery_type("SolarSystem") is False
+
+
 def test_verification_normalizes_glyphs():
     payload = LocationVerificationPayload(
         discovery_id=1,
@@ -73,6 +84,23 @@ def test_catalog_update_accepts_admin_actor():
 def test_named_admin_keys_parse_from_environment_json():
     settings = Settings(admin_api_keys='{"PJ":"pj-key","Boots":"boots-key"}')
     assert settings.admin_api_keys == {"PJ": "pj-key", "Boots": "boots-key"}
+
+
+def test_named_tester_keys_accept_individual_values():
+    settings = Settings(
+        tester_api_key_menomoo="meno-key",
+        tester_api_key_floppydonkey="floppy-key",
+        tester_api_key_monketsu="monk-key",
+        tester_api_key_readyfireaim="ready-key",
+        tester_api_key_visceral="visceral-key",
+        tester_api_key_ekimo="ekimo-key",
+    )
+    assert settings.tester_api_keys["Menomoo"] == "meno-key"
+    assert settings.tester_api_keys["FloppyDonkey"] == "floppy-key"
+    assert settings.tester_api_keys["Monketsu"] == "monk-key"
+    assert settings.tester_api_keys["ReadyFireAim"] == "ready-key"
+    assert settings.tester_api_keys["Visceral"] == "visceral-key"
+    assert settings.tester_api_keys["Ekimo"] == "ekimo-key"
 
 
 def test_named_admin_keys_accept_individual_environment_values(monkeypatch):
@@ -138,7 +166,12 @@ def test_unverified_record_exposes_ua_derived_travel_address():
     assert payload["galaxy_name"] == "Odyalutai"
 
 
-def sample_pet_match(row: Discovery, creature_id: str = "TRICERATOPS", creature_type: str = "Prey") -> PetDiscoveryMatch:
+def sample_pet_match(
+    row: Discovery,
+    creature_id: str = "TRICERATOPS",
+    creature_type: str = "Prey",
+    descriptors: list[str] | None = None,
+) -> PetDiscoveryMatch:
     return PetDiscoveryMatch(
         approved_from_batch_id=row.approved_from_batch_id,
         contributor="PJ",
@@ -155,14 +188,14 @@ def sample_pet_match(row: Discovery, creature_id: str = "TRICERATOPS", creature_
         secondary_check="",
         message_id=row.message_id,
         record_hash=f"pet-hash-{creature_id}",
-        raw_record={},
+        raw_record={"Descriptors": descriptors or []},
         public_attribution=True,
     )
 
 
 def test_confirmed_pet_match_selects_supported_fauna_archetype():
     row = sample_discovery()
-    match = sample_pet_match(row)
+    match = sample_pet_match(row, descriptors=["^TAIL_RING", "HEAD_HORN", "HEAD_HORN", "bad token!"])
     vp1_index = build_vp1_family_index([match])
     assert discovery_match_key(row) == discovery_match_key(match)
     assert build_exact_match_index([match])[discovery_match_key(row)] is match
@@ -173,6 +206,55 @@ def test_confirmed_pet_match_selects_supported_fauna_archetype():
     assert metadata["fauna_family_label"] == "Triceratops"
     assert metadata["fauna_behavior"] == "Prey"
     assert metadata["fauna_identity_source"] == "exact_pet_match"
+    assert metadata["descriptor_profile_version"] == DESCRIPTOR_PROFILE_VERSION
+    assert metadata["descriptor_tokens"] == ["HEAD_HORN", "TAIL_RING"]
+    assert metadata["descriptor_visual_categories"] == ["head", "tail"]
+    assert metadata["descriptor_token_count"] == 2
+    assert metadata["visual_profile_fingerprint"].startswith("WCV-")
+    assert metadata["representative_image_policy"] == "representative_not_exact_without_specimen_image"
+
+
+def test_descriptor_profile_is_stable_and_does_not_claim_exact_imagery():
+    match = type("Match", (), {"raw_record": {"Descriptors": ["^TAIL_B", "HEAD_A"]}})()
+    profile = descriptor_profile("TREX", match)
+    assert normalize_descriptor_tokens(["^TAIL_B", "HEAD_A", "HEAD_A"]) == ["HEAD_A", "TAIL_B"]
+    assert profile["visual_profile_fingerprint"] == visual_profile_fingerprint(
+        "TREX", ["TAIL_B", "HEAD_A"]
+    )
+    assert profile["descriptor_interpretation_status"] == "lexical_hints_only"
+    assert "not the exact specimen" in profile["representative_image_notice"]
+
+
+def test_all_projector_capture_families_select_their_supported_archetypes():
+    expected = {
+        "ANTELOPE": "fauna.antelope",
+        "BLOB": "fauna.blob",
+        "BONECOW": "fauna.bonecow",
+        "CAT": "fauna.cat",
+        "COW": "fauna.cow",
+        "FLOATSPIDER": "fauna.floatspider",
+        "FLYINGBEETLE": "fauna.flyingbeetle",
+        "GRUNT": "fauna.grunt",
+        "HERMITCRAB": "fauna.hermitcrab",
+        "LARGEBUTTERFLY": "fauna.largebutterfly",
+        "PROTOFLYER": "fauna.protoflyer",
+        "ROBOTANTELOPE": "fauna.robotantelope",
+        "SIXLEGCOW": "fauna.sixlegcow",
+        "SPIDER": "fauna.spider",
+        "STRIDER": "fauna.strider",
+        "TREX": "fauna.trex",
+        "TRICERATOPS": "fauna.triceratops",
+        "TWOLEGANTELOPE": "fauna.twolegantelope",
+        "WALKINGBUILDING": "fauna.walkingbuilding",
+        "WEIRDFLOAT": "fauna.weirdfloat",
+    }
+    row = sample_discovery()
+
+    for creature_id, archetype_key in expected.items():
+        metadata = archetype_metadata(row, sample_pet_match(row, creature_id))
+        assert metadata["archetype_key"] == archetype_key
+        assert metadata["fauna_family_id"] == creature_id
+        assert metadata["archetype_source"] == "confirmed_pet_match"
 
 
 def test_unambiguous_vp1_mapping_labels_related_discoveries_without_copying_behavior():
@@ -208,5 +290,26 @@ def test_unknown_or_nonfauna_record_uses_neutral_category_fallback():
     row.discovery_type = "Flora"
     metadata = archetype_metadata(row)
     assert metadata["archetype_key"] == "flora.unknown"
-    assert metadata["archetype_source"] == "category_fallback"
+    assert metadata["archetype_source"] == "vp1_family_signal"
     assert metadata["fauna_family_id"] == ""
+    assert metadata["wonder_family_label"].startswith("Flora family F-")
+    assert metadata["wonder_individual_reference"].startswith("F-")
+    assert metadata["wonder_individual_name_status"] == "encoded_not_decoded"
+    assert metadata["wonder_projector_fingerprint_status"] == "complete"
+
+
+def test_captured_generated_name_is_presented_without_decoding_or_guessing():
+    row = sample_discovery()
+    row.discovery_type = "Mineral"
+    row.display_name = "Nadyrodite"
+    metadata = archetype_metadata(row)
+    assert metadata["wonder_individual_name"] == "Nadyrodite"
+    assert metadata["wonder_individual_name_status"] == "captured"
+    assert metadata["wonder_individual_signal_label"] == "Captured in-game name: Nadyrodite"
+
+
+def test_family_reference_is_stable_but_does_not_expose_vp1():
+    first = archetype_metadata(sample_discovery())
+    second = archetype_metadata(sample_discovery())
+    assert first["wonder_family_reference"] == second["wonder_family_reference"]
+    assert "0x3" not in first["wonder_family_reference"]

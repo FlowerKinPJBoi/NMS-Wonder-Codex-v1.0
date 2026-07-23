@@ -12,6 +12,14 @@ TYPE_PREFIX = {
     "Mineral": "M",
 }
 
+# These records remain in the database and contribution pipeline but are not
+# standalone specimens in the public-facing catalog or cluster map.
+PUBLIC_HIDDEN_DISCOVERY_TYPES = ("SolarSystem",)
+
+
+def is_publicly_listed_discovery_type(discovery_type: str) -> bool:
+    return discovery_type not in PUBLIC_HIDDEN_DISCOVERY_TYPES
+
 
 def wc_id(discovery: Discovery | int, discovery_type: str | None = None) -> str:
     if isinstance(discovery, Discovery):

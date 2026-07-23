@@ -9,9 +9,10 @@
   const stage = $('#mapStage');
   const context = canvas.getContext('2d');
   const state = {
-    points: [], clusters: [], loading: false, request: 0,
+    points: [], clusters: [], hotspots: [], loading: false, request: 0,
     centerX: 0, centerZ: 0, scale: .16, minScale: .08, maxScale: 5,
     width: 0, height: 0, dpr: 1, drag: null, selected: null,
+    controller: null, drawFrame: 0, zoomLabel: '',
   };
 
   function populateGalaxies() {
@@ -90,17 +91,25 @@
 
   async function loadPoints({reset = true} = {}) {
     const request = ++state.request;
+    state.controller?.abort();
+    const controller = new AbortController();
+    state.controller = controller;
     state.loading = true;
     $('#mapLoading').hidden = false;
     $('#mapEmpty').hidden = true;
     $('#mapCount').textContent = 'Plotting location evidence…';
     updateUrl();
     try {
-      const response = await fetch(`${API}/map-points?${mapQuery()}`, {headers:{Accept:'application/json'}});
+      const response = await fetch(`${API}/map-points?${mapQuery()}`, {
+        headers:{Accept:'application/json'},
+        signal: controller.signal,
+      });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.detail || `Map request failed (${response.status}).`);
       if (request !== state.request) return;
       state.points = data.items || [];
+      state.hotspots = buildHotspots(state.points);
+      renderHotspots();
       state.selected = null;
       if (reset) resetView(false);
       $('#mapSelection').className = 'selection-empty';
@@ -109,9 +118,25 @@
       $('#mapCount').textContent = `${number(state.points.length)} ${noun} in Galaxy ${data.galaxy_number} — ${data.galaxy_name}${data.truncated ? ` · showing first ${number(data.returned)}` : ''}`;
       $('#mapEmpty').hidden = state.points.length > 0;
       draw();
+      if (window.WonderAnalytics) {
+        const q = $('#mapSearch').value.trim();
+        WonderAnalytics.track('map_filter', {
+          map_galaxy: $('#galaxyFilter').value,
+          map_lane: $('#laneFilter').value,
+          map_quality: $('#qualityFilter').value,
+          discovery_type: $('#typeFilter').value,
+          fauna_family: $('#familyFilter').value,
+          query_kind: WonderAnalytics.queryKind(q),
+          query_length: q.length,
+          has_query: Boolean(q),
+          result_count: state.points.length,
+        });
+      }
     } catch (error) {
+      if (error.name === 'AbortError') return;
       if (request !== state.request) return;
       state.points = [];
+      state.hotspots = [];
       $('#mapCount').textContent = error.message;
       $('#mapEmpty').hidden = false;
       $('#mapEmpty').innerHTML = `<strong>Map unavailable</strong><p>${escapeHtml(error.message)}</p>`;
@@ -133,7 +158,7 @@
     context.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
     state.minScale = Math.max(.055, Math.min(state.width, state.height) / 4600);
     if (state.scale < state.minScale) state.scale = state.minScale;
-    draw();
+    scheduleDraw();
   }
 
   function resetView(render = true) {
@@ -162,6 +187,38 @@
       worldX: group.worldX / group.points.length, worldZ: group.worldZ / group.points.length,
     }));
     return state.clusters;
+  }
+
+  function buildHotspots(points) {
+    const cellSize = 320;
+    const groups = new Map();
+    points.forEach((point) => {
+      const key = `${Math.floor(Number(point.x) / cellSize)}:${Math.floor(Number(point.z) / cellSize)}`;
+      const group = groups.get(key) || {key, points:[], worldX:0, worldZ:0};
+      group.points.push(point);
+      group.worldX += Number(point.x);
+      group.worldZ += Number(point.z);
+      groups.set(key, group);
+    });
+    return [...groups.values()].map((group) => {
+      group.worldX /= group.points.length;
+      group.worldZ /= group.points.length;
+      group.systems = new Set(group.points.map((point) => `${point.x}:${point.y}:${point.z}`)).size;
+      group.verified = group.points.filter((point) => point.travel_status === 'verified').length;
+      group.signal = group.points.length >= 25 && group.systems >= 10 ? 'High sample' : group.points.length >= 8 && group.systems >= 4 ? 'Developing' : 'Early signal';
+      group.label = dominantLabel(group.points);
+      return group;
+    }).filter((group) => group.points.length > 1)
+      .sort((a,b) => (b.points.length * Math.log2(b.systems + 1)) - (a.points.length * Math.log2(a.systems + 1)));
+  }
+
+  function dominantLabel(points) {
+    const counts = new Map();
+    points.forEach((point) => {
+      const label = point.family_label || point.record_type || 'Mixed';
+      counts.set(label, (counts.get(label) || 0) + 1);
+    });
+    return [...counts.entries()].sort((a,b) => b[1] - a[1])[0]?.[0] || 'Mixed';
   }
 
   function drawBackdrop() {
@@ -221,26 +278,53 @@
     });
   }
 
+  function drawHotspotHalos(hotspots) {
+    context.save();
+    hotspots.slice(0,8).forEach((hotspot, index) => {
+      const screen = worldToScreen({x:hotspot.worldX,z:hotspot.worldZ});
+      if (screen.x < -90 || screen.x > state.width + 90 || screen.y < -90 || screen.y > state.height + 90) return;
+      const radius = Math.min(70, 24 + Math.sqrt(hotspot.points.length) * 5);
+      context.strokeStyle = index === 0 ? 'rgba(255,215,131,.62)' : 'rgba(157,140,255,.38)';
+      context.lineWidth = index === 0 ? 2 : 1;
+      context.setLineDash([5,7]);
+      context.beginPath(); context.arc(screen.x, screen.y, radius, 0, Math.PI * 2); context.stroke();
+      context.setLineDash([]);
+    });
+    context.restore();
+  }
+
   function draw() {
     if (!state.width || !state.height) return;
     drawBackdrop();
+    drawHotspotHalos(state.hotspots);
     const clusters = createClusters();
     drawClusters(clusters);
-    renderHotspots(clusters);
     const zoom = state.scale / state.minScale;
-    $('#zoomReadout').textContent = zoom < 1.35 ? 'Galaxy view' : `${zoom.toFixed(1)}× zoom`;
+    const label = zoom < 1.35 ? 'Galaxy view' : `${zoom.toFixed(1)}× zoom`;
+    if (label !== state.zoomLabel) {
+      state.zoomLabel = label;
+      $('#zoomReadout').textContent = label;
+    }
   }
 
-  function renderHotspots(clusters) {
-    const ranked = clusters.filter((cluster) => cluster.points.length > 1).sort((a,b) => b.points.length - a.points.length).slice(0,5);
-    $('#hotspotList').innerHTML = ranked.length ? ranked.map((cluster) => {
-      const first = cluster.points[0];
-      const systems = new Set(cluster.points.map((point) => `${point.x}:${point.y}:${point.z}`)).size;
-      return `<button class="hotspot-item" type="button" data-cluster="${escapeHtml(cluster.key)}"><span>${cluster.points.length}</span><span><strong>${escapeHtml(first.family_label || first.record_type)} cluster</strong><small>${systems} plotted system${systems === 1 ? '' : 's'}</small></span><span>Focus</span></button>`;
-    }).join('') : '<p class="hotspot-empty">No multi-record clusters are visible at this zoom.</p>';
-    $('#hotspotList').querySelectorAll('[data-cluster]').forEach((button) => button.addEventListener('click', () => {
-      const cluster = state.clusters.find((item) => item.key === button.dataset.cluster);
-      if (cluster) focusCluster(cluster);
+  function scheduleDraw() {
+    if (state.drawFrame) return;
+    state.drawFrame = requestAnimationFrame(() => {
+      state.drawFrame = 0;
+      draw();
+    });
+  }
+
+  function renderHotspots() {
+    const ranked = state.hotspots.slice(0,5);
+    $('#hotspotBasis').textContent = 'Fixed 320-coordinate cells · current filters · catalog concentration only.';
+    $('#hotspotList').innerHTML = ranked.length ? ranked.map((hotspot,index) => {
+      const verifiedPercent = Math.round((hotspot.verified / hotspot.points.length) * 100);
+      return `<button class="hotspot-item" type="button" data-hotspot="${escapeHtml(hotspot.key)}"><span>${index + 1}</span><span><strong>${escapeHtml(hotspot.label)} hotspot</strong><small>${hotspot.points.length} records · ${hotspot.systems} systems · ${verifiedPercent}% verified · ${escapeHtml(hotspot.signal)}</small></span><span>Focus</span></button>`;
+    }).join('') : '<p class="hotspot-empty">No multi-record hotspot signal exists for this filter yet.</p>';
+    $('#hotspotList').querySelectorAll('[data-hotspot]').forEach((button) => button.addEventListener('click', () => {
+      const hotspot = state.hotspots.find((item) => item.key === button.dataset.hotspot);
+      if (hotspot) focusCluster(hotspot);
     }));
   }
 
@@ -260,7 +344,8 @@
     state.centerX = cluster.worldX; state.centerZ = cluster.worldZ;
     state.scale = Math.min(state.maxScale, Math.max(state.scale * 2.5, state.minScale * 3));
     draw();
-    const refreshed = state.clusters.find((item) => item.points.some((point) => cluster.points.some((selected) => selected.key === point.key)));
+    const selectedKeys = new Set(cluster.points.map((point) => point.key));
+    const refreshed = state.clusters.find((item) => item.points.some((point) => selectedKeys.has(point.key)));
     if (refreshed) renderSelection(refreshed);
   }
 
@@ -271,7 +356,7 @@
     state.scale = next;
     state.centerX = beforeX - (screenX - state.width / 2) / next;
     state.centerZ = beforeZ - (screenY - state.height / 2) / next;
-    draw();
+    scheduleDraw();
   }
 
   stage.addEventListener('wheel', (event) => {
@@ -289,7 +374,7 @@
     const dx = event.clientX - state.drag.x, dy = event.clientY - state.drag.y;
     if (Math.abs(dx) + Math.abs(dy) > 4) state.drag.moved = true;
     state.centerX = state.drag.centerX - dx / state.scale; state.centerZ = state.drag.centerZ - dy / state.scale;
-    draw();
+    scheduleDraw();
   });
   stage.addEventListener('pointerup', (event) => {
     const drag = state.drag; state.drag = null; stage.classList.remove('dragging');
@@ -306,7 +391,7 @@
 
   let timer;
   $('#mapFilters').addEventListener('change', (event) => {
-    if (event.target.id === 'displayMode') { updateUrl(); draw(); return; }
+    if (event.target.id === 'displayMode') { updateUrl(); scheduleDraw(); return; }
     if (event.target.id === 'laneFilter') updateFilterAvailability();
     if (event.target.id === 'typeFilter') {
       if (event.target.value !== 'Animal') $('#familyFilter').value = '';

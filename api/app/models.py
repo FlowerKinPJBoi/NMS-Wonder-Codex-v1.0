@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import BigInteger, Boolean, Date, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -274,3 +274,37 @@ class AuditEvent(Base):
     actor: Mapped[str] = mapped_column(String(120), default="admin", nullable=False)
     batch_id: Mapped[str] = mapped_column(String(36), default="", nullable=False, index=True)
     detail: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+
+
+class AnalyticsEvent(Base):
+    """Short-lived, privacy-safe anonymous activity used for visit journeys."""
+
+    __tablename__ = "analytics_events"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+    session_hash: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    event_type: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    path: Mapped[str] = mapped_column(String(300), nullable=False, index=True)
+    page_title: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    referrer_domain: Mapped[str] = mapped_column(String(255), default="Direct", nullable=False, index=True)
+    device_class: Mapped[str] = mapped_column(String(20), default="Desktop", nullable=False, index=True)
+    browser_family: Mapped[str] = mapped_column(String(40), default="Other", nullable=False, index=True)
+    os_family: Mapped[str] = mapped_column(String(40), default="Other", nullable=False, index=True)
+    properties: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+
+
+class AnalyticsDailyMetric(Base):
+    """Permanent aggregate totals retained after detailed journeys expire."""
+
+    __tablename__ = "analytics_daily_metrics"
+    __table_args__ = (
+        UniqueConstraint("day", "metric", "dimension", "value", name="uq_analytics_daily_metric"),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    day: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    metric: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    dimension: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    value: Mapped[str] = mapped_column(String(300), nullable=False)
+    count: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)

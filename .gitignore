@@ -1,40 +1,44 @@
-# .NET / IDE
-**/bin/
-**/obj/
-**/artifacts/
-.vs/
-.vscode/
-.idea/
-*.user
-*.suo
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
 
-# Code-signing material — never commit
-*.pfx
-*.p12
-*.pvk
-*.snk
-*.cer
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
 *.key
-signing/
 secrets/
 
-# No Man's Sky raw saves and decoded exports — never commit
+# Generated output and private application packages
+dist/
+build/
+artifacts/
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.exe
+*.dll
+*.pdb
+
+# No Man's Sky private/raw data
 *.hg
 containers.index
 Slot*.json
 slot*.json
 save*.json
-accountdata*.json
 wgs/
 WGS/
 private-fixtures/
-test-data/private/
-research/raw/
-research/matched-pairs/private/
 
-# OS files
-Thumbs.db
+# Editors and operating systems
+.vscode/
+.idea/
 .DS_Store
-
-# Keep required project JSON
-!importer-app/global.json
+Thumbs.db

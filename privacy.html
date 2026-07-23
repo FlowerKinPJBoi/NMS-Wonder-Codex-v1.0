@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="How Wonder Codex measures site use while protecting explorer privacy.">
+  <meta name="theme-color" content="#080b16">
+  <title>Privacy | Wonder Codex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=1.11.0">
+  <style>
+    .privacy-hero{width:min(calc(100% - 40px),900px);margin:0 auto;padding:90px 0 34px}.privacy-hero h1{margin:12px 0 18px;font:700 clamp(2.8rem,8vw,5.8rem)/.98 "Space Grotesk",sans-serif;letter-spacing:-.055em}.privacy-hero h1 span{color:var(--cyan)}.privacy-hero>p:last-child{max-width:720px;color:var(--muted);font-size:1.08rem}.privacy-content{width:min(calc(100% - 40px),900px);margin:0 auto;padding:24px 0 100px;display:grid;gap:18px}.privacy-card{padding:28px;border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(145deg,rgba(19,27,54,.85),rgba(9,14,29,.86))}.privacy-card h2{margin:0 0 10px;font:700 1.45rem "Space Grotesk",sans-serif}.privacy-card p,.privacy-card li{color:var(--muted)}.privacy-card ul{margin:.7rem 0 0;padding-left:1.25rem}.privacy-card strong{color:var(--text)}
+  </style>
+</head>
+<body>
+  <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Explorer Privacy</small></span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
+    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="map.html">Map</a><a href="decoder.html">Decoder</a><a href="contributors.html">Contributors</a><a href="contribute.html">Contribute</a></nav>
+  </header>
+  <main>
+    <section class="privacy-hero"><p class="eyebrow">PRIVACY-SAFE FIRST-PARTY ANALYTICS</p><h1>Useful signals.<br><span>No explorer dossier.</span></h1><p>Wonder Codex measures which public pages and tools are useful so the project can improve. The system is operated by Wonder Codex and deliberately avoids invasive visitor tracking.</p></section>
+    <section class="privacy-content">
+      <article class="privacy-card"><h2>What is measured</h2><p>Anonymous visits, public page routes, record or asset IDs opened, feature actions, broad referring domains, and coarse categories such as desktop/mobile, browser family, and operating-system family.</p></article>
+      <article class="privacy-card"><h2>What is never stored</h2><ul><li>Raw IP addresses or raw browser user-agent strings</li><li>Cookies, account identities, uploaded filenames, or local save paths</li><li>Search text, contributor form text, administrator activity, or admin routes</li><li>Raw save data—the Importer continues to process saves locally</li></ul></article>
+      <article class="privacy-card"><h2>Retention and control</h2><p>Anonymous journey details expire after <strong>90 days</strong>. Daily aggregate counts remain so long-term project growth can be understood. Browsers sending <strong>Do Not Track</strong> or <strong>Global Privacy Control</strong> are not measured.</p></article>
+      <article class="privacy-card"><h2>Who can see it</h2><p>The analytics dashboard is restricted to the Wonder Codex owner. Contributor-test accounts, application testers, and the public cannot access it.</p></article>
+    </section>
+  </main>
+  <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Preserve the procedural universe</small></span></a></div><div class="footer-links"><a href="database.html">Database</a><a href="map.html">Map</a><a href="contribute.html">Contribute</a><a href="privacy.html" aria-current="page">Privacy</a></div></footer>
+  <script src="analytics.js?v=1.13.0"></script>
+  <script src="script.js?v=1.11.0"></script>
+</body>
+</html>

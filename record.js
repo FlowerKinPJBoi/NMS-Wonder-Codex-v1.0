@@ -52,26 +52,37 @@
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(link.href), 0);
+    window.WonderAnalytics?.track('transit_ticket_download', {entity_type:'discovery', entity_id:record.wc_id, download_type:'wctransit'});
     toast('Pegasus Transit route downloaded.');
   }
 
-  function renderFaunaIdentity(data) {
+  function renderWonderIdentity(data) {
     const element = $('#recordIdentity');
-    if (!data.fauna_family_label) {
+    if (!data.wonder_family_label && !data.fauna_family_label) {
       element.hidden = true;
       element.innerHTML = '';
       return;
     }
     const exact = data.fauna_identity_source === 'exact_pet_match';
     const evidenceCount = Number(data.fauna_family_evidence_count || 0);
-    const evidence = exact
-      ? 'Exact PetData match'
-      : `${data.fauna_identity_label || 'Confirmed VP1 family mapping'}${evidenceCount ? ` · supported by ${number(evidenceCount)} exact match${evidenceCount === 1 ? '' : 'es'}` : ''}`;
+    const family = data.wonder_family_label || `${data.fauna_family_label} family`;
+    const evidence = exact ? 'Exact companion match'
+      : data.wonder_family_source === 'confirmed_vp1_mapping'
+        ? `Confirmed family mapping${evidenceCount ? ` · supported by ${number(evidenceCount)} exact match${evidenceCount === 1 ? '' : 'es'}` : ''}`
+        : 'VP1 visual-family signal from controlled Wonder Projector research';
+    const individual = data.wonder_individual_name_status === 'captured'
+      ? `Captured in-game name: ${data.wonder_individual_name}`
+      : `Individual/name signal ${data.wonder_individual_reference || 'encoded'} — exact name not decoded yet`;
+    const descriptorCount = Number(data.descriptor_token_count || 0);
+    const categories = Array.isArray(data.descriptor_visual_categories) ? data.descriptor_visual_categories : [];
+    const appearance = exact && descriptorCount
+      ? `<p class="descriptor-evidence">${number(descriptorCount)} appearance signal${descriptorCount === 1 ? '' : 's'} observed in the exact paired pet record${categories.length ? ` · token-name research hints: ${escapeHtml(categories.join(', '))}` : ''}. These hints are not yet confirmed body-part mappings.</p>`
+      : '';
     element.classList.toggle('exact', exact);
     element.classList.toggle('inferred', !exact);
-    element.innerHTML = `<p class="kicker">FAUNA IDENTITY</p>
-      <div class="fauna-identity-heading"><strong>${escapeHtml(data.fauna_family_label)} family</strong><span class="fauna-behavior">${exact && data.fauna_behavior ? `Behavior: ${escapeHtml(data.fauna_behavior)}` : 'Behavior not inferred'}</span></div>
-      <p>${escapeHtml(evidence)} · Technical family ID <code>${escapeHtml(data.fauna_family_id)}</code></p>`;
+    element.innerHTML = `<p class="kicker">WONDER IDENTITY</p>
+      <div class="fauna-identity-heading"><strong>${escapeHtml(family)}</strong><span class="fauna-behavior">${escapeHtml(individual)}</span></div>
+      <p>${escapeHtml(evidence)} · ${escapeHtml(data.wonder_projector_fingerprint_label || 'Projector fingerprint under review')}</p>${appearance}`;
     element.hidden = false;
   }
 
@@ -89,7 +100,7 @@
     };
     primary.src = archetype.url;
     primary.alt = archetype.alt;
-    $('#recordImageCaption').textContent = `${archetype.label} • Representative archetype — specimen image pending${note ? ` • ${note}` : ''}`;
+    $('#recordImageCaption').textContent = `${data.archetype_label || archetype.label} • Representative archetype — not this exact specimen${note ? ` • ${note}` : ''}`;
     $('#recordThumbnails').innerHTML = '';
     $('#recordThumbnails').hidden = true;
     gallery.hidden = false;
@@ -130,19 +141,22 @@
     $('#recordName').textContent = data.display_name;
     $('#recordType').textContent = data.discovery_type === 'Animal' ? 'Fauna' : data.discovery_type;
     $('#recordAttribution').textContent = `Contributed by ${data.contributor || data.owner || 'Unknown explorer'}${data.save_name ? ` • ${data.save_name}` : ''}`;
-    renderFaunaIdentity(data);
+    renderWonderIdentity(data);
     $('#recordBadges').innerHTML = badge('Location', data.travel_status) + badge('Projector', data.projector_status) + badge('Image', data.image_status);
     renderImages(data.images || [], data);
-    $('#messageId').textContent = data.message_id || 'No Message ID available';
+    $('#messageId').textContent = data.message_id || 'No Wonder Projector Message ID available';
     $('#copyMessage').hidden = !data.message_id;
-    const identityData = data.fauna_family_label ? [
-      item('Fauna family', data.fauna_family_label, false),
-      item('Behavior', data.fauna_identity_source === 'exact_pet_match' ? data.fauna_behavior || 'Not recorded' : 'Not inferred', false),
-      item('Identity evidence', data.fauna_identity_label, false),
+    const identityData = data.wonder_family_label ? [
+      item('Visual family', data.wonder_family_label, false),
+      item('Individual identity', data.wonder_individual_name || data.wonder_individual_reference || 'Encoded', false),
+      item('Identity evidence', data.wonder_projector_fingerprint_label, false),
+      ...(data.descriptor_token_count ? [
+        item('Appearance signals', `${data.descriptor_token_count} observed`, false),
+        item('Visual profile', data.visual_profile_fingerprint || 'Under review', false),
+      ] : []),
     ] : [];
     $('#dataList').innerHTML = [
       ...identityData,
-      item('Universal Address', data.ua), item('VP0', data.vp0), item('VP1', data.vp1), item('VP2', data.vp2), item('VP3', data.vp3), item('VP4', data.vp4),
       item('Owner', data.owner, false), item('Platform', data.platform, false),
       item('Approved verifications', data.verification_counts?.approved ?? 0, false), item('Pending verifications', data.verification_counts?.pending ?? 0, false),
     ].join('');
@@ -162,12 +176,13 @@
     $('#locationCopy').textContent = verified
       ? 'Use this reviewed galaxy and 12-glyph portal address to travel to the system.'
       : derived
-        ? 'This portal route was decoded automatically from the discovery Universal Address. The decoding method is confirmed; this individual find still welcomes a community revisit.'
-        : 'This record needs a valid Universal Address or reviewed galaxy and portal evidence before travel directions can be displayed.';
+        ? 'This portal route was decoded automatically from saved discovery data. The decoding method is confirmed; this individual find still welcomes a community revisit.'
+        : 'This record needs reviewed galaxy and portal evidence before travel directions can be displayed.';
     $('#locationFacts').hidden = !travelReady;
     if (travelReady) {
-      const routeSource = verified ? 'Community verified' : derived ? 'Decoded from UA' : 'Catalog supplied';
-      $('#locationFacts').innerHTML = `<div><span>Galaxy number</span><strong>${data.galaxy_number}</strong></div><div><span>Galaxy name</span><strong>${escapeHtml(data.galaxy_name || 'Not supplied')}</strong></div><div><span>Route source</span><strong>${escapeHtml(routeSource)}</strong></div><div><span>RealityIndex</span><strong>${data.reality_index ?? '—'}</strong></div>`;
+      const routeSource = verified ? 'Community verified' : derived ? 'Decoded automatically' : 'Catalog supplied';
+      const routeState = verified ? 'Verified' : derived ? 'Awaiting community revisit' : 'Catalog evidence';
+      $('#locationFacts').innerHTML = `<div><span>Galaxy number</span><strong>${data.galaxy_number}</strong></div><div><span>Galaxy name</span><strong>${escapeHtml(data.galaxy_name || 'Not supplied')}</strong></div><div><span>Route source</span><strong>${escapeHtml(routeSource)}</strong></div><div><span>Route status</span><strong>${escapeHtml(routeState)}</strong></div>`;
       WCGlyphs.render('#glyphRow', data.portal_glyphs);
       $('#glyphCode').textContent = data.portal_glyphs;
       $('#copyGlyphs').hidden = false;
@@ -176,10 +191,17 @@
       $('#glyphCode').textContent = '';
       $('#copyGlyphs').hidden = true;
     }
-    $('#imageLink').href = `contribute.html?mode=image&record=${data.id}`;
-    $('#verifyLink').href = `contribute.html?mode=verify&record=${data.id}`;
+    $('#evidenceLink').href = `contribute.html?mode=evidence&record=${data.id}`;
     configurePegasusTransit(data);
     $('#recordLayout').hidden = false;
+    window.WonderAnalytics?.track('record_view', {
+      entity_type: 'discovery',
+      entity_id: data.wc_id,
+      discovery_type: data.discovery_type,
+      fauna_family: data.fauna_family_id || '',
+      location_status: data.travel_status || data.location_status || '',
+      image_status: data.image_status || '',
+    });
   }
 
   async function load() {
@@ -200,7 +222,7 @@
     }
   }
 
-  $('#copyMessage').addEventListener('click', async () => { if (record?.message_id) { await navigator.clipboard.writeText(record.message_id); toast('Message ID copied.'); } });
+  $('#copyMessage').addEventListener('click', async () => { if (record?.message_id) { await navigator.clipboard.writeText(record.message_id); toast('Wonder Projector Message ID copied.'); } });
   $('#copyGlyphs').addEventListener('click', async () => { if (record?.portal_glyphs) { await WCGlyphs.copy(record.portal_glyphs); toast('Portal glyph code copied.'); } });
   $('#pegasusTransit').addEventListener('click', downloadPegasusTicket);
   load();

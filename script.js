@@ -54,3 +54,25 @@ async function loadStats() {
 }
 
 if ($('#apiStatus')) loadStats();
+
+async function loadHomeContributors() {
+  const target = $('#homeContributors');
+  if (!target) return;
+  try {
+    const response = await fetch('/api/contributors?limit=6', {headers:{Accept:'application/json'}});
+    if (!response.ok) throw new Error();
+    const data = await response.json();
+    const items = data.items || [];
+    target.replaceChildren(...(items.length ? items : [{rank:{code:'C'},display_name:'Future Explorers'}]).map((item) => {
+      const chip = document.createElement('span');
+      chip.textContent = `${item.rank?.code || 'C'} · ${item.display_name}`;
+      return chip;
+    }));
+  } catch {
+    const chip = document.createElement('span');
+    chip.textContent = 'Contributor signals temporarily unavailable';
+    target.replaceChildren(chip);
+  }
+}
+
+loadHomeContributors();

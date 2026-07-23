@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=1.5.0">
+  <link rel="stylesheet" href="styles.css?v=1.11.0">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true">
@@ -28,6 +28,8 @@
     <nav id="primaryNav" aria-label="Primary navigation">
       <a href="database.html">Database</a>
       <a href="map.html">Map</a>
+      <a href="decoder.html">Decoder</a>
+      <a href="contributors.html">Contributors</a>
       <a href="contribute.html">Contribute</a>
       <a href="#research">Research</a>
       <a href="#roadmap">Roadmap</a>
@@ -87,7 +89,7 @@
         <a class="project-card project-live" href="database.html">
           <div class="project-head"><span class="project-icon">▦</span><span class="project-status live">Live now</span></div>
           <h3>Wonder Database</h3>
-          <p>Search published UAs, VP arrays, Message IDs, location status, portal glyphs, contributors, and verification history.</p>
+          <p>Search published Wonder records by family, location, portal route, contributor, image status, and verification history.</p>
           <span class="project-link">Browse the catalog →</span>
         </a>
         <a class="project-card project-link-card" href="contribute.html">
@@ -96,12 +98,12 @@
           <p>Contribute save data, prepare screenshots, verify locations, and follow each submission into a human review queue.</p>
           <span class="project-link">Choose a contribution →</span>
         </a>
-        <article class="project-card">
-          <div class="project-head"><span class="project-icon">⚒</span><span class="project-status active">Active research</span></div>
-          <h3>Wonder Forge</h3>
-          <p>Generate and decode projector IDs, randomize procedural families, and eventually use “One More Like This.”</p>
-          <span class="project-link muted">Research in progress</span>
-        </article>
+        <a class="project-card project-live" href="decoder.html">
+          <div class="project-head"><span class="project-icon">⌁</span><span class="project-status live">Live beta</span></div>
+          <h3>Wonder Projector Decoder</h3>
+          <p>Paste a fauna, flora, or mineral Message ID to reveal its encoded galaxy and twelve-glyph portal route—entirely in your browser.</p>
+          <span class="project-link">Decode a route →</span>
+        </a>
         <a class="project-card project-live" href="map.html">
           <div class="project-head"><span class="project-icon">⌖</span><span class="project-status live">Live beta</span></div>
           <h3>Galactic Cluster Map</h3>
@@ -110,7 +112,7 @@
         </a>
         <article class="project-card wide-card">
           <div class="project-head"><span class="project-icon">▤</span><span class="project-status active">Writing v1.0</span></div>
-          <div><h3>Wonder Codex Research Manual</h3><p>A reproducible technical reference for Message IDs, DiscoveryData, pet matching, VP roles, experiments, confidence, and contributor methodology.</p></div>
+          <div><h3>Wonder Codex Research Manual</h3><p>A reproducible technical reference for Wonder Projector Message IDs, DiscoveryData, pet matching, VP roles, experiments, confidence, and contributor methodology.</p></div>
           <span class="project-link muted">Evidence first. Conclusions second.</span>
         </article>
       </div>
@@ -153,8 +155,8 @@
           <div class="roadmap-item done"><span>02</span><div><strong>Catalog and location verification</strong><small>Public records, WC IDs, galaxy and glyph display, admin verification queue</small></div><b>Complete</b></div>
           <div class="roadmap-item done"><span>03</span><div><strong>Image contributions</strong><small>DigitalOcean Spaces, screenshot review, primary and alternate images</small></div><b>Complete</b></div>
           <div class="roadmap-item done"><span>04</span><div><strong>Private contributor attribution</strong><small>Reviewer-visible identity with Anonymous Contributor on public records when selected</small></div><b>Complete</b></div>
-          <div class="roadmap-item current"><span>05</span><div><strong>Wonder Save Finder</strong><small>Steam/GOG raw-slot decoding and Xbox/Game Pass WGS reconstruction</small></div><b>Alpha</b></div>
-          <div class="roadmap-item current"><span>06</span><div><strong>Save Finder compatibility testing</strong><small>Community folder layouts, slot naming, and decoder hardening</small></div><b>Testing</b></div>
+          <div class="roadmap-item current"><span>05</span><div><strong>Wonder JSON Importer</strong><small>Local decoded-JSON analysis with a normalized review preview</small></div><b>Live</b></div>
+          <div class="roadmap-item current"><span>06</span><div><strong>Dedicated Importer app testing</strong><small>Private Steam and Xbox compatibility testing before a public release</small></div><b>Private beta</b></div>
           <div class="roadmap-item current"><span>07</span><div><strong>Pegasus Delivery Network</strong><small>Transit routes, Courier handoffs, Acquisition assistance, and the future Dispatch operator queue</small></div><b>Framework</b></div>
           <div class="roadmap-item current"><span>08</span><div><strong>Pegasus asset collection beta</strong><small>Read-only local normalization for Xeno pets, eggs, starships, freighters, frigates, multitools, and optional inventory identifiers</small></div><b>Private beta</b></div>
           <div class="roadmap-item current"><span>09</span><div><strong>Procedural discovery names</strong><small>Determine whether DT, UA, VP0, VP1, or a combined seed selects the generated flora and mineral names</small></div><b>Research</b></div>
@@ -167,15 +169,16 @@
     <section class="section shell" id="community">
       <div class="community-panel">
         <div><p class="kicker">COMMUNITY BUILT</p><h2>Credit travels with the discovery.</h2><p>Original discoverers, data contributors, validators, and researchers remain attached to the evidence they helped preserve.</p></div>
-        <div class="contributors"><span>PJ</span><span>Boots</span><span>Corviknight97</span><span>Future Explorers</span></div>
+        <div><div id="homeContributors" class="contributors"><span>Charting contributor signals…</span></div><a class="project-link" style="position:static;display:inline-block;margin-top:16px" href="contributors.html">Open contributor leaderboard →</a></div>
       </div>
     </section>
   </main>
 
   <footer>
     <div class="footer-main"><a class="brand footer-brand" href="#top"><span class="brand-mark">✦</span><span class="brand-copy"><strong>Wonder Codex</strong><small>Preserve the procedural universe.</small></span></a><p>Independent community research project. Not affiliated with Hello Games.</p></div>
-    <div class="footer-links"><a href="database.html">Database</a><a href="map.html">Map</a><a href="contribute.html">Contribute</a><a href="#research">Research</a><a href="#roadmap">Roadmap</a><span>Public Alpha • 2026</span></div>
+    <div class="footer-links"><a href="database.html">Database</a><a href="map.html">Map</a><a href="decoder.html">Decoder</a><a href="contributors.html">Contributors</a><a href="contribute.html">Contribute</a><a href="privacy.html">Privacy</a><a href="#research">Research</a><a href="#roadmap">Roadmap</a><span>Public Alpha • 2026</span></div>
   </footer>
-  <script src="script.js?v=1.5.0"></script>
+  <script src="analytics.js?v=1.13.0"></script>
+  <script src="script.js?v=1.11.0"></script>
 </body>
 </html>

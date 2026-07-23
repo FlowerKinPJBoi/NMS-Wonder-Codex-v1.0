@@ -1,18 +1,34 @@
-# Wonder Codex Importer
+# Wonder Codex v1.15.0
 
-Private trusted-tester source for the read-only No Man's Sky Wonder Codex Importer.
+Production source for the public Wonder Codex website and API at
+`wondercodex.com`.
 
-Current source version: **v0.2.1-beta**
+## Repository contents
 
-## Current milestone
+- Root HTML, CSS, and JavaScript: the deployable static site.
+- `assets/`: Wonder Codex glyph and archetype artwork.
+- `api/`: FastAPI service, migrations, and API tests.
+- `admin/`: browser-based private review and app-vault interfaces.
+- `research/`: curated public research fixtures used by the site.
 
-The v0.2.1 beta adds source-role provenance for starships, freighters, frigates, and multi-tools so the Wonder Codex asset review queue can distinguish owned, fleet, squadron, archived, and current records. WCCP v0.1, read-only save scanning, cross-save provenance, and fauna fixtures remain available.
+The current release includes the Wonder and procedural-asset catalogs,
+contribution and verification workflows, private review tools, original
+placeholder artwork, the Galactic Cluster Map beta, contributor ranks, and
+weekly community missions, and the clean-room Descriptor Atlas evidence layer.
 
-See:
+## Repository boundary
 
-- `CHANGELOG_v0.2.0-beta.md`
-- `CHANGELOG_v0.2.1-beta.md`
-- `importer-app/docs/WCCP_V0.1_IMPLEMENTATION.md`
-- `importer-app/docs/READ_ONLY_ARCHITECTURE.md`
+This public repository does **not** contain the Wonder Codex Importer, Pegasus
+Transit Admin, Capture Companion, compiled private applications, raw No Man's
+Sky saves, decoded private JSON, or production credentials. Those application
+sources live in the private `Wonder-Codex-Importer` repository.
 
-Use the private GitHub Action **Build Wonder Codex Importer — Internal** to run policy checks, self-tests, and produce the Windows x64 trusted-tester artifact.
+## Deployment
+
+DigitalOcean deploys two components from this repository:
+
+1. a Static Site from the repository root;
+2. an API Web Service from `/api`, routed at `/api`.
+
+See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the current deployment checklist and
+[`CHANGELOG.md`](CHANGELOG.md) for release notes.

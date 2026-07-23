@@ -103,6 +103,12 @@ def serialize_asset(
     admin: bool = False,
 ) -> dict[str, Any]:
     fields = asset.fields or {}
+    asset_class = str(fields.get("class", ""))
+    class_provenance = str(fields.get("classProvenance", ""))
+    native_class_known = fields.get("nativeClassKnown") is True
+    class_label = asset_class
+    if asset_class and not native_class_known and class_provenance in {"current_inventory", "current_fleet_record"}:
+        class_label = f"{asset_class} · current"
     item: dict[str, Any] = {
         "id": asset.id,
         "wc_id": asset_wc_id(asset),
@@ -128,9 +134,17 @@ def serialize_asset(
         "galaxy_name": sighting.galaxy_name if sighting else "",
         "portal_glyphs": sighting.portal_glyphs if sighting else "",
         "has_location": bool(sighting and sighting.status == "verified" and sighting.galaxy_number and len(sighting.portal_glyphs) == 12),
-        "class": str(fields.get("class", "")),
+        "class": asset_class,
+        "class_label": class_label,
+        "class_provenance": class_provenance,
+        "native_class_known": native_class_known,
         "seed": str(fields.get("seed") or fields.get("resourceSeed") or ""),
         "resource_filename": str(fields.get("resourceFilename", "")),
+        "identity_fingerprint": str(fields.get("identityFingerprint", "")),
+        "identity_stability": str(fields.get("identityStability", "")),
+        "appearance_seed_location_status": str(fields.get("appearanceSeedLocationStatus", "")),
+        "home_system_evidence": str(fields.get("homeSystemEvidence", "")),
+        "home_system_seed_meaning": str(fields.get("homeSystemSeedMeaning", "")),
         "created_at": asset.created_at.isoformat(),
         "updated_at": asset.updated_at.isoformat() if asset.updated_at else None,
     }

@@ -9,15 +9,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=1.5.0">
-  <link rel="stylesheet" href="catalog.css?v=1.4.0">
+  <link rel="stylesheet" href="styles.css?v=1.11.0">
+  <link rel="stylesheet" href="catalog.css?v=1.12.0">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
   <header class="site-header">
     <a class="brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Contributions Hub</small></span></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
-    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="map.html">Map</a><a href="contribute.html" aria-current="page">Contribute</a><a href="index.html#research">Research</a><a href="import.html" class="nav-cta">Contribute save data</a></nav>
+    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="map.html">Map</a><a href="decoder.html">Decoder</a><a href="contributors.html">Contributors</a><a href="contribute.html" aria-current="page">Contribute</a><a href="import.html" class="nav-cta">Contribute save data</a></nav>
   </header>
 
   <main>
@@ -30,8 +30,7 @@
     <section class="page-shell">
       <div class="contribution-tabs" role="tablist" aria-label="Contribution type">
         <button class="contribution-tab active" data-mode="save" type="button">Save data</button>
-        <button class="contribution-tab" data-mode="image" type="button">Images</button>
-        <button class="contribution-tab" data-mode="verify" type="button">Location verification</button>
+        <button class="contribution-tab" data-mode="evidence" type="button">Images &amp; verification</button>
         <button class="contribution-tab" data-mode="research" type="button">Research evidence</button>
       </div>
 
@@ -41,70 +40,66 @@
             <p class="kicker">CONTRIBUTE SAVE DATA</p>
             <h2>Turn a character save into reviewed Wonder records.</h2>
             <p>The current importer reads a decoded character JSON locally, shows the normalized records, removes known duplicates, and sends only the reviewed dataset to the pending queue.</p>
-            <div class="feature-list"><div><span>✓</span><p>Raw character JSON stays on the device.</p></div><div><span>✓</span><p>Approved records retain contributor attribution.</p></div><div><span>✓</span><p>Steam/GOG and Xbox/Game Pass PC folders can be decoded locally through Wonder Save Finder.</p></div></div>
+            <div class="feature-list"><div><span>✓</span><p>Raw character JSON stays on the device.</p></div><div><span>✓</span><p>Approved records retain contributor attribution.</p></div><div><span>✓</span><p>The public testing flow accepts decoded character JSON only.</p></div></div>
             <a class="button primary" href="import.html">Open save-data importer →</a>
           </div>
           <aside class="screenshot-guide surface">
-            <p class="kicker">WONDER SAVE FINDER</p><h3>Permission-based folder selection</h3>
-            <p class="notice">Alpha live now: choose a Steam/GOG or Xbox/Game Pass PC folder, grant read-only browser access, reconstruct a character slot, and decode its HG data locally.</p>
-            <div class="roadmap-callout"><div><strong>No companion app required</strong><p>The user explicitly chooses the folder. Steam HG and Xbox WGS decoding happen locally in the browser.</p></div><span class="status-chip verified">Alpha live</span></div><a class="mini-link primary" href="import.html#saveFinder">Open Save Finder alpha</a>
+            <p class="kicker">PUBLIC JSON IMPORTER</p><h3>One reviewed contribution flow</h3>
+            <p class="notice">Choose a decoded character JSON, inspect the normalized preview, and decide whether to submit it to the Wonder Codex review queue.</p>
+            <div class="roadmap-callout"><div><strong>Folder import remains in private testing</strong><p>Steam and Xbox save-folder access will return only after the dedicated importer app has completed testing.</p></div><span class="status-chip verified">JSON live</span></div><a class="mini-link primary" href="import.html">Open JSON importer</a>
           </aside>
         </div>
       </section>
 
-      <section class="contribution-section surface" data-section="image" hidden>
+      <section class="contribution-section surface" data-section="evidence" hidden>
         <div class="contribution-grid">
           <div>
-            <div class="contribution-copy"><p class="kicker">CONTRIBUTE AN IMAGE</p><h2>Select a published record and prepare its screenshot.</h2><p>The catalog link is attached automatically. Screenshots are validated and normalized by the Wonder Codex API, stored privately for review, and published only after approval.</p></div>
-            <form id="imageForm" class="form-stack">
-              <label class="field">Find a catalog record<input id="imageRecordSearch" type="search" placeholder="Search WC ID, name, contributor, UA…"></label>
-              <div id="imageRecordResults" class="record-picker-results"></div>
-              <div id="imageSelected" class="selected-record" hidden></div>
-              <label class="field">Screenshot file<input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp" required></label>
-              <div id="imagePreview" class="image-preview"><span>No screenshot selected.</span></div>
-              <div class="form-grid"><label class="field">Contributor name<input id="imageContributor" type="text" placeholder="Your community name"></label><label class="field">Image role<select id="imageRole"><option value="primary_catalog">Primary catalog image</option><option value="full_specimen">Full specimen</option><option value="side_view">Side view</option><option value="front_view">Front view</option><option value="scale_reference">Scale reference</option><option value="environment">Environment</option><option value="projector_confirmation">Projector confirmation</option><option value="portal_location_evidence">Portal / location evidence</option></select></label></div>
-              <label class="field">Caption or reviewer note<textarea id="imageCaption" rows="3" placeholder="Anything the reviewer should know about this image?"></textarea></label>
-              <label class="checkbox-row"><input id="imagePermission" type="checkbox"><span>I created this screenshot or have permission to submit it, and I allow Wonder Codex to display it after approval.</span></label>
-              <label class="checkbox-row privacy-option"><input id="imagePrivateAttribution" type="checkbox"><span>Keep my contributor name private on the public image gallery. Reviewers will still see it.</span></label>
-              <input id="imageWebsite" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="honeypot"><button id="submitImage" class="button primary" type="submit" disabled>Submit image for review</button><div id="imageResult" class="notice" hidden></div>
-            </form>
-          </div>
-          <aside class="screenshot-guide surface">
-            <p class="kicker">SCREENSHOT FIELD GUIDE</p><h3>Help reviewers see the actual Wonder.</h3>
-            <ul class="tip-list"><li>Center the subject and keep the entire body, plant, or mineral visible.</li><li>Use daylight or strong neutral lighting so colors can be judged.</li><li>Choose a background with clear contrast.</li><li>For fauna, capture a side or three-quarter view and avoid motion blur.</li><li>For flora and minerals, include the full object plus one useful detail angle.</li><li>Upload the original-resolution screenshot rather than a chat-compressed copy.</li><li>Include a scale or environment view when size is important.</li></ul>
-            <h3>Avoid</h3><ul class="tip-list avoid-list"><li>Scanner tint, menus, large HUD overlays, notifications, or weapon effects.</li><li>Cropped limbs, leaves, or mineral edges.</li><li>Night shots where the true color is unclear.</li><li>Watermarks, decorative text, borders, filters, or AI enhancement.</li></ul>
-          </aside>
-        </div>
-      </section>
+            <div class="contribution-copy"><p class="kicker">CONTRIBUTE EVIDENCE</p><h2>One record. One form. Image, location, or both.</h2><p>Select the published Wonder once, choose the evidence you have, and send it through the appropriate review queues.</p></div>
+            <form id="evidenceForm" class="form-stack">
+              <label class="field">Find a catalog record<input id="evidenceRecordSearch" type="search" placeholder="Search WC ID, name, contributor, or galaxy…"></label>
+              <div id="evidenceRecordResults" class="record-picker-results"></div>
+              <div id="evidenceSelected" class="selected-record" hidden></div>
+              <div class="form-grid"><label class="field">Contributor name<input id="evidenceContributor" type="text" required maxlength="120" placeholder="Your community name"></label><label class="checkbox-row privacy-option"><input id="evidencePrivateAttribution" type="checkbox"><span>Keep my name private publicly. Reviewers will still see it.</span></label></div>
 
-      <section class="contribution-section surface" data-section="verify" hidden>
-        <div class="contribution-grid">
-          <div>
-            <div class="contribution-copy"><p class="kicker">VERIFY A LOCATION</p><h2>Travel there, report what you found, and strengthen the record.</h2><p>Choose the Wonder first. UA-derived or reviewed galaxy and glyph information is displayed before travel; confirmations and corrections enter the Admin Verifications queue.</p></div>
-            <form id="verificationForm" class="form-stack">
-              <label class="field">Find a catalog record<input id="verifyRecordSearch" type="search" placeholder="Search WC ID, name, contributor, UA…"></label>
-              <div id="verifyRecordResults" class="record-picker-results"></div>
-              <div id="verifySelected" class="selected-record" hidden></div>
-              <div class="form-grid"><label class="field">Contributor name<input id="verifyContributor" type="text" required maxlength="120" placeholder="Your community name"></label><label class="field">Galaxy number<input id="verifyGalaxyNumber" type="number" min="1" max="256" placeholder="1–256"></label></div>
-              <label class="field">Galaxy name<input id="verifyGalaxyName" type="text" maxlength="120" placeholder="Optional, but helpful"></label>
-              <label class="field">12-glyph portal address<input id="verifyGlyphs" type="text" maxlength="12" autocomplete="off" readonly placeholder="Click the glyphs below"></label><div id="verifyGlyphPreview"></div><p id="verifyGlyphStatus" class="glyph-input-status">0 of 12 glyphs entered.</p><div id="verifyGlyphKeypad"></div><details class="glyph-legend"><summary>Show glyph translator legend</summary><div class="portal-glyph-row legend" id="verifyGlyphLegend"></div></details>
-              <div class="checkbox-list">
-                <label class="checkbox-row"><input id="verifyReached" type="checkbox"><span>I successfully reached the intended system or planet.</span></label>
-                <label class="checkbox-row"><input id="verifyPresent" type="checkbox"><span>The discovery was present and matched the catalog record.</span></label>
-                <label class="checkbox-row"><input id="verifyProjector" type="checkbox"><span>The Message ID reproduced the expected Wonder in a projector.</span></label>
-              </div>
-              <label class="field">Evidence notes<textarea id="verifyNotes" rows="4" maxlength="4000" placeholder="Describe what you checked, differences found, planet details, or anything the reviewer should know."></textarea></label>
-              <label class="checkbox-row privacy-option"><input id="verifyPrivateAttribution" type="checkbox"><span>Keep my contributor name private on the public site. Reviewers will still see it.</span></label>
-              <input id="verificationWebsite" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="honeypot">
-              <button id="submitVerification" class="button primary" type="submit" disabled>Submit verification for review</button>
-              <div id="verificationResult" class="notice" hidden></div>
+              <fieldset class="evidence-selector">
+                <legend>What are you contributing?</legend><p>Select either option or choose both.</p>
+                <div class="evidence-choice-grid">
+                  <label class="evidence-choice"><input id="includeImageEvidence" type="checkbox"><span><strong>Image evidence</strong><span>Upload a screenshot of the specimen.</span></span></label>
+                  <label class="evidence-choice"><input id="includeLocationEvidence" type="checkbox"><span><strong>Location verification</strong><span>Confirm or correct its travel location.</span></span></label>
+                </div>
+              </fieldset>
+
+              <section id="imageEvidenceFields" class="evidence-fields" hidden>
+                <h3>Image evidence</h3><p>Images are stored privately and appear publicly only after approval.</p>
+                <label class="field">Screenshot file<input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp"></label>
+                <div id="imagePreview" class="image-preview"><span>No screenshot selected.</span></div>
+                <label class="field">Image role<select id="imageRole"><option value="primary_catalog">Primary catalog image</option><option value="full_specimen">Full specimen</option><option value="side_view">Side view</option><option value="front_view">Front view</option><option value="scale_reference">Scale reference</option><option value="environment">Environment</option><option value="projector_confirmation">Projector confirmation</option><option value="portal_location_evidence">Portal / location evidence</option></select></label>
+                <label class="field">Caption or reviewer note<textarea id="imageCaption" rows="3" placeholder="Anything the reviewer should know about this image?"></textarea></label>
+                <label class="checkbox-row"><input id="imagePermission" type="checkbox"><span>I created this screenshot or have permission to submit it, and I allow Wonder Codex to display it after approval.</span></label>
+              </section>
+
+              <section id="locationEvidenceFields" class="evidence-fields" hidden>
+                <h3>Location verification</h3><p>Confirm the displayed route or enter a correction for review.</p>
+                <div class="form-grid"><label class="field">Galaxy number<input id="verifyGalaxyNumber" type="number" min="1" max="256" placeholder="1–256"></label><label class="field">Galaxy name<input id="verifyGalaxyName" type="text" maxlength="120" placeholder="Optional, but helpful"></label></div>
+                <label class="field">12-glyph portal address<input id="verifyGlyphs" type="text" maxlength="12" autocomplete="off" readonly placeholder="Click the glyphs below"></label><div id="verifyGlyphPreview"></div><p id="verifyGlyphStatus" class="glyph-input-status">0 of 12 glyphs entered.</p><div id="verifyGlyphKeypad"></div><details class="glyph-legend"><summary>Show glyph translator legend</summary><div class="portal-glyph-row legend" id="verifyGlyphLegend"></div></details>
+                <div class="checkbox-list">
+                  <label class="checkbox-row"><input id="verifyReached" type="checkbox"><span>I successfully reached the intended system or planet.</span></label>
+                  <label class="checkbox-row"><input id="verifyPresent" type="checkbox"><span>The discovery was present and matched the catalog record.</span></label>
+                  <label class="checkbox-row"><input id="verifyProjector" type="checkbox"><span>The Wonder Projector Message ID reproduced the expected Wonder.</span></label>
+                </div>
+                <label class="field">Evidence notes<textarea id="verifyNotes" rows="4" maxlength="4000" placeholder="Describe what you checked, differences found, planet details, or anything the reviewer should know."></textarea></label>
+              </section>
+
+              <input id="evidenceWebsite" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="honeypot">
+              <button id="submitEvidence" class="button primary" type="submit" disabled>Submit evidence for review</button>
+              <div id="evidenceResult" class="notice" hidden></div>
             </form>
           </div>
           <aside class="screenshot-guide surface">
-            <p class="kicker">TRAVEL PANEL</p><h3>Selected record location</h3>
-            <div id="verifyTravelPanel" class="notice">Select a Wonder record to see its current reviewed travel information.</div>
-            <button class="button warp-button" type="button" disabled style="width:100%;margin-top:14px">PEGASUS TRANSIT — Request service in research</button>
-            <p class="notice" style="margin-top:14px">UA-derived routes include both the galaxy and twelve glyphs, but the individual discovery remains unverified until an explorer revisits it. Pegasus Transit requests will use the same reviewed route data.</p>
+            <p class="kicker">EVIDENCE FIELD GUIDE</p>
+            <section id="imageEvidenceGuide" class="evidence-guide-section" hidden><h3>Capture a clear specimen image</h3><ul class="tip-list"><li>Center the subject and keep the complete specimen visible.</li><li>Use daylight or strong neutral lighting.</li><li>Choose a contrasting background and avoid motion blur.</li><li>Upload the original-resolution screenshot without filters or decorative text.</li></ul></section>
+            <section id="locationEvidenceGuide" class="evidence-guide-section" hidden><h3>Selected record location</h3><div id="verifyTravelPanel" class="notice">Select a Wonder record to see its current reviewed travel information.</div><p class="notice" style="margin-top:14px">Automatically derived routes include the galaxy and twelve glyphs, but the individual discovery remains unverified until an explorer revisits it.</p></section>
+            <div id="evidenceGuideEmpty" class="notice">Choose image evidence, location verification, or both to see the matching field guide.</div>
           </aside>
         </div>
       </section>
@@ -115,10 +110,11 @@
     </section>
   </main>
 
-  <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Community Contributions</small></span></a><p>Raw saves stay local. Public evidence is reviewed. Attribution remains attached.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="map.html">Map</a><a href="import.html">Save data</a><a href="index.html#roadmap">Roadmap</a></div></footer>
-  <script src="script.js?v=1.5.0"></script>
+  <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Community Contributions</small></span></a><p>Raw saves stay local. Public evidence is reviewed. Attribution remains attached.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="map.html">Map</a><a href="import.html">Save data</a><a href="privacy.html">Privacy</a><a href="index.html#roadmap">Roadmap</a></div></footer>
+  <script src="analytics.js?v=1.13.0"></script>
+  <script src="script.js?v=1.11.0"></script>
   <script src="glyphs.js?v=1.6.0"></script>
   <script src="locations.js?v=1.6.0"></script>
-  <script src="contribute.js?v=1.6.0"></script>
+  <script src="contribute.js?v=1.12.0"></script>
 </body>
 </html>

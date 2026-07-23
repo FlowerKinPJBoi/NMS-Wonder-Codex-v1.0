@@ -2,7 +2,12 @@
   'use strict';
 
   const API = '/api';
-  const state = {key:'', actor:'PJ', apps:[], maxUploadBytes:0};
+  const state = {key:'', actor:'PJ', apps:[], maxUploadBytes:0, permissions:{download:false,upload:false,transit:false}};
+  const APP_UI = {
+    'importer-beta': {symbol:'◇', executable:'WonderCodexImporter.exe', report:'WonderCodex-Importer-Beta-Test-Report.txt'},
+    'capture-companion': {symbol:'◎', executable:'WonderCodexCaptureCompanion.exe', report:'WonderCodex-Capture-Companion-Test-Report.txt', restricted:true},
+    'pegasus-transit': {symbol:'⌁', executable:'WonderCodexPegasusTransitAdmin.exe', report:'Pegasus-Transit-Operator-Test-Report.txt', restricted:true},
+  };
   const TEST_GUIDES = {
     'importer-beta': {
       title: 'Importer beta test brief',
@@ -53,9 +58,58 @@
         'Overall result: Pass / Needs review',
       ],
     },
+    'capture-companion': {
+      title: 'Capture Companion private-alpha test brief',
+      intro: 'Validate local discovery-to-screenshot pairing without modifying a save, injecting into No Man’s Sky, or uploading anything automatically. Confirm a pair only when the proposed discovery and image clearly match.',
+      steps: [
+        'Create a private download above, compare its SHA-256 with the vault, extract the ZIP, and run WonderCodexCaptureCompanion.exe normally—not as administrator.',
+        'Start No Man’s Sky, scan local saves in Capture Companion, and select the exact character currently being played.',
+        'Choose the folder used by the tester’s screenshot tool. Confirm that Capture Companion watches only that selected folder.',
+        'Select Start capture watch before scanning a new discovery in game.',
+        'Scan one new discovery and take one clear specimen screenshot immediately afterward.',
+        'Return to Capture Companion. Compare discovery type/name, character, timing, and image before confirming the proposed pair.',
+        'Repeat once with an intentionally unrelated screenshot. Confirm that it is not silently accepted as a valid pair.',
+        'Mark one test discovery Exclude from public database and confirm its record, screenshot, and exclusion status remain local.',
+      ],
+      screenshots: [
+        'App header/version and the read-only safety boundary.',
+        'Selected character and screenshot-folder state, with personal path portions redacted.',
+        'Capture watch active before the in-game scan.',
+        'A proposed discovery/screenshot pair before confirmation.',
+        'The correctly confirmed pair.',
+        'The excluded-from-public-database state for the privacy test record.',
+        'Every warning, mismatch, or error with its full exact message.',
+      ],
+      files: [
+        'The screenshots listed above.',
+        'This downloaded text report, completed with platform, screenshot tool, pairing results, and exclusion result.',
+        'No raw save, AppData folder, or unrelated personal screenshot is required.',
+      ],
+      stop: [
+        'Never send a raw NMS save, WGS container, st_* folder, full AppData path, account identifier, or administrator key.',
+        'Stop if the app requests administrator rights, modifies a save, injects into the game, reads process memory, or uploads without explicit future review and consent.',
+        'Do not confirm a proposed pair when the discovery and screenshot are uncertain or mismatched.',
+      ],
+      report: [
+        'Tester name:',
+        'Capture Companion version:',
+        'Windows version:',
+        'Local save source: Steam / Xbox-Game Pass PC',
+        'Screenshot tool / folder type:',
+        'Character detected and selected correctly: Yes / No',
+        'Capture watch detected the new screenshot: Yes / No',
+        'Correct discovery proposed: Yes / No / Uncertain',
+        'Correct screenshot proposed: Yes / No / Uncertain',
+        'Unrelated screenshot rejected or left unconfirmed: Yes / No',
+        'Exclude from public database remained local: Yes / No',
+        'Any unexpected network activity observed: Yes / No',
+        'Warnings or errors:',
+        'Overall result: Pass / Needs review',
+      ],
+    },
     'pegasus-transit': {
       title: 'Pegasus Transit operator test brief',
-      intro: 'PJ and Boots only. Use the exact selected character and a catalog .wctransit ticket. A failure is a stop condition: preserve the automatic backups before reopening the game.',
+      intro: 'Named Pegasus operators only. Use the exact selected character and an approved catalog .wctransit ticket. A failure is a stop condition: preserve the automatic backups before reopening the game.',
       steps: [
         'Save the selected character while flying in open space. Fully close No Man’s Sky.',
         'Create a private download above, compare SHA-256, extract the ZIP, and run WonderCodexPegasusTransitAdmin.exe normally—not as administrator.',
@@ -159,6 +213,7 @@
     sessionStorage.removeItem('wc_admin_actor');
     state.key = '';
     state.apps = [];
+    state.permissions = {download:false,upload:false,transit:false};
     $('#dashboard').hidden = true;
     $('#loginPanel').hidden = false;
     $('#lockButton').hidden = true;
@@ -191,7 +246,9 @@
 
   function applyData(data) {
     state.apps = data.items || [];
+    state.permissions = data.permissions || {download:false,upload:false,transit:false};
     state.maxUploadBytes = Number(data.max_upload_bytes || 0);
+    $('#reviewConsoleLink').hidden = !state.permissions.upload;
     const storageWarning = String(data.storage_warning || '').trim();
     const storageOnline = Boolean(data.storage_ready) && !storageWarning;
     $('#storageBadge').textContent = storageOnline ? 'Private storage online' : (data.storage_ready ? 'Storage check needs attention' : 'Storage setup required');
@@ -236,20 +293,22 @@
     showAlert('');
     $('#appsGrid').innerHTML = state.apps.map((app) => {
       const release = app.release;
-      const restricted = app.slug === 'pegasus-transit';
+      const ui = APP_UI[app.slug] || {symbol:'◇', executable:'the expected application executable', report:`${app.slug}-Test-Report.txt`};
+      const restricted = Boolean(ui.restricted);
       const releaseMarkup = release ? `
         <div class="release-panel">
           <div class="release-top"><strong>v${escapeHtml(release.version || 'unlabeled')}</strong><span class="status-pill ready">Available</span></div>
           <div class="release-meta"><span>${escapeHtml(release.filename || 'Private ZIP')}</span><span>${formatBytes(release.size_bytes)} • ${escapeHtml(formatDate(release.uploaded_at))}</span></div>
           <div class="hash-row"><code title="${escapeHtml(release.sha256)}">${escapeHtml(release.sha256 || 'SHA-256 unavailable')}</code><button class="copy-hash" type="button" data-copy-hash="${escapeHtml(app.slug)}">Copy</button></div>
           <button class="button primary download-button" type="button" data-download="${escapeHtml(app.slug)}">Create private download</button>
-        </div>` : `<div class="release-panel release-empty"><strong>No build installed</strong><span>Upload the inner Actions build ZIP below. It must contain ${escapeHtml(app.slug === 'importer-beta' ? 'WonderCodexImporter.exe' : 'WonderCodexPegasusTransitAdmin.exe')} directly.</span></div>`;
+        </div>` : `<div class="release-panel release-empty"><strong>No build installed</strong><span>Upload the inner Actions build ZIP below. It must contain ${escapeHtml(ui.executable)} directly.</span></div>`;
+      const uploadMarkup = state.permissions.upload ? `<div class="upload-panel"><h3>${release ? 'Replace current build' : 'Install a build'}</h3><div class="upload-grid"><label>Version<input data-version="${escapeHtml(app.slug)}" value="${escapeHtml(release?.version || app.suggested_version)}" maxlength="40"></label><label>Inner build ZIP<input data-file="${escapeHtml(app.slug)}" type="file" accept=".zip,application/zip"></label></div><p class="upload-note">Maximum ${formatBytes(state.maxUploadBytes)}. The server checks the ZIP, expected executable, CRC, and SHA-256 before replacing the current release.</p><div class="upload-progress" aria-hidden="true"><span data-progress="${escapeHtml(app.slug)}"></span></div><div class="upload-actions"><button class="button secondary" type="button" data-upload="${escapeHtml(app.slug)}">Upload reviewed build</button><span class="upload-status" data-upload-status="${escapeHtml(app.slug)}"></span></div></div>` : `<div class="tester-scope-note"><strong>Restricted tester session</strong><span>You may download and test reviewed builds. Release replacement and the catalog review console remain administrator-only.</span></div>`;
       return `<article class="app-card${restricted ? ' restricted' : ''}" data-app="${escapeHtml(app.slug)}">
-        <div class="app-card-head"><span class="app-symbol">${restricted ? '⌁' : '◇'}</span><span class="channel-pill">${escapeHtml(app.channel)}</span></div>
+        <div class="app-card-head"><span class="app-symbol">${escapeHtml(ui.symbol)}</span><span class="channel-pill">${escapeHtml(app.channel)}</span></div>
         <h2>${escapeHtml(app.title)}</h2><p class="app-summary">${escapeHtml(app.summary)}</p><div class="app-safety">${escapeHtml(app.safety_note)}</div>
         ${releaseMarkup}
         ${testSheetMarkup(app.slug)}
-        <div class="upload-panel"><h3>${release ? 'Replace current build' : 'Install a build'}</h3><div class="upload-grid"><label>Version<input data-version="${escapeHtml(app.slug)}" value="${escapeHtml(release?.version || app.suggested_version)}" maxlength="40"></label><label>Inner build ZIP<input data-file="${escapeHtml(app.slug)}" type="file" accept=".zip,application/zip"></label></div><p class="upload-note">Maximum ${formatBytes(state.maxUploadBytes)}. The server checks the ZIP, expected executable, CRC, and SHA-256 before replacing the current release.</p><div class="upload-progress" aria-hidden="true"><span data-progress="${escapeHtml(app.slug)}"></span></div><div class="upload-actions"><button class="button secondary" type="button" data-upload="${escapeHtml(app.slug)}">Upload reviewed build</button><span class="upload-status" data-upload-status="${escapeHtml(app.slug)}"></span></div></div>
+        ${uploadMarkup}
       </article>`;
     }).join('') || '<div class="app-loading">No private applications are registered.</div>';
 
@@ -284,7 +343,7 @@
     const blob = new Blob([guideText(slug)], {type:'text/plain;charset=utf-8'});
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = slug === 'importer-beta' ? 'WonderCodex-Importer-Beta-Test-Report.txt' : 'Pegasus-Transit-Operator-Test-Report.txt';
+    link.download = APP_UI[slug]?.report || `${slug}-Test-Report.txt`;
     link.click();
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
     toast('Test report downloaded.');

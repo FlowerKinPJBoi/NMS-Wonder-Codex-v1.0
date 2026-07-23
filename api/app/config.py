@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Wonder Codex API"
-    app_version: str = "1.10.0"
+    app_version: str = "1.15.0"
     environment: str = "production"
     database_url: str = ""
     allowed_origins: List[str] = Field(
@@ -30,8 +30,20 @@ class Settings(BaseSettings):
     admin_api_key_pj: str = ""
     admin_api_key_boots: str = ""
     admin_api_keys: dict[str, str] = Field(default_factory=dict)
+    tester_api_key_menomoo: str = ""
+    tester_api_key_floppydonkey: str = ""
+    tester_api_key_darkbellator: str = ""
+    tester_api_key_olgravyleg: str = ""
+    tester_api_key_monketsu: str = ""
+    tester_api_key_readyfireaim: str = ""
+    tester_api_key_visceral: str = ""
+    tester_api_key_ekimo: str = ""
     ip_hash_salt: str = "change-me"
     max_requests_per_hour: int = 5
+    analytics_enabled: bool = True
+    analytics_owner_actor: str = "PJ"
+    analytics_retention_days: int = 90
+    analytics_max_events_per_minute: int = 120
     max_request_bytes: int = 30_000_000
     max_discoveries_per_submission: int = 20_000
     max_matches_per_submission: int = 2_000
@@ -90,15 +102,36 @@ class Settings(BaseSettings):
 
     @field_validator("admin_api_keys", mode="before")
     @classmethod
-    def parse_admin_api_keys(cls, value):
+    def parse_named_api_keys(cls, value):
         if value in (None, ""):
             return {}
         if isinstance(value, str):
             parsed = json.loads(value)
             if not isinstance(parsed, dict):
-                raise ValueError("ADMIN_API_KEYS must be a JSON object mapping operator names to keys.")
+                raise ValueError("Named API keys must be a JSON object mapping operator names to keys.")
+            if not all(isinstance(name, str) and isinstance(key, str) for name, key in parsed.items()):
+                raise ValueError("Named API keys must map text operator names to text keys.")
             return parsed
         return value
+
+    @property
+    def tester_api_keys(self) -> dict[str, str]:
+        """Restricted operator keys kept as scalar environment variables.
+
+        DigitalOcean App Platform treats JSON braces as interpolation syntax in
+        its environment-variable editor. Individual values avoid that parser
+        entirely while preserving the named-key interface used by security.py.
+        """
+        return {
+            "Menomoo": self.tester_api_key_menomoo,
+            "FloppyDonkey": self.tester_api_key_floppydonkey,
+            "DarkBellator": self.tester_api_key_darkbellator,
+            "OlGravyLeg": self.tester_api_key_olgravyleg,
+            "Monketsu": self.tester_api_key_monketsu,
+            "ReadyFireAim": self.tester_api_key_readyfireaim,
+            "Visceral": self.tester_api_key_visceral,
+            "Ekimo": self.tester_api_key_ekimo,
+        }
 
     @property
     def sqlalchemy_database_url(self) -> str:
