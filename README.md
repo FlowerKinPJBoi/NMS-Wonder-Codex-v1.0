@@ -1,4 +1,4 @@
-# Wonder Codex v1.15.0
+# Wonder Codex v1.16.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -13,9 +13,9 @@ Production source for the public Wonder Codex website and API at
 
 The current release includes the Wonder and procedural-asset catalogs,
 contribution and verification workflows, private review tools, original
-placeholder artwork, the Galactic Cluster Map beta, contributor ranks, and
-weekly community missions. v1.15 adds a public product and pricing questionnaire
-with an owner-only response console.
+placeholder artwork, the Galactic Cluster Map beta, contributor ranks, weekly
+community missions, the owner-only product questionnaire, and the clean-room
+Descriptor Atlas evidence layer.
 
 ## Repository boundary
 

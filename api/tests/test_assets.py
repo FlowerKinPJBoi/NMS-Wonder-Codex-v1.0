@@ -18,7 +18,15 @@ def manifest(asset_type="Starship", **overrides):
         "confidence": "Owned-asset seed",
         "deliveryEligibility": "acquisition_research",
         "deliveryEvidenceStatus": "location_not_evaluated",
-        "fields": {"class": "S", "seed": "0x1234"},
+        "fields": {
+            "class": "S",
+            "classProvenance": "current_inventory",
+            "nativeClassKnown": False,
+            "seed": "0x1234",
+            "identityFingerprint": "WCI-STARSHIP-0123456789ABCDEF0123",
+            "identityStability": "procedural_identity_not_slot_position",
+            "appearanceSeedLocationStatus": "not_a_location_claim",
+        },
     }
     asset.update(overrides)
     return {
@@ -69,11 +77,21 @@ def test_asset_wc_ids_and_public_serialization():
         source_ordinal=0, identity_basis="resource_filename_and_seed", publication_state="published",
         confidence="Owned-asset seed", modified_or_special_signal=False,
         delivery_eligibility="acquisition_research", delivery_evidence_status="not_evaluated",
-        image_status="needed", reviewer_note="", fields={"class": "S", "seed": "0x1234"},
+        image_status="needed", reviewer_note="", fields={
+            "class": "S", "classProvenance": "current_inventory", "nativeClassKnown": False,
+            "seed": "0x1234", "identityFingerprint": "WCI-STARSHIP-0123456789ABCDEF0123",
+            "identityStability": "procedural_identity_not_slot_position",
+            "appearanceSeedLocationStatus": "not_a_location_claim",
+        },
         created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc),
     )
     assert asset_wc_id(row) == "WC-SH-000012"
     payload = serialize_asset(row)
     assert payload["archetype_key"] == "asset.starship"
     assert payload["class"] == "S"
+    assert payload["class_label"] == "S · current"
+    assert payload["class_provenance"] == "current_inventory"
+    assert payload["native_class_known"] is False
+    assert payload["identity_fingerprint"] == "WCI-STARSHIP-0123456789ABCDEF0123"
+    assert payload["appearance_seed_location_status"] == "not_a_location_claim"
     assert payload["primary_image_url"] == ""

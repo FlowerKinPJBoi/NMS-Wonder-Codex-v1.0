@@ -13,3 +13,5 @@
 11. Pegasus Dispatch request queue and operator console — Planned
 12. Assisted Pegasus automation — Research only after repeatable human tests
 13. Procedural discovery-name decoding — Active research
+14. Descriptor Atlas v2 — Evidence foundation active; controlled Projector correlations next
+15. Evidence-backed representative reconstruction — Profile support active; exact specimen images remain preferred

@@ -11,6 +11,12 @@ from app.services.archetypes import (
     family_vp1s,
 )
 from app.services.catalog import is_publicly_listed_discovery_type, serialize_discovery, wc_id
+from app.services.descriptors import (
+    DESCRIPTOR_PROFILE_VERSION,
+    descriptor_profile,
+    normalize_descriptor_tokens,
+    visual_profile_fingerprint,
+)
 from app.services.locations import decode_portal_coordinates, decode_universal_address
 
 
@@ -160,7 +166,12 @@ def test_unverified_record_exposes_ua_derived_travel_address():
     assert payload["galaxy_name"] == "Odyalutai"
 
 
-def sample_pet_match(row: Discovery, creature_id: str = "TRICERATOPS", creature_type: str = "Prey") -> PetDiscoveryMatch:
+def sample_pet_match(
+    row: Discovery,
+    creature_id: str = "TRICERATOPS",
+    creature_type: str = "Prey",
+    descriptors: list[str] | None = None,
+) -> PetDiscoveryMatch:
     return PetDiscoveryMatch(
         approved_from_batch_id=row.approved_from_batch_id,
         contributor="PJ",
@@ -177,14 +188,17 @@ def sample_pet_match(row: Discovery, creature_id: str = "TRICERATOPS", creature_
         secondary_check="",
         message_id=row.message_id,
         record_hash=f"pet-hash-{creature_id}",
-        raw_record={},
+        raw_record={"Descriptors": descriptors or []},
         public_attribution=True,
     )
 
 
 def test_confirmed_pet_match_selects_supported_fauna_archetype():
     row = sample_discovery()
-    match = sample_pet_match(row)
+    match = sample_pet_match(
+        row,
+        descriptors=["^TAIL_RING", "HEAD_HORN", "HEAD_HORN", "bad token!"],
+    )
     vp1_index = build_vp1_family_index([match])
     assert discovery_match_key(row) == discovery_match_key(match)
     assert build_exact_match_index([match])[discovery_match_key(row)] is match
@@ -195,6 +209,23 @@ def test_confirmed_pet_match_selects_supported_fauna_archetype():
     assert metadata["fauna_family_label"] == "Triceratops"
     assert metadata["fauna_behavior"] == "Prey"
     assert metadata["fauna_identity_source"] == "exact_pet_match"
+    assert metadata["descriptor_profile_version"] == DESCRIPTOR_PROFILE_VERSION
+    assert metadata["descriptor_tokens"] == ["HEAD_HORN", "TAIL_RING"]
+    assert metadata["descriptor_visual_categories"] == ["head", "tail"]
+    assert metadata["descriptor_token_count"] == 2
+    assert metadata["visual_profile_fingerprint"].startswith("WCV-")
+    assert metadata["representative_image_policy"] == "representative_not_exact_without_specimen_image"
+
+
+def test_descriptor_profile_is_stable_and_does_not_claim_exact_imagery():
+    match = type("Match", (), {"raw_record": {"Descriptors": ["^TAIL_B", "HEAD_A"]}})()
+    profile = descriptor_profile("TREX", match)
+    assert normalize_descriptor_tokens(["^TAIL_B", "HEAD_A", "HEAD_A"]) == ["HEAD_A", "TAIL_B"]
+    assert profile["visual_profile_fingerprint"] == visual_profile_fingerprint(
+        "TREX", ["TAIL_B", "HEAD_A"]
+    )
+    assert profile["descriptor_interpretation_status"] == "lexical_hints_only"
+    assert "not the exact specimen" in profile["representative_image_notice"]
 
 
 def test_all_projector_capture_families_select_their_supported_archetypes():
