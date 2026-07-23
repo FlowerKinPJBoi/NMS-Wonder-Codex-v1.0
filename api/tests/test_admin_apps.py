@@ -116,3 +116,13 @@ def test_restricted_tester_can_open_vault_without_upload_authority(monkeypatch):
 
     assert response["operator"] == "Menomoo"
     assert response["permissions"] == {"download": True, "upload": False, "transit": True}
+
+def test_jadexp_and_krosskelt_have_independent_restricted_tester_keys():
+    settings = Settings(
+        tester_api_key_jadexp="jade-key",
+        tester_api_key_krosskelt="kross-key",
+    )
+
+    assert settings.tester_api_keys["JadeXP"] == "jade-key"
+    assert settings.tester_api_keys["Krosskelt"] == "kross-key"
+    assert settings.tester_api_keys["JadeXP"] != settings.tester_api_keys["Krosskelt"]
