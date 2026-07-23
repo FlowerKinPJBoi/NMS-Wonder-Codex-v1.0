@@ -1,0 +1,40 @@
+# .NET / IDE
+**/bin/
+**/obj/
+**/artifacts/
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Code-signing material — never commit
+*.pfx
+*.p12
+*.pvk
+*.snk
+*.cer
+*.key
+signing/
+secrets/
+
+# No Man's Sky raw saves and decoded exports — never commit
+*.hg
+containers.index
+Slot*.json
+slot*.json
+save*.json
+accountdata*.json
+wgs/
+WGS/
+private-fixtures/
+test-data/private/
+research/raw/
+research/matched-pairs/private/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Keep required project JSON
+!importer-app/global.json

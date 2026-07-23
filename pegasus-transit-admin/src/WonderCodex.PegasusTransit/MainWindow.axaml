@@ -1,0 +1,122 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="WonderCodex.PegasusTransit.MainWindow"
+        Title="Wonder Codex — Pegasus Transit Admin"
+        Width="1180" Height="820" MinWidth="980" MinHeight="700">
+  <Grid RowDefinitions="Auto,*,Auto">
+    <Border Grid.Row="0" Background="#0B1022" BorderBrush="#2B3A61" BorderThickness="0,0,0,1" Padding="22,18">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel>
+          <TextBlock Classes="kicker" Text="WONDER CODEX — RESTRICTED TRANSIT CONSOLE" />
+          <TextBlock FontSize="28" FontWeight="Bold" Text="Pegasus Transit Admin" />
+          <TextBlock Classes="muted" Text="Backup first. Patch only the universe address. Verify before launch." />
+        </StackPanel>
+        <Border Grid.Column="1" Background="#102C28" BorderBrush="#2F8F78" BorderThickness="1" CornerRadius="12" Padding="14,9" VerticalAlignment="Center">
+          <TextBlock Foreground="#65F0C2" FontWeight="Bold" Text="PRIVATE • XBOX + STEAM" />
+        </Border>
+      </Grid>
+    </Border>
+
+    <ScrollViewer Grid.Row="1">
+      <Grid Margin="22" ColumnDefinitions="*,*" ColumnSpacing="18">
+        <StackPanel Grid.Column="0" Spacing="16">
+          <Border Classes="card">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="kicker" Text="1 — OPERATOR AUTHORIZATION" />
+              <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <StackPanel>
+                  <TextBlock Classes="muted" Text="Operator name" />
+                  <TextBox x:Name="OperatorNameBox" Watermark="PJ or Boots" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                  <TextBlock Classes="muted" Text="Administrator key" />
+                  <TextBox x:Name="AdminKeyBox" PasswordChar="●" Watermark="Never stored on disk" />
+                </StackPanel>
+              </Grid>
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                <TextBox x:Name="ApiBaseBox" Text="https://wondercodex.com/api/" />
+                <Button x:Name="AuthorizeButton" Grid.Column="1" Classes="primary" Content="Authorize" Click="AuthorizeButton_OnClick" />
+              </Grid>
+              <TextBlock x:Name="AuthorizationStatus" Classes="muted" Text="Locked. Credentials are kept in memory for this session only." TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="kicker" Text="2 — LOCAL CHARACTER" />
+              <TextBlock Classes="muted" Text="No raw save data or local path is sent to Wonder Codex." TextWrapping="Wrap" />
+              <Button x:Name="ScanButton" Classes="secondary" Content="Scan Steam and Xbox / Game Pass saves" Click="ScanButton_OnClick" IsEnabled="False" />
+              <ComboBox x:Name="CharacterPicker" PlaceholderText="Authorize, then scan saves" SelectionChanged="CharacterPicker_OnSelectionChanged" />
+              <TextBlock x:Name="CharacterStatus" Classes="muted" Text="No character selected." TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="kicker" Text="3 — WONDER DESTINATION" />
+              <Button x:Name="LoadTicketButton" Classes="secondary" Content="Load catalog route ticket (.wctransit)" Click="LoadTicketButton_OnClick" />
+              <Grid ColumnDefinitions="110,*,160" ColumnSpacing="10">
+                <StackPanel>
+                  <TextBlock Classes="muted" Text="Galaxy #" />
+                  <TextBox x:Name="GalaxyNumberBox" Watermark="170" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                  <TextBlock Classes="muted" Text="Galaxy name" />
+                  <TextBox x:Name="GalaxyNameBox" Watermark="Ezdaranit" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                  <TextBlock Classes="muted" Text="WC record" />
+                  <TextBox x:Name="WonderRecordBox" Watermark="WC-A-003084" />
+                </StackPanel>
+              </Grid>
+              <TextBlock Classes="muted" Text="12 portal glyphs" />
+              <TextBox x:Name="GlyphsBox" FontFamily="Consolas" FontSize="20" MaxLength="12" Watermark="1081FC250959" />
+              <Button x:Name="PreviewButton" Classes="primary" Content="Preview transit plan" Click="PreviewButton_OnClick" IsEnabled="False" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Spacing="16">
+          <Border Classes="card">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="kicker" Text="4 — TRANSIT PREVIEW" />
+              <TextBlock x:Name="RouteTitle" FontSize="22" FontWeight="Bold" Text="No route prepared" />
+              <TextBlock x:Name="CurrentLocationText" Classes="muted" Text="Current location will appear here." TextWrapping="Wrap" />
+              <TextBlock x:Name="TargetLocationText" Classes="success" Text="Target location will appear here." TextWrapping="Wrap" />
+              <TextBlock x:Name="PatchScopeText" Classes="muted" Text="Only UniverseAddress and PreviousUniverseAddress are eligible for modification." TextWrapping="Wrap" />
+              <TextBlock x:Name="PlatformWarning" Classes="warning" Text="Steam is an alpha writer pending Boots' first matched-pair validation. Xbox WGS marks the paired Manual/Auto containers as a pending local upload and still requires the PC cloud-upload handoff." TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card">
+            <StackPanel Spacing="10">
+              <TextBlock Classes="kicker" Text="5 — DEPARTURE CHECKLIST" />
+              <CheckBox x:Name="InSpaceCheck" Content="The selected character saved while flying in open space." Click="Checklist_OnClick" />
+              <CheckBox x:Name="PcHydratedCheck" Content="For Xbox: the PC main menu synced that console save once, then NMS was closed." Click="Checklist_OnClick" />
+              <CheckBox x:Name="GameClosedCheck" Content="No Man's Sky is completely closed on this PC." Click="Checklist_OnClick" />
+              <CheckBox x:Name="BackupConsentCheck" Content="Create a full automatic backup before writing anything." Click="Checklist_OnClick" />
+              <CheckBox x:Name="AlphaConsentCheck" Content="I understand this is a private alpha transit test." Click="Checklist_OnClick" />
+              <Button x:Name="EngageButton" Classes="engage" Content="ENGAGE PEGASUS TRANSIT" Click="EngageButton_OnClick" IsEnabled="False" />
+              <TextBlock x:Name="OperationStatus" Classes="muted" Text="Preview a route and complete every checklist item." TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="kicker" Text="RECOVERY" />
+              <TextBlock Classes="muted" Text="Xbox handoff after a verified local write: open NMS only to the PC main menu, choose the ? prompt to upload the local save, then exit before launching Xbox. Never open Xbox first. Backups are under Local AppData → WonderCodex → PegasusTransit → Backups." TextWrapping="Wrap" />
+              <TextBlock x:Name="BackupPathText" FontFamily="Consolas" FontSize="12" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+
+    <Border Grid.Row="2" Background="#0B1022" BorderBrush="#2B3A61" BorderThickness="0,1,0,0" Padding="22,10">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" Text="Separate from the public read-only Wonder Codex Importer • No administrator rights requested" />
+        <TextBlock Grid.Column="1" Foreground="#67DDF2" FontWeight="Bold" Text="v0.3.0-alpha" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

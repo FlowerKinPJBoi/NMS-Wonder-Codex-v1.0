@@ -1,0 +1,67 @@
+name: Build Pegasus Transit Admin — Private Alpha
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'pegasus-transit-admin/**'
+      - 'importer-app/src/WonderCodex.Importer.Core/**'
+      - '.github/workflows/build-pegasus-transit-admin.yml'
+      - 'THIRD_PARTY_NOTICES.md'
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Verify public importer remains read-only
+        shell: pwsh
+        run: ./importer-app/scripts/verify-read-only.ps1
+
+      - name: Restore private admin app
+        run: dotnet restore pegasus-transit-admin/src/WonderCodex.PegasusTransit/WonderCodex.PegasusTransit.csproj
+
+      - name: Run Pegasus Transit self-tests
+        run: dotnet run --project pegasus-transit-admin/tools/WonderCodex.PegasusTransit.SelfTest/WonderCodex.PegasusTransit.SelfTest.csproj -c Release
+
+      - name: Publish Windows x64 self-contained app
+        run: >-
+          dotnet publish pegasus-transit-admin/src/WonderCodex.PegasusTransit/WonderCodex.PegasusTransit.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:PublishTrimmed=false
+          -o pegasus-transit-admin/artifacts/win-x64
+
+      - name: Package private alpha artifact
+        shell: pwsh
+        run: |
+          Copy-Item pegasus-transit-admin/README.md pegasus-transit-admin/artifacts/win-x64/PEGASUS_TRANSIT_README.md
+          Copy-Item THIRD_PARTY_NOTICES.md pegasus-transit-admin/artifacts/win-x64/THIRD_PARTY_NOTICES.md
+          Compress-Archive -Path pegasus-transit-admin/artifacts/win-x64/* -DestinationPath PegasusTransitAdmin-v0.3.0-alpha-win-x64.zip
+          $hash = (Get-FileHash PegasusTransitAdmin-v0.3.0-alpha-win-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  PegasusTransitAdmin-v0.3.0-alpha-win-x64.zip" |
+            Out-File -Encoding ascii PegasusTransitAdmin-v0.3.0-alpha-win-x64_SHA256.txt
+
+      - name: Upload private operator build
+        uses: actions/upload-artifact@v4
+        with:
+          name: PegasusTransitAdmin-v0.3.0-alpha-win-x64
+          path: |
+            PegasusTransitAdmin-v0.3.0-alpha-win-x64.zip
+            PegasusTransitAdmin-v0.3.0-alpha-win-x64_SHA256.txt
+          if-no-files-found: error
+          retention-days: 7

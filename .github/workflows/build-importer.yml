@@ -1,0 +1,82 @@
+name: Build Wonder Codex Importer — Internal
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'importer-app/**'
+      - '.github/workflows/build-importer.yml'
+      - 'THIRD_PARTY_NOTICES.md'
+      - 'SECURITY.md'
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Verify read-only contract
+        shell: pwsh
+        run: ./importer-app/scripts/verify-read-only.ps1
+
+      - name: Verify dependency policy
+        shell: pwsh
+        run: ./importer-app/scripts/verify-dependencies.ps1
+
+      - name: Verify no private save data is tracked
+        shell: pwsh
+        run: ./importer-app/scripts/verify-no-private-save-data.ps1
+
+      - name: Restore
+        run: dotnet restore importer-app/src/WonderCodex.Importer/WonderCodex.Importer.csproj
+
+      - name: Run self-tests
+        run: dotnet run --project importer-app/tools/WonderCodex.Importer.SelfTest/WonderCodex.Importer.SelfTest.csproj -c Release
+
+      - name: Publish Windows x64 self-contained app
+        run: >-
+          dotnet publish importer-app/src/WonderCodex.Importer/WonderCodex.Importer.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:PublishTrimmed=false
+          -o importer-app/artifacts/win-x64
+
+      - name: Generate dependency inventory
+        shell: pwsh
+        run: |
+          dotnet list importer-app/src/WonderCodex.Importer/WonderCodex.Importer.csproj package --include-transitive |
+            Out-File -Encoding utf8 DEPENDENCIES.txt
+
+      - name: Package internal artifact
+        shell: pwsh
+        run: |
+          Copy-Item THIRD_PARTY_NOTICES.md importer-app/artifacts/win-x64/THIRD_PARTY_NOTICES.md
+          Copy-Item SECURITY.md importer-app/artifacts/win-x64/SECURITY.md
+          Compress-Archive -Path importer-app/artifacts/win-x64/* -DestinationPath WonderCodexImporter-v0.2.1-beta-internal-win-x64.zip
+          $hash = (Get-FileHash WonderCodexImporter-v0.2.1-beta-internal-win-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  WonderCodexImporter-v0.2.1-beta-internal-win-x64.zip" |
+            Out-File -Encoding ascii WonderCodexImporter-v0.2.1-beta-internal-win-x64_SHA256.txt
+
+      - name: Upload internal trusted-tester build
+        uses: actions/upload-artifact@v4
+        with:
+          name: WonderCodexImporter-v0.2.1-beta-internal-win-x64
+          path: |
+            WonderCodexImporter-v0.2.1-beta-internal-win-x64.zip
+            WonderCodexImporter-v0.2.1-beta-internal-win-x64_SHA256.txt
+            DEPENDENCIES.txt
+          if-no-files-found: error
+          retention-days: 14

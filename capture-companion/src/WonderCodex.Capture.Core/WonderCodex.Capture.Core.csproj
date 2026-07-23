@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>WonderCodex.Capture.Core</AssemblyName>
+    <RootNamespace>WonderCodex.Capture.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\importer-app\src\WonderCodex.Importer.Core\WonderCodex.Importer.Core.csproj" />
+  </ItemGroup>
+</Project>

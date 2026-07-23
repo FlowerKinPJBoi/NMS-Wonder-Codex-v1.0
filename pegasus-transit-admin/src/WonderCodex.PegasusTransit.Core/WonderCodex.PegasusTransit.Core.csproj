@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>WonderCodex.PegasusTransit.Core</AssemblyName>
+    <RootNamespace>WonderCodex.PegasusTransit.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\importer-app\src\WonderCodex.Importer.Core\WonderCodex.Importer.Core.csproj" />
+    <PackageReference Include="K4os.Compression.LZ4" Version="1.3.8" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,80 @@
+name: Build Wonder Capture Companion — Private Alpha
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'capture-companion/**'
+      - 'importer-app/src/WonderCodex.Importer.Core/**'
+      - '.github/workflows/build-capture-companion.yml'
+      - 'THIRD_PARTY_NOTICES.md'
+      - 'SECURITY.md'
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Verify capture companion remains read-only and offline
+        shell: pwsh
+        run: ./capture-companion/scripts/verify-capture-read-only.ps1
+
+      - name: Verify no private save data is tracked
+        shell: pwsh
+        run: ./importer-app/scripts/verify-no-private-save-data.ps1
+
+      - name: Restore
+        run: dotnet restore capture-companion/src/WonderCodex.Capture/WonderCodex.Capture.csproj
+
+      - name: Run capture self-tests
+        run: dotnet run --project capture-companion/tools/WonderCodex.Capture.SelfTest/WonderCodex.Capture.SelfTest.csproj -c Release
+
+      - name: Publish Windows x64 self-contained app
+        run: >-
+          dotnet publish capture-companion/src/WonderCodex.Capture/WonderCodex.Capture.csproj
+          -c Release
+          -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:PublishTrimmed=false
+          -o capture-companion/artifacts/win-x64
+
+      - name: Generate dependency inventory
+        shell: pwsh
+        run: |
+          dotnet list capture-companion/src/WonderCodex.Capture/WonderCodex.Capture.csproj package --include-transitive |
+            Out-File -Encoding utf8 CAPTURE_DEPENDENCIES.txt
+
+      - name: Package private alpha
+        shell: pwsh
+        run: |
+          Copy-Item THIRD_PARTY_NOTICES.md capture-companion/artifacts/win-x64/THIRD_PARTY_NOTICES.md
+          Copy-Item SECURITY.md capture-companion/artifacts/win-x64/SECURITY.md
+          Copy-Item capture-companion/docs/PHASE_0_TEST_PLAN.md capture-companion/artifacts/win-x64/PHASE_0_TEST_PLAN.md
+          Compress-Archive -Path capture-companion/artifacts/win-x64/* -DestinationPath WonderCaptureCompanion-v0.1.0-alpha-win-x64.zip
+          $hash = (Get-FileHash WonderCaptureCompanion-v0.1.0-alpha-win-x64.zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  WonderCaptureCompanion-v0.1.0-alpha-win-x64.zip" |
+            Out-File -Encoding ascii WonderCaptureCompanion-v0.1.0-alpha-win-x64_SHA256.txt
+
+      - name: Upload private trusted-tester build
+        uses: actions/upload-artifact@v4
+        with:
+          name: WonderCaptureCompanion-v0.1.0-alpha-win-x64
+          path: |
+            WonderCaptureCompanion-v0.1.0-alpha-win-x64.zip
+            WonderCaptureCompanion-v0.1.0-alpha-win-x64_SHA256.txt
+            CAPTURE_DEPENDENCIES.txt
+          if-no-files-found: error
+          retention-days: 14

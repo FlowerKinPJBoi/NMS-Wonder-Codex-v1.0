@@ -1,17 +1,18 @@
-# Wonder Codex v1.9.0
+# Wonder Codex Importer
 
-Full website and API deployment source for the first procedural asset-catalog release.
+Private trusted-tester source for the read-only No Man's Sky Wonder Codex Importer.
 
-This version adds:
+Current source version: **v0.2.1-beta**
 
-- separate public catalog lanes for Wonders, starships, freighters, frigates, and multi-tools;
-- original Wonder Codex illustrative placeholders for every new asset type;
-- permanent `WC-SH`, `WC-FR`, `WC-FG`, and `WC-MT` specimen IDs;
-- a strict distinction between an owned procedural specimen and a verified acquisition sighting;
-- an admin-only Pegasus manifest importer and asset review/publish queue;
-- provenance fields for owned slots, fleet members, squadron members, archived records, and the current freighter;
-- explicit privacy rejection when a manifest claims to include a raw save, local path, account identifier, or inventory coordinates.
+## Current milestone
 
-Database migration `0005_asset_catalog` is required. With `RUN_MIGRATIONS_ON_START=true`, the API applies it during deployment.
+The v0.2.1 beta adds source-role provenance for starships, freighters, frigates, and multi-tools so the Wonder Codex asset review queue can distinguish owned, fleet, squadron, archived, and current records. WCCP v0.1, read-only save scanning, cross-save provenance, and fauna fixtures remain available.
 
-See `CHANGELOG_v1.9.0.md` and `DEPLOY_WONDER_CODEX_v1.9.0.md`.
+See:
+
+- `CHANGELOG_v0.2.0-beta.md`
+- `CHANGELOG_v0.2.1-beta.md`
+- `importer-app/docs/WCCP_V0.1_IMPLEMENTATION.md`
+- `importer-app/docs/READ_ONLY_ARCHITECTURE.md`
+
+Use the private GitHub Action **Build Wonder Codex Importer — Internal** to run policy checks, self-tests, and produce the Windows x64 trusted-tester artifact.

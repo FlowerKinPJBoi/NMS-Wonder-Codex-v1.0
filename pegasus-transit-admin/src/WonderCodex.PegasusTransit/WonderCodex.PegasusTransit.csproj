@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>WonderCodexPegasusTransitAdmin</AssemblyName>
+    <RootNamespace>WonderCodex.PegasusTransit</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <Version>0.3.0-alpha</Version>
+    <Authors>Wonder Codex</Authors>
+    <Product>Pegasus Transit Admin</Product>
+    <Description>Private backup-first Wonder Codex transit operator application.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WonderCodex.PegasusTransit.Core\WonderCodex.PegasusTransit.Core.csproj" />
+    <PackageReference Include="Avalonia" Version="12.1.0" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.0" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.0" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.0" />
+  </ItemGroup>
+</Project>

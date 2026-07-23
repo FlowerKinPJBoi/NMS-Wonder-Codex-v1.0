@@ -1,0 +1,79 @@
+{
+  "schema": "wonder-codex-pegasus-asset-manifest/v0.2-beta",
+  "createdUTC": "2026-07-13T00:00:00Z",
+  "saveName": "Example Character",
+  "platform": "Xbox / Game Pass PC",
+  "modules": {
+    "companionPets": true,
+    "creatureEggSignals": true,
+    "starships": true,
+    "freighter": true,
+    "frigates": true,
+    "multitools": true,
+    "inventoryCatalog": false
+  },
+  "privacy": {
+    "rawSaveUploaded": false,
+    "rawSavePathIncluded": false,
+    "accountIdentifiersIncluded": false,
+    "inventoryCoordinatesIncluded": false,
+    "inventoryAmountsIncluded": false,
+    "customNamesIncluded": false,
+    "submissionState": "local beta export only"
+  },
+  "summary": {
+    "totalAssets": 3,
+    "companionPets": 1,
+    "creatureEggSignals": 1,
+    "starships": 1,
+    "freighters": 0,
+    "frigates": 0,
+    "multitools": 0,
+    "inventoryItems": 0
+  },
+  "assets": [
+    {
+      "assetType": "CompanionPet",
+      "assetKey": "PGA-PET-EXAMPLE000000001",
+      "displayName": "Passive companion",
+      "deliveryLane": "Pegasus Courier / egg research",
+      "confidence": "Normalized pet record",
+      "fields": {
+        "creatureID": "FLOATSPIDER",
+        "creatureType": "Passive",
+        "ua": "0x00307717097FF7FD",
+        "creatureSeed": "0x0000000000000100",
+        "speciesSeed": "0x0000000000000200",
+        "genusSeed": "0x0000000000000300",
+        "battleClasses": ["A", "B", "S"]
+      }
+    },
+    {
+      "assetType": "CreatureEggSignal",
+      "assetKey": "PGA-EGG-SIGNAL-EXAMPLE02",
+      "displayName": "F_JELLYCHILD",
+      "deliveryLane": "Pegasus Courier research",
+      "confidence": "Heuristic inventory signal",
+      "fields": {
+        "itemID": "F_JELLYCHILD",
+        "inventoryType": "Product",
+        "detection": "item identifier heuristic"
+      }
+    },
+    {
+      "assetType": "Starship",
+      "assetKey": "PGA-STARSHIP-EXAMPLE0003",
+      "displayName": "FIGHTER PROC starship",
+      "deliveryLane": "Pegasus Acquisition research",
+      "confidence": "Owned-asset seed",
+      "fields": {
+        "resourceFilename": "MODELS/COMMON/SPACECRAFT/FIGHTERS/FIGHTER_PROC.SCENE.MBIN",
+        "seed": "0x0000000000000500",
+        "class": "S"
+      }
+    }
+  ],
+  "notes": [
+    "Example only. No raw-save values, local paths, or account identifiers are represented."
+  ]
+}

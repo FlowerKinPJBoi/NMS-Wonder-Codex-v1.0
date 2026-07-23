@@ -1,0 +1,134 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="WonderCodex.Capture.MainWindow"
+        Title="Wonder Capture Companion — Private Alpha"
+        Width="1420"
+        Height="900"
+        MinWidth="1050"
+        MinHeight="720">
+  <Grid RowDefinitions="Auto,*,Auto">
+    <Border Grid.Row="0" Background="#0B1124" BorderBrush="#253555" BorderThickness="0,0,0,1" Padding="24,18">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel>
+          <TextBlock Classes="kicker" Text="WONDER CODEX — READ-ONLY CAPTURE LAB" />
+          <TextBlock Margin="0,5,0,0" FontSize="28" FontWeight="Bold" Text="Wonder Capture Companion" />
+          <TextBlock Classes="muted" Margin="0,5,0,0" Text="Detect a newly persisted discovery, observe a screenshot, and ask a human to confirm the pair." />
+        </StackPanel>
+        <Border Grid.Column="1" Padding="14,9" CornerRadius="14" BorderBrush="#238D76" BorderThickness="1" Background="#0E302E">
+          <TextBlock Foreground="#68F0C9" FontWeight="Bold" Text="PRIVATE ALPHA • NO SAVE WRITES • NO AUTO-UPLOAD" />
+        </Border>
+      </Grid>
+    </Border>
+
+    <ScrollViewer Grid.Row="1">
+      <Grid Margin="22" ColumnDefinitions="0.9*,1.1*" ColumnSpacing="18">
+        <StackPanel Grid.Column="0" Spacing="16">
+          <Border Classes="card">
+            <StackPanel Spacing="12">
+              <TextBlock Classes="kicker" Text="1 — LOCAL CHARACTER" />
+              <TextBlock Classes="muted" TextWrapping="Wrap" Text="The same read-only Steam and Xbox / Game Pass scanners used by the Importer run locally. No save data or local path is transmitted." />
+              <Button Classes="secondary" HorizontalAlignment="Left" Click="ScanButton_OnClick" Content="Scan supported saves" />
+              <ComboBox x:Name="CharacterBox" MinHeight="42" PlaceholderText="Choose a character">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding Display}" TextWrapping="Wrap" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+              <TextBlock x:Name="ScanStatusText" Classes="muted" TextWrapping="Wrap" Text="Waiting for the first local scan." />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card">
+            <StackPanel Spacing="12">
+              <TextBlock Classes="kicker" Text="2 — SCREENSHOT WATCH" />
+              <TextBlock Classes="muted" TextWrapping="Wrap" Text="Choose the folder where your platform saves new screenshots. The companion only observes new image filenames and timestamps during this session." />
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                <TextBox x:Name="ScreenshotFolderBox" IsReadOnly="True" Watermark="Choose a screenshot folder…" />
+                <Button Grid.Column="1" Classes="secondary" Click="ChooseScreenshotFolder_OnClick" Content="Choose folder" />
+              </Grid>
+              <TextBlock x:Name="ScreenshotStatusText" Classes="muted" TextWrapping="Wrap" Text="No screenshot folder selected." />
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card">
+            <StackPanel Spacing="12">
+              <TextBlock Classes="kicker" Text="3 — ARM THE SESSION" />
+              <TextBlock Classes="muted" TextWrapping="Wrap" Text="Start after selecting the character and screenshot folder. Existing discoveries become the baseline; only later additions are proposed for pairing." />
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button x:Name="StartButton" Classes="primary" Click="StartButton_OnClick" Content="Start read-only monitoring" />
+                <Button x:Name="StopButton" Classes="secondary" Click="StopButton_OnClick" IsEnabled="False" Content="Stop" />
+              </StackPanel>
+              <Border Padding="12" CornerRadius="10" Background="#0B2330" BorderBrush="#24536A" BorderThickness="1">
+                <TextBlock x:Name="MonitorStatusText" Foreground="#9FEAF7" TextWrapping="Wrap" Text="Monitor is idle." />
+              </Border>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Spacing="16">
+          <Border Classes="card">
+            <StackPanel Spacing="12">
+              <TextBlock Classes="kicker" Text="4 — SESSION TELEMETRY" />
+              <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                <Border Padding="15" CornerRadius="12" Background="#151D38">
+                  <StackPanel>
+                    <TextBlock x:Name="BaselineCountText" FontSize="28" FontWeight="Bold" Text="0" />
+                    <TextBlock Classes="muted" Text="Baseline discoveries" />
+                  </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Padding="15" CornerRadius="12" Background="#151D38">
+                  <StackPanel>
+                    <TextBlock x:Name="NewCountText" FontSize="28" FontWeight="Bold" Text="0" />
+                    <TextBlock Classes="muted" Text="Newly detected" />
+                  </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Padding="15" CornerRadius="12" Background="#151D38">
+                  <StackPanel>
+                    <TextBlock x:Name="ScreenshotCountText" FontSize="28" FontWeight="Bold" Text="0" />
+                    <TextBlock Classes="muted" Text="New screenshots" />
+                  </StackPanel>
+                </Border>
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card" MinHeight="430">
+            <Grid RowDefinitions="Auto,*,Auto">
+              <StackPanel>
+                <TextBlock Classes="kicker" Text="5 — PAIRING QUEUE" />
+                <TextBlock Classes="muted" Margin="0,7,0,14" TextWrapping="Wrap" Text="Timestamp proximity is only a proposal. Confirm a pair only after checking that the screenshot shows the named discovery." />
+              </StackPanel>
+              <ListBox x:Name="PairList" Grid.Row="1" Background="Transparent" BorderThickness="0">
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <Border Margin="0,0,0,9" Padding="14" CornerRadius="12" Background="#151D38" BorderBrush="#2E4067" BorderThickness="1">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel>
+                          <TextBlock FontSize="17" FontWeight="Bold" Text="{Binding Title}" />
+                          <TextBlock Classes="muted" Margin="0,4,0,0" Text="{Binding Detail}" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <TextBlock Grid.Column="1" Margin="12,0,0,0" Foreground="#F6CC6B" FontWeight="Bold" Text="{Binding Status}" />
+                      </Grid>
+                    </Border>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+              <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Margin="0,12,0,0">
+                <Button Classes="primary" Click="ConfirmPair_OnClick" Content="Confirm selected pair locally" />
+                <TextBlock x:Name="QueueStatusText" Classes="muted" VerticalAlignment="Center" Text="No candidate pairs yet." />
+              </StackPanel>
+            </Grid>
+          </Border>
+        </StackPanel>
+      </Grid>
+    </ScrollViewer>
+
+    <Border Grid.Row="2" Background="#0B1124" BorderBrush="#253555" BorderThickness="0,1,0,0" Padding="22,11">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Foreground="#AAB6D3" Text="Session-only queue • Human confirmation required • Raw saves remain on this computer" />
+        <TextBlock Grid.Column="1" Foreground="#67DDF2" FontWeight="Bold" Text="v0.1.0 Capture foundation" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

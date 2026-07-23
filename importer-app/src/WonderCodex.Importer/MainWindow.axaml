@@ -1,0 +1,263 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="WonderCodex.Importer.MainWindow"
+        Title="Wonder Codex Importer"
+        Width="1420"
+        Height="900"
+        MinWidth="1120"
+        MinHeight="720"
+        WindowStartupLocation="CenterScreen"
+        Icon="avares://WonderCodexImporter/Assets/wonder-codex.ico">
+  <Grid RowDefinitions="Auto,*,Auto">
+    <Border Grid.Row="0" Background="#0B1122" BorderBrush="#223252" BorderThickness="0,0,0,1" Padding="24,18">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Spacing="3">
+          <TextBlock Classes="kicker" Text="WONDER CODEX IMPORTER — TRUSTED TESTER" />
+          <TextBlock FontSize="27" FontWeight="Bold" Text="Choose an account. Choose a character. Preview Wonders and Pegasus assets." />
+          <TextBlock Classes="muted" Text="Raw saves stay on this computer. Only reviewed normalized Wonder records can be submitted." />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+          <CheckBox Name="ResearchModeToggle"
+                    VerticalAlignment="Center"
+                    Content="Research mode"
+                    Click="ResearchModeToggle_OnClick" />
+          <Border Background="#102B27" BorderBrush="#2A8A72" BorderThickness="1" CornerRadius="12" Padding="12,8">
+            <TextBlock Foreground="#7DF3C8" FontWeight="Bold" Text="✓ READ-ONLY SAVE ACCESS" />
+          </Border>
+          <Button Name="RescanButton" Classes="secondary" Content="Rescan saves" Click="RescanButton_OnClick" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" Margin="24" ColumnDefinitions="330,390,*" ColumnSpacing="16">
+      <Border Grid.Column="0" Classes="card">
+        <Grid RowDefinitions="Auto,Auto,*">
+          <TextBlock Classes="kicker" Text="1 — ACCOUNTS" />
+          <TextBlock Grid.Row="1" Classes="muted" Margin="0,7,0,12" Text="Detected and resolved automatically from Steam and Xbox / Game Pass PC." TextWrapping="Wrap" />
+          <ListBox Grid.Row="2" Name="AccountList" SelectionChanged="AccountList_OnSelectionChanged">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Border Background="#151D36" BorderBrush="#2A3A60" BorderThickness="1" CornerRadius="12" Padding="13" Margin="0,0,0,8">
+                  <StackPanel Spacing="4">
+                    <TextBlock FontWeight="Bold" FontSize="16" Text="{Binding DisplayName}" TextWrapping="Wrap" />
+                    <TextBlock Foreground="#67DDF2" FontSize="12" Text="{Binding PlatformLabel}" />
+                    <TextBlock Classes="muted" FontSize="12" Text="{Binding CharacterSummary}" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+
+      <Border Grid.Column="1" Classes="card">
+        <Grid RowDefinitions="Auto,Auto,*">
+          <TextBlock Classes="kicker" Text="2 — CHARACTERS" />
+          <TextBlock Grid.Row="1" Classes="muted" Margin="0,7,0,12" Text="Duplicate save revisions are grouped automatically. Select one character slot." TextWrapping="Wrap" />
+          <ListBox Grid.Row="2" Name="CharacterList" SelectionChanged="CharacterList_OnSelectionChanged">
+            <ListBox.ItemTemplate>
+              <DataTemplate>
+                <Border Background="#151D36" BorderBrush="#2A3A60" BorderThickness="1" CornerRadius="12" Padding="13" Margin="0,0,0,8">
+                  <StackPanel Spacing="4">
+                    <TextBlock FontWeight="Bold" FontSize="17" Text="{Binding DisplayName}" />
+                    <TextBlock Foreground="#AAB6D3" FontSize="12" Text="{Binding CatalogSummary}" TextWrapping="Wrap" />
+                    <TextBlock Foreground="#67DDF2" FontSize="11" Text="{Binding RevisionSummary}" TextWrapping="Wrap" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+      </Border>
+
+      <ScrollViewer Grid.Column="2">
+        <StackPanel Spacing="16">
+          <Border Classes="card">
+            <Grid RowDefinitions="Auto,Auto,Auto">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel>
+                  <TextBlock Classes="kicker" Text="3 — LOCAL ANALYSIS" />
+                  <TextBlock Name="SelectedCharacterTitle" Margin="0,7,0,0" FontSize="24" FontWeight="Bold" Text="Select a character" />
+                  <TextBlock Name="SelectedCharacterDetail" Classes="muted" Text="No save has been selected." TextWrapping="Wrap" />
+                </StackPanel>
+                <Button Grid.Column="1" Name="AnalyzeButton" Classes="primary" Content="Analyze character" IsEnabled="False" Click="AnalyzeButton_OnClick" />
+              </Grid>
+              <TextBlock Grid.Row="1" Name="StatusText" Margin="0,16,0,0" Classes="muted" Text="Scanning known No Man's Sky save locations…" TextWrapping="Wrap" />
+              <ProgressBar Grid.Row="2" Name="BusyProgress" Margin="0,12,0,0" Height="5" IsIndeterminate="True" IsVisible="False" />
+            </Grid>
+          </Border>
+
+          <Expander Name="RevisionExpander" IsVisible="False" Header="Advanced read-only revision details">
+            <Border Classes="card" Margin="0,8,0,0">
+              <StackPanel Spacing="10">
+                <TextBlock Classes="muted" Text="The newest revision is selected automatically. Researchers may choose an alternate revision below; every source remains read-only." TextWrapping="Wrap" />
+                <ListBox Name="RevisionList" SelectionChanged="RevisionList_OnSelectionChanged">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <Border Background="#151D36" BorderBrush="#2A3A60" BorderThickness="1" CornerRadius="10" Padding="11" Margin="0,0,0,6">
+                        <StackPanel Spacing="3">
+                          <TextBlock FontWeight="Bold" Text="{Binding Label}" />
+                          <TextBlock Classes="muted" FontSize="11" Text="{Binding DetailLine}" TextWrapping="Wrap" />
+                        </StackPanel>
+                      </Border>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </StackPanel>
+            </Border>
+          </Expander>
+
+          <Border Name="ResearchPanel" Classes="card" IsVisible="False">
+            <StackPanel Spacing="12">
+              <TextBlock Classes="kicker" Text="CLEAN-ROOM UNIVERSAL TRANSLATOR — PRIVATE RESEARCH" />
+              <TextBlock Classes="muted" Text="Pair the selected compact save revision with a decoded JSON export from the same account and slot. Both files are compared locally; no raw values are uploaded or stored." TextWrapping="Wrap" />
+              <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                <TextBlock Name="PairStatusText" VerticalAlignment="Center" Classes="muted" Text="Select a compact save revision, then pair it with a decoded JSON export from the same slot." TextWrapping="Wrap" />
+                <Button Grid.Column="1" Name="PairButton" Classes="secondary" Content="Pair with decoded JSON" IsEnabled="False" Click="PairButton_OnClick" />
+                <Button Grid.Column="2" Name="CopyMappingButton" Classes="secondary" Content="Copy redacted evidence" IsEnabled="False" Click="CopyMappingButton_OnClick" />
+              </Grid>
+              <Border Background="#090E1D" BorderBrush="#223252" BorderThickness="1" CornerRadius="12" Padding="12" Height="145">
+                <ScrollViewer>
+                  <ItemsControl Name="MappingPreviewList">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock FontFamily="Consolas" FontSize="11" Foreground="#C5D0EA" Text="{Binding}" TextTrimming="CharacterEllipsis" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </Border>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card">
+            <StackPanel Spacing="13">
+              <TextBlock Classes="kicker" Text="NORMALIZED PREVIEW" />
+              <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="10">
+                <Border Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="DiscoveriesCount" FontSize="25" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Discoveries"/></StackPanel></Border>
+                <Border Grid.Column="1" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="AnimalsCount" FontSize="25" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Animals"/></StackPanel></Border>
+                <Border Grid.Column="2" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="FloraCount" FontSize="25" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Flora"/></StackPanel></Border>
+                <Border Grid.Column="3" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="MineralsCount" FontSize="25" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Minerals"/></StackPanel></Border>
+              </Grid>
+              <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="10">
+                <Border Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="PetsCount" FontSize="22" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Pets"/></StackPanel></Border>
+                <Border Grid.Column="1" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="MatchesCount" FontSize="22" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Exact matches"/></StackPanel></Border>
+                <Border Grid.Column="2" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="GenerationsCount" FontSize="22" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Generation records"/></StackPanel></Border>
+                <Border Grid.Column="3" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="IssuesCount" FontSize="22" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Review notes"/></StackPanel></Border>
+              </Grid>
+              <Border Background="#090E1D" BorderBrush="#223252" BorderThickness="1" CornerRadius="12" Padding="12" Height="170">
+                <ScrollViewer>
+                  <ItemsControl Name="PreviewList">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock FontFamily="Consolas" FontSize="11" Foreground="#C5D0EA" Text="{Binding}" TextTrimming="CharacterEllipsis" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </Border>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card">
+            <StackPanel Spacing="13">
+              <TextBlock Classes="kicker" Text="4 — PEGASUS COLLECTION BETA — LOCAL ONLY" />
+              <TextBlock Classes="muted" Text="Select which normalized asset categories the importer may inspect in memory. Raw saves, local file paths, account identifiers, inventory coordinates, and unselected private fields are never included in the beta manifest." TextWrapping="Wrap" />
+
+              <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="8">
+                <CheckBox Name="CollectPetsBox" IsChecked="True" Content="Companion pets + Xeno battle profile" Click="CollectionOption_OnClick" />
+                <CheckBox Grid.Column="1" Name="CollectEggsBox" IsChecked="True" Content="Creature egg signals" Click="CollectionOption_OnClick" />
+                <CheckBox Grid.Column="2" Name="CollectShipsBox" IsChecked="True" Content="Owned starship seeds" Click="CollectionOption_OnClick" />
+                <CheckBox Grid.Row="1" Name="CollectFreighterBox" IsChecked="True" Content="Current freighter" Click="CollectionOption_OnClick" />
+                <CheckBox Grid.Row="1" Grid.Column="1" Name="CollectFrigatesBox" IsChecked="True" Content="Frigate fleet" Click="CollectionOption_OnClick" />
+                <CheckBox Grid.Row="1" Grid.Column="2" Name="CollectMultitoolsBox" IsChecked="True" Content="Owned multitools" Click="CollectionOption_OnClick" />
+                <CheckBox Grid.Row="2" Name="CollectInventoryBox" Content="Transferable inventory catalog (beta)" Click="CollectionOption_OnClick" />
+                <CheckBox Grid.Row="2" Grid.Column="1" Name="IncludeInventoryAmountsBox" Content="Include inventory quantities" Click="CollectionOption_OnClick" />
+                <CheckBox Grid.Row="2" Grid.Column="2" Name="IncludeCustomNamesBox" Content="Include player-assigned asset names" Click="CollectionOption_OnClick" />
+              </Grid>
+
+              <Border Background="#102B27" BorderBrush="#2A8A72" BorderThickness="1" CornerRadius="12" Padding="12">
+                <TextBlock Foreground="#BFFBE8" Text="Privacy default: inventory quantities and custom names are excluded. This beta cannot upload Pegasus assets; it can only preview them locally and export a user-chosen normalized JSON manifest." TextWrapping="Wrap" />
+              </Border>
+
+              <Grid ColumnDefinitions="*,*,*,*" ColumnSpacing="10">
+                <Border Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="PegasusPetsCount" FontSize="22" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Companion pets"/></StackPanel></Border>
+                <Border Grid.Column="1" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="PegasusEggsCount" FontSize="22" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Egg signals"/></StackPanel></Border>
+                <Border Grid.Column="2" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="PegasusShipsCount" FontSize="22" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Starships"/></StackPanel></Border>
+                <Border Grid.Column="3" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="PegasusFreightersCount" FontSize="22" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Freighters"/></StackPanel></Border>
+              </Grid>
+              <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
+                <Border Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="PegasusFrigatesCount" FontSize="22" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Frigates"/></StackPanel></Border>
+                <Border Grid.Column="1" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="PegasusMultitoolsCount" FontSize="22" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Multitools"/></StackPanel></Border>
+                <Border Grid.Column="2" Background="#151D36" CornerRadius="12" Padding="12"><StackPanel><TextBlock Name="PegasusItemsCount" FontSize="22" FontWeight="Bold" Text="0"/><TextBlock Classes="muted" Text="Inventory IDs"/></StackPanel></Border>
+              </Grid>
+
+              <Border Background="#090E1D" BorderBrush="#223252" BorderThickness="1" CornerRadius="12" Padding="12" Height="170">
+                <ScrollViewer>
+                  <ItemsControl Name="PegasusPreviewList">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate>
+                        <TextBlock FontFamily="Consolas" FontSize="11" Foreground="#C5D0EA" Text="{Binding}" TextTrimming="CharacterEllipsis" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </ScrollViewer>
+              </Border>
+
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <TextBlock Name="PegasusStatusText" VerticalAlignment="Center" Classes="muted" Text="Analyze a character to build the local Pegasus beta manifest." TextWrapping="Wrap" />
+                <Button Grid.Column="1" Name="ExportPegasusButton" Classes="secondary" Content="Export normalized beta JSON" IsEnabled="False" Click="ExportPegasusButton_OnClick" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Classes="card">
+            <StackPanel Spacing="12">
+              <TextBlock Classes="kicker" Text="5 — CONTRIBUTION" />
+              <TextBlock Classes="muted" Text="Export a validated WCCP v0.1 package for website upload, or use the existing private review queue." TextWrapping="Wrap" />
+              <TextBox Name="ContributorBox" Watermark="Contributor display name" TextChanged="ContributorBox_OnTextChanged" />
+              <CheckBox Name="PrivateAttributionBox" Content="Use anonymous attribution in my exported package" Click="PrivateAttributionBox_OnClick" />
+              <TextBlock Classes="muted" FontSize="12" Text="Anonymous WCCP exports contain no contributor name. Website authentication and later screenshot uploads remain separate." TextWrapping="Wrap" />
+
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                <TextBlock VerticalAlignment="Center" Text="Original platform" />
+                <ComboBox Grid.Column="1" Name="ContributionSourcePlatformBox" SelectionChanged="ContributionSourcePlatformBox_OnSelectionChanged">
+                  <ComboBoxItem Content="PC" />
+                  <ComboBoxItem Content="PlayStation" />
+                  <ComboBoxItem Content="Xbox" />
+                  <ComboBoxItem Content="Nintendo Switch" />
+                  <ComboBoxItem Content="Mac" />
+                  <ComboBoxItem Content="Unknown" />
+                </ComboBox>
+              </Grid>
+              <CheckBox Name="ContributionCrossSaveBox" Content="This save reached this PC through official Hello Games cross-save" IsEnabled="False" Click="ContributionCrossSaveBox_OnClick" />
+              <TextBlock Classes="muted" FontSize="12" Text="The importer still reads only the local PC copy. Selecting a console or Mac origin records provenance; it never connects to that platform account." TextWrapping="Wrap" />
+
+              <Border Background="#102B27" BorderBrush="#2A8A72" BorderThickness="1" CornerRadius="12" Padding="12">
+                <TextBlock Foreground="#BFFBE8" Text="WCCP privacy preview: discovery data only. No raw save, screenshots, account identifiers, owner fields, local paths, inventory, bases, missions, or unrelated player progress." TextWrapping="Wrap" />
+              </Border>
+
+              <TextBlock Name="ContributionPreviewText" Classes="muted" Text="Analyze a character to prepare the WCCP v0.1 export preview." TextWrapping="Wrap" />
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <TextBlock Name="ContributionExportStatus" VerticalAlignment="Center" Classes="muted" Text="No contribution package has been created." TextWrapping="Wrap" />
+                <Button Grid.Column="1" Name="ExportContributionButton" Classes="secondary" Content="Export WCCP v0.1" IsEnabled="False" Click="ExportContributionButton_OnClick" />
+              </Grid>
+
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <TextBlock Name="SubmissionStatus" VerticalAlignment="Center" Classes="muted" Text="Analyze a character before submitting." TextWrapping="Wrap" />
+                <Button Grid.Column="1" Name="SubmitButton" Classes="primary" Content="Legacy direct review" IsEnabled="False" Click="SubmitButton_OnClick" />
+              </Grid>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+
+    <Border Grid.Row="2" Background="#0B1122" BorderBrush="#223252" BorderThickness="0,1,0,0" Padding="24,12">
+      <Grid ColumnDefinitions="*,Auto">
+        <TextBlock Classes="muted" FontSize="12" Text="Read-only by design • No administrator rights • No raw-save upload • Independent community project" />
+        <TextBlock Grid.Column="1" Foreground="#67DDF2" FontWeight="Bold" Text="v0.2.1 Asset catalog beta" />
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

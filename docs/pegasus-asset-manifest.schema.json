@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wondercodex.com/schemas/pegasus-asset-manifest-v0.2-beta.json",
+  "title": "Wonder Codex Pegasus Asset Manifest v0.2 Beta",
+  "type": "object",
+  "required": ["schema", "createdUTC", "saveName", "platform", "modules", "privacy", "summary", "assets"],
+  "properties": {
+    "schema": {"const": "wonder-codex-pegasus-asset-manifest/v0.2-beta"},
+    "createdUTC": {"type": "string"},
+    "saveName": {"type": "string"},
+    "platform": {"type": "string"},
+    "modules": {"type": "object", "additionalProperties": {"type": "boolean"}},
+    "privacy": {"type": "object"},
+    "summary": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["assetType", "assetKey", "displayName", "deliveryLane", "confidence", "fields"],
+        "properties": {
+          "assetType": {"type": "string"},
+          "assetKey": {"type": "string"},
+          "displayName": {"type": "string"},
+          "deliveryLane": {"type": "string"},
+          "confidence": {"type": "string"},
+          "fields": {"type": "object"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "notes": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": false
+}
