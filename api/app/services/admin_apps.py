@@ -56,7 +56,7 @@ APPLICATIONS = (
             "and never uploads automatically."
         ),
         expected_executable="WonderCodexCaptureCompanion.exe",
-        suggested_version="0.1.1-alpha",
+        suggested_version="0.3.0-alpha",
         object_key="admin-apps/capture-companion/current.zip",
     ),
     AdminApplication(

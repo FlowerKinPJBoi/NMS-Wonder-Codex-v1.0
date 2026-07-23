@@ -213,6 +213,51 @@ class ImageContribution(Base):
     public_attribution: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
 
+class CaptureSubmission(Base):
+    """A locally confirmed discovery/screenshot pair awaiting owner review."""
+
+    __tablename__ = "capture_submissions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(30), default="pending", nullable=False, index=True)
+    contributor: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    save_name: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    platform: Mapped[str] = mapped_column(String(40), default="", nullable=False)
+    client_version: Mapped[str] = mapped_column(String(80), default="", nullable=False)
+    public_attribution: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    discovery_type: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    ua: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
+    vp0: Mapped[str] = mapped_column(String(32), default="", nullable=False)
+    vp1: Mapped[str] = mapped_column(String(32), default="", nullable=False, index=True)
+    vp2: Mapped[str] = mapped_column(String(32), default="", nullable=False)
+    vp3: Mapped[str] = mapped_column(String(32), default="", nullable=False)
+    vp4: Mapped[str] = mapped_column(String(32), default="", nullable=False)
+    message_id: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    creature_id: Mapped[str] = mapped_column(String(120), default="", nullable=False, index=True)
+    creature_type: Mapped[str] = mapped_column(String(120), default="", nullable=False)
+    record_hash: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    discovery_record: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    image_role: Mapped[str] = mapped_column(String(60), default="full_specimen", nullable=False)
+    caption: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    permission_confirmed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    object_key: Mapped[str] = mapped_column(Text, nullable=False)
+    original_filename: Mapped[str] = mapped_column(String(255), default="", nullable=False)
+    content_type: Mapped[str] = mapped_column(String(100), default="image/webp", nullable=False)
+    width: Mapped[int] = mapped_column(Integer, nullable=False)
+    height: Mapped[int] = mapped_column(Integer, nullable=False)
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    reviewer_note: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    published_discovery_id: Mapped[int | None] = mapped_column(
+        ForeignKey("discoveries.id", ondelete="SET NULL"),
+        index=True,
+    )
+    submitter_ip_hash: Mapped[str] = mapped_column(String(64), default="", nullable=False)
+    user_agent: Mapped[str] = mapped_column(Text, default="", nullable=False)
+
+
 class AssetSpecimen(Base):
     """A normalized procedural asset, independent of where it was acquired."""
 

@@ -4,6 +4,7 @@
   const API = '/api';
   const state = {
     key: '', actor: 'PJ', mode: 'submissions',
+    captureStatus: 'pending', captures: [], selectedCapture: null, captureDetail: null,
     submissionStatus: 'pending', submissions: [], selectedSubmission: null, submissionDetail: null, recordSection: 'discoveries',
     verificationStatus: 'pending', verifications: [], selectedVerification: null, verificationDetail: null,
     catalogRecords: [], selectedCatalog: null,
@@ -73,6 +74,7 @@
     const data = await api('/admin/summary');
     const map = {
       sumPending: data.pending_batches,
+      sumCaptures: data.pending_captures,
       sumPendingRecords: data.pending_discoveries,
       sumVerifications: data.pending_verifications,
       sumPublished: data.published_discoveries,
@@ -83,6 +85,7 @@
       verificationTabCount: data.pending_verifications,
       imageTabCount: data.pending_images,
       assetTabCount: data.pending_assets,
+      captureTabCount: data.pending_captures,
     };
     Object.entries(map).forEach(([id, value]) => { const element = document.getElementById(id); if (element) element.textContent = number(value); });
   }
@@ -90,6 +93,7 @@
   async function refreshAll() {
     const jobs = [loadSummary(), loadAudit()];
     if (state.mode === 'submissions') jobs.push(loadSubmissions());
+    if (state.mode === 'captures') jobs.push(loadCaptures());
     if (state.mode === 'verifications') jobs.push(loadVerifications());
     if (state.mode === 'catalog') jobs.push(loadCatalog());
     if (state.mode === 'assets') jobs.push(loadAssets());
@@ -103,10 +107,94 @@
     $$('.admin-mode').forEach((button) => button.classList.toggle('active', button.dataset.mode === mode));
     $$('.admin-mode-panel').forEach((panel) => panel.hidden = panel.dataset.panel !== mode);
     if (mode === 'submissions') loadSubmissions();
+    if (mode === 'captures') loadCaptures();
     if (mode === 'verifications') loadVerifications();
     if (mode === 'catalog') loadCatalog();
     if (mode === 'assets') loadAssets();
     if (mode === 'images') loadImages();
+  }
+
+  // ---------- Confirmed discovery + screenshot pairs ----------
+  async function loadCaptures() {
+    const data = await api(`/admin/captures?status=${encodeURIComponent(state.captureStatus)}&limit=200`);
+    state.captures = data.items || [];
+    renderCaptureQueue();
+  }
+
+  function renderCaptureQueue() {
+    const query = $('#captureSearch').value.trim().toLowerCase();
+    const rows = state.captures.filter((item) => `${item.contributor} ${item.save_name} ${item.discovery_type} ${item.creature_type} ${item.id}`.toLowerCase().includes(query));
+    $('#captureEmpty').hidden = rows.length > 0;
+    $('#captureList').innerHTML = rows.map((item) => `<button class="queue-item ${state.selectedCapture === item.id ? 'active' : ''}" data-id="${escapeHtml(item.id)}" type="button"><div class="queue-item-top"><strong>${escapeHtml(item.creature_type || item.discovery_type)}</strong><time>${escapeHtml(shortDate(item.created_at))}</time></div><div class="queue-item-sub">${escapeHtml(item.contributor)}${item.public_attribution ? '' : ' • Private attribution'}${item.save_name ? ` • ${escapeHtml(item.save_name)}` : ''}</div><div class="queue-counts"><span>${escapeHtml(item.discovery_type)}</span><span>${number(item.width)}×${number(item.height)}</span></div></button>`).join('');
+    $$('#captureList .queue-item').forEach((button) => button.addEventListener('click', () => selectCapture(button.dataset.id)));
+  }
+
+  async function selectCapture(id) {
+    state.selectedCapture = id;
+    renderCaptureQueue();
+    $('#capturePlaceholder').hidden = true;
+    $('#captureContent').hidden = false;
+    try {
+      state.captureDetail = await api(`/admin/captures/${encodeURIComponent(id)}`);
+      renderCaptureDetail();
+    } catch (error) {
+      toast(error.message, true);
+      clearCaptureDetail();
+    }
+  }
+
+  function clearCaptureDetail() {
+    state.selectedCapture = null;
+    state.captureDetail = null;
+    $('#captureContent').hidden = true;
+    $('#capturePlaceholder').hidden = false;
+  }
+
+  function renderCaptureDetail() {
+    const item = state.captureDetail.capture;
+    $('#captureStatus').textContent = item.status;
+    $('#captureStatus').className = `detail-status ${item.status}`;
+    $('#captureType').textContent = item.creature_type || item.discovery_type;
+    $('#captureSave').textContent = item.save_name || 'Capture Companion';
+    $('#captureContributor').textContent = `Confirmed by ${item.contributor}${item.public_attribution ? '' : ' • Private on public site'}${item.platform ? ` • ${item.platform}` : ''} • ${dateTime(item.created_at)}`;
+    $('#captureImage').src = item.preview_url;
+    $('#captureImage').alt = `${item.creature_type || item.discovery_type} confirmed by ${item.contributor}`;
+    $('#captureMetadata').innerHTML = `<div><strong>${number(item.width)}×${number(item.height)}</strong><span>Dimensions</span></div><div><strong>${(item.size_bytes/1024/1024).toFixed(2)} MB</strong><span>Stored size</span></div><div><strong>${escapeHtml(item.image_role.replaceAll('_',' '))}</strong><span>Image role</span></div><div><strong>${escapeHtml(item.original_filename)}</strong><span>Original file</span></div>`;
+    const record = item.discovery || {};
+    $('#captureDiscovery').textContent = `${record.CustomName || 'Unnamed discovery'} • UA ${record.UA || '—'}${record.CreatureID ? ` • ${record.CreatureID}` : ''}${item.caption ? ` • ${item.caption}` : ''}`;
+    $('#captureRaw').textContent = JSON.stringify(record, null, 2);
+    $('#captureActions').hidden = item.status !== 'pending';
+    $('#captureReviewNote').value = '';
+    $('#captureApprovalRole').value = 'primary';
+    $('#captureReviewResult').hidden = true;
+  }
+
+  async function reviewCapture(decision) {
+    const item = state.captureDetail?.capture;
+    if (!item || item.status !== 'pending') return;
+    const verb = decision === 'approve' ? 'publish this discovery and image' : 'reject this capture pair';
+    if (!confirm(`Are you sure you want to ${verb}?`)) return;
+    const button = decision === 'approve' ? $('#approveCapture') : $('#rejectCapture');
+    const original = button.textContent;
+    button.disabled = true;
+    button.textContent = decision === 'approve' ? 'Publishing pair…' : 'Rejecting…';
+    try {
+      const result = await api(`/admin/captures/${encodeURIComponent(item.id)}/${decision}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({actor:state.actor, note:$('#captureReviewNote').value.trim(), approval_role:$('#captureApprovalRole').value})});
+      $('#captureReviewResult').hidden = false;
+      $('#captureReviewResult').className = 'inline-alert success';
+      $('#captureReviewResult').textContent = decision === 'approve' ? `${result.wc_id} published with its confirmed image.` : 'Capture pair rejected and its private image removed.';
+      toast(decision === 'approve' ? `${result.wc_id} published.` : 'Capture pair rejected.');
+      clearCaptureDetail();
+      await Promise.all([loadSummary(), loadCaptures(), loadAudit()]);
+    } catch (error) {
+      $('#captureReviewResult').hidden = false;
+      $('#captureReviewResult').className = 'inline-alert error';
+      $('#captureReviewResult').textContent = error.message;
+      toast(error.message, true);
+    } finally {
+      button.disabled = false;
+      button.textContent = original;
+    }
   }
 
   // ---------- Data submission review ----------
@@ -622,6 +710,10 @@
   $$('.admin-mode').forEach((button) => button.addEventListener('click', () => setMode(button.dataset.mode)));
 
   $('#queueSearch').addEventListener('input', renderSubmissionQueue);
+  $('#captureSearch').addEventListener('input', renderCaptureQueue);
+  $$('.capture-status-tab').forEach((tab) => tab.addEventListener('click', async () => { state.captureStatus = tab.dataset.status; $$('.capture-status-tab').forEach((item) => item.classList.toggle('active', item === tab)); clearCaptureDetail(); await loadCaptures(); }));
+  $('#approveCapture').addEventListener('click', () => reviewCapture('approve'));
+  $('#rejectCapture').addEventListener('click', () => reviewCapture('reject'));
   $('#recordSearch').addEventListener('input', renderSubmissionRecords);
   $('#approveButton').addEventListener('click', () => reviewSubmission('approve'));
   $('#rejectButton').addEventListener('click', () => reviewSubmission('reject'));
@@ -654,4 +746,3 @@
   if (savedActor) $('#actorInput').value = savedActor;
   if (savedKey) { $('#adminKeyInput').value = savedKey; unlock(); }
 })();
-

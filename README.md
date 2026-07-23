@@ -1,4 +1,4 @@
-# Wonder Codex v1.16.0
+# Wonder Codex v1.17.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -15,7 +15,9 @@ The current release includes the Wonder and procedural-asset catalogs,
 contribution and verification workflows, private review tools, original
 placeholder artwork, the Galactic Cluster Map beta, contributor ranks, weekly
 community missions, the owner-only product questionnaire, and the clean-room
-Descriptor Atlas evidence layer.
+Descriptor Atlas evidence layer. It also includes a private receiver and owner
+review lane for locally confirmed Capture Companion discovery/screenshot pairs;
+nothing from that lane becomes public without an administrator decision.
 
 ## Repository boundary
 
