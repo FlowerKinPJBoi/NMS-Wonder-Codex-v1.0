@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     tester_api_key_readyfireaim: str = ""
     tester_api_key_visceral: str = ""
     tester_api_key_ekimo: str = ""
+    tester_api_key_jadexp: str = ""
+    tester_api_key_krosskelt: str = ""
     ip_hash_salt: str = "change-me"
     max_requests_per_hour: int = 5
     analytics_enabled: bool = True
@@ -132,6 +134,8 @@ class Settings(BaseSettings):
             "ReadyFireAim": self.tester_api_key_readyfireaim,
             "Visceral": self.tester_api_key_visceral,
             "Ekimo": self.tester_api_key_ekimo,
+            "JadeXP": self.tester_api_key_jadexp,
+            "Krosskelt": self.tester_api_key_krosskelt,
         }
 
     @property
