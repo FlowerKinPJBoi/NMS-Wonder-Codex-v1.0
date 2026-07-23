@@ -1,5 +1,20 @@
 # Wonder Codex changelog
 
+## v1.17.0 — Capture Companion private review bridge
+
+- Added a credentialed Capture Companion receiver for one locally confirmed
+  normalized discovery + screenshot pair at a time.
+- Added a dedicated PJ/Boots owner-review lane that keeps incoming pairs private
+  until an administrator publishes or rejects the discovery and image together.
+- Added Capture-pair counts, previews, normalized discovery evidence, and
+  one-action approval/rejection controls to the existing review console.
+- Extended named tester credentials with `capture:submit` while preserving their
+  inability to open the review console or publish catalog data.
+- Kept excluded records entirely local to Capture Companion and retained no raw
+  saves, local paths, account identifiers, inventory, missions, or bases.
+- Added duplicate protection, image validation, object verification, audit
+  events, and database migration `0008_capture_submissions`.
+
 ## v1.16.0 — Asset identity and Descriptor Atlas evidence
 
 - Added deterministic visual-profile fingerprints for exact pet/discovery pairs.

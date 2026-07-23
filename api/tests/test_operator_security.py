@@ -19,11 +19,11 @@ def configure_keys(monkeypatch):
     get_settings.cache_clear()
 
 
-def test_tester_receives_download_and_transit_scopes_only(monkeypatch):
+def test_tester_receives_download_transit_and_capture_scopes_only(monkeypatch):
     configure_keys(monkeypatch)
     session = require_operator_key("meno-secret", "Menomoo")
     assert session.actor == "Menomoo"
-    assert session.scopes == frozenset({"apps:download", "transit"})
+    assert session.scopes == frozenset({"apps:download", "transit", "capture:submit"})
     assert session.can_upload_private_apps is False
     get_settings.cache_clear()
 
@@ -40,7 +40,7 @@ def test_monketsu_receives_restricted_app_and_transit_access(monkeypatch):
     configure_keys(monkeypatch)
     session = require_operator_key("monk-secret", "Monketsu")
     assert session.actor == "Monketsu"
-    assert session.scopes == frozenset({"apps:download", "transit"})
+    assert session.scopes == frozenset({"apps:download", "transit", "capture:submit"})
     assert session.can_upload_private_apps is False
 
     with pytest.raises(HTTPException) as error:
@@ -53,7 +53,7 @@ def test_readyfireaim_receives_restricted_app_and_transit_access(monkeypatch):
     configure_keys(monkeypatch)
     session = require_operator_key("ready-secret", "ReadyFireAim")
     assert session.actor == "ReadyFireAim"
-    assert session.scopes == frozenset({"apps:download", "transit"})
+    assert session.scopes == frozenset({"apps:download", "transit", "capture:submit"})
     assert session.can_upload_private_apps is False
 
     with pytest.raises(HTTPException) as error:
@@ -66,7 +66,7 @@ def test_visceral_receives_restricted_app_and_transit_access(monkeypatch):
     configure_keys(monkeypatch)
     session = require_operator_key("visceral-secret", "Visceral")
     assert session.actor == "Visceral"
-    assert session.scopes == frozenset({"apps:download", "transit"})
+    assert session.scopes == frozenset({"apps:download", "transit", "capture:submit"})
     assert session.can_upload_private_apps is False
 
     with pytest.raises(HTTPException) as error:
@@ -79,7 +79,7 @@ def test_admin_keeps_all_operator_capabilities(monkeypatch):
     configure_keys(monkeypatch)
     session = require_operator_key("pj-secret", "PJ")
     assert session.can_upload_private_apps is True
-    assert {"admin", "apps:download", "apps:upload", "transit"} <= session.scopes
+    assert {"admin", "apps:download", "apps:upload", "transit", "capture:submit"} <= session.scopes
     get_settings.cache_clear()
 
 

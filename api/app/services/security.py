@@ -56,14 +56,14 @@ def _authenticate(
     lookup = actor.casefold()
     admin = admin_keys.get(lookup) if actor else None
     if admin and secrets.compare_digest(x_admin_key, admin[1]):
-        return OperatorSession(admin[0], frozenset({"admin", "apps:download", "apps:upload", "transit"}))
+        return OperatorSession(admin[0], frozenset({"admin", "apps:download", "apps:upload", "transit", "capture:submit"}))
 
     tester = tester_keys.get(lookup) if actor else None
     if tester and secrets.compare_digest(x_admin_key, tester[1]):
-        return OperatorSession(tester[0], frozenset({"apps:download", "transit"}))
+        return OperatorSession(tester[0], frozenset({"apps:download", "transit", "capture:submit"}))
 
     if allow_legacy and legacy_key and secrets.compare_digest(x_admin_key, legacy_key):
-        return OperatorSession(actor or "legacy-admin", frozenset({"admin", "apps:download", "apps:upload", "transit"}))
+        return OperatorSession(actor or "legacy-admin", frozenset({"admin", "apps:download", "apps:upload", "transit", "capture:submit"}))
     raise HTTPException(status_code=401, detail="Invalid operator credentials.")
 
 

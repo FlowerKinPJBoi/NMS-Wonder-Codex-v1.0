@@ -10,6 +10,7 @@ from ..database import get_session
 from ..models import (
     AuditEvent,
     AssetSpecimen,
+    CaptureSubmission,
     Discovery,
     LocationVerification,
     ImageContribution,
@@ -39,6 +40,9 @@ def _admin_discovery_payload(discovery: Discovery, *, detail: bool = False):
 @router.get("/summary")
 def admin_summary(session: Session = Depends(get_session)):
     return {
+        "pending_captures": session.scalar(
+            select(func.count()).select_from(CaptureSubmission).where(CaptureSubmission.status == "pending")
+        ) or 0,
         "pending_batches": session.scalar(
             select(func.count()).select_from(SubmissionBatch).where(SubmissionBatch.status == "pending")
         ) or 0,
@@ -78,6 +82,211 @@ def admin_summary(session: Session = Depends(get_session)):
             select(func.count()).select_from(AssetSpecimen).where(AssetSpecimen.publication_state == "published")
         ) or 0,
     }
+
+
+def _capture_payload(row: CaptureSubmission) -> dict:
+    return {
+        "id": row.id,
+        "created_at": row.created_at.isoformat(),
+        "reviewed_at": row.reviewed_at.isoformat() if row.reviewed_at else None,
+        "status": row.status,
+        "contributor": row.contributor,
+        "save_name": row.save_name,
+        "platform": row.platform,
+        "client_version": row.client_version,
+        "public_attribution": row.public_attribution,
+        "discovery_type": row.discovery_type,
+        "ua": row.ua,
+        "vp": [row.vp0, row.vp1, row.vp2, row.vp3, row.vp4],
+        "message_id": row.message_id,
+        "creature_id": row.creature_id,
+        "creature_type": row.creature_type,
+        "discovery": row.discovery_record,
+        "image_role": row.image_role,
+        "caption": row.caption,
+        "original_filename": row.original_filename,
+        "width": row.width,
+        "height": row.height,
+        "size_bytes": row.size_bytes,
+        "reviewer_note": row.reviewer_note,
+        "published_discovery_id": row.published_discovery_id,
+    }
+
+
+@router.get("/captures")
+def list_captures(
+    status: str = Query(default="pending"),
+    limit: int = Query(default=100, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    session: Session = Depends(get_session),
+):
+    rows = session.scalars(
+        select(CaptureSubmission)
+        .where(CaptureSubmission.status == status)
+        .order_by(CaptureSubmission.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    ).all()
+    return {"items": [_capture_payload(row) for row in rows], "limit": limit, "offset": offset}
+
+
+@router.get("/captures/{capture_id}")
+def get_capture(capture_id: str, session: Session = Depends(get_session)):
+    row = session.get(CaptureSubmission, capture_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Capture pair not found.")
+    payload = _capture_payload(row)
+    payload["preview_url"] = (
+        f"/api/images/{row.id}/content"
+        if row.status == "approved"
+        else signed_review_url(row.object_key) if row.object_key else ""
+    )
+    if row.published_discovery_id:
+        discovery = session.get(Discovery, row.published_discovery_id)
+        payload["published_discovery"] = (
+            _admin_discovery_payload(discovery, detail=True) if discovery else None
+        )
+    return {"capture": payload}
+
+
+@router.post("/captures/{capture_id}/approve")
+def approve_capture(
+    capture_id: str,
+    action: ImageReviewAction,
+    session: Session = Depends(get_session),
+):
+    row = session.get(CaptureSubmission, capture_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Capture pair not found.")
+    if row.status != "pending":
+        raise HTTPException(status_code=409, detail=f"Capture pair is already {row.status}.")
+    verify_object(row.object_key)
+
+    discovery = session.scalar(select(Discovery).where(Discovery.record_hash == row.record_hash))
+    created_discovery = discovery is None
+    if discovery is None:
+        discovery = Discovery(
+            approved_from_batch_id=row.id,
+            contributor=row.contributor,
+            save_name=row.save_name or "Capture Companion",
+            discovery_type=row.discovery_type,
+            ua=row.ua,
+            vp0=row.vp0,
+            vp1=row.vp1,
+            vp2=row.vp2,
+            vp3=row.vp3,
+            vp4=row.vp4,
+            message_id=row.message_id,
+            owner="",
+            platform=row.platform,
+            record_hash=row.record_hash,
+            raw_record=row.discovery_record,
+            public_attribution=row.public_attribution,
+            display_name=row.discovery_record.get("CustomName", ""),
+            projector_status="data_available" if row.message_id else "unverified",
+            image_status="available",
+        )
+        session.add(discovery)
+        session.flush()
+
+    if action.approval_role == "primary":
+        session.execute(
+            update(ImageContribution)
+            .where(
+                ImageContribution.discovery_id == discovery.id,
+                ImageContribution.status == "approved",
+            )
+            .values(is_primary=False)
+        )
+        is_primary = True
+    else:
+        current_primary = session.scalar(
+            select(ImageContribution).where(
+                ImageContribution.discovery_id == discovery.id,
+                ImageContribution.status == "approved",
+                ImageContribution.is_primary.is_(True),
+            )
+        )
+        is_primary = current_primary is None
+    # Capture pairs are already de-duplicated by normalized record + image hash.
+    # Reuse the immutable capture UUID as the public image id so its approved
+    # preview route stays stable even if the same bytes arrived another way.
+    image = ImageContribution(
+        id=row.id,
+        discovery_id=discovery.id,
+        contributor=row.contributor,
+        image_role=row.image_role,
+        caption=row.caption,
+        permission_confirmed=True,
+        status="approved",
+        reviewed_at=datetime.now(timezone.utc),
+        reviewer_note=action.note,
+        object_key=row.object_key,
+        public_url="",
+        original_filename=row.original_filename,
+        content_type=row.content_type,
+        width=row.width,
+        height=row.height,
+        size_bytes=row.size_bytes,
+        sha256=row.sha256,
+        is_primary=is_primary,
+        submitter_ip_hash=row.submitter_ip_hash,
+        user_agent=row.user_agent,
+        public_attribution=row.public_attribution,
+    )
+    session.add(image)
+
+    discovery.image_status = "available"
+    row.status = "approved"
+    row.reviewed_at = datetime.now(timezone.utc)
+    row.reviewer_note = action.note
+    row.published_discovery_id = discovery.id
+    session.add(AuditEvent(
+        event_type="capture_pair_approved",
+        actor=action.actor,
+        batch_id=row.id,
+        detail={
+            "wc_id": wc_id(discovery),
+            "created_discovery": created_discovery,
+            "image_primary": is_primary,
+            "note": action.note,
+        },
+    ))
+    session.commit()
+    return {
+        "ok": True,
+        "status": "approved",
+        "discovery_id": discovery.id,
+        "wc_id": wc_id(discovery),
+        "created_discovery": created_discovery,
+        "is_primary": is_primary,
+    }
+
+
+@router.post("/captures/{capture_id}/reject")
+def reject_capture(
+    capture_id: str,
+    action: ImageReviewAction,
+    session: Session = Depends(get_session),
+):
+    row = session.get(CaptureSubmission, capture_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Capture pair not found.")
+    if row.status != "pending":
+        raise HTTPException(status_code=409, detail=f"Capture pair is already {row.status}.")
+    delete_object(row.object_key)
+    row.object_key = ""
+    row.status = "rejected"
+    row.reviewed_at = datetime.now(timezone.utc)
+    row.reviewer_note = action.note
+    session.add(AuditEvent(
+        event_type="capture_pair_rejected",
+        actor=action.actor,
+        batch_id=row.id,
+        detail={"discovery_type": row.discovery_type, "note": action.note},
+    ))
+    session.commit()
+    return {"ok": True, "status": "rejected"}
 
 
 @router.get("/submissions")

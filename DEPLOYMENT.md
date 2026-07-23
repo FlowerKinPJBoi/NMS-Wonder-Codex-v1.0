@@ -43,10 +43,11 @@ variables listed above as separate encrypted Runtime values on the API Web
 Service. Use a different long random value for each person. Do not add the old
 `TESTER_API_KEYS` JSON variable; DigitalOcean's editor may reject its braces.
 
-Those keys can authorize Pegasus Transit and create private application
-downloads. They cannot open the review console, approve catalog data, upload
-replacement builds, or use other administrator routes. PJ and Boots remain in
-`ADMIN_API_KEYS` with full administrator scope.
+Those keys can authorize Pegasus Transit, create private application downloads,
+and submit locally confirmed Capture Companion pairs for owner review. They
+cannot open the review console, approve catalog data, upload replacement builds,
+or use other administrator routes. PJ and Boots remain in `ADMIN_API_KEYS` with
+full administrator scope.
 
 ## Deployment checks
 
@@ -68,8 +69,13 @@ After both components are healthy:
    and submit one clearly labeled test response. Confirm the success panel appears.
 10. Open `https://wondercodex.com/admin/feedback/` with PJ's named credential,
     confirm the test response and pricing summary appear, then download the CSV.
+11. Authorize Capture Companion with a named tester credential, submit one
+    clearly labeled confirmed test pair, then confirm it appears only in the
+    **Capture pairs** lane of the owner review console.
+12. Reject that test pair and confirm neither its discovery nor image appears in
+    the public catalog.
 
-The v1.15.0 deployment adds questionnaire database migration `0007`. With
-`RUN_MIGRATIONS_ON_START=true`, the API applies it automatically. No new
-environment variable is required. Feedback defaults to ten submissions per
-hour per temporary salted rate-limit key; the raw IP is not persisted.
+The v1.17.0 deployment adds private Capture Companion migration
+`0008_capture_submissions`. With `RUN_MIGRATIONS_ON_START=true`, the API applies
+it automatically. No new environment variable is required. Capture submissions
+use the existing named tester/admin credentials and private object storage.

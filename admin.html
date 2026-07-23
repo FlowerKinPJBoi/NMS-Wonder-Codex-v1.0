@@ -34,6 +34,7 @@
       <div class="admin-title-row"><div><p class="kicker">WONDER DATABASE ADMIN</p><h1>Review and curate the Codex</h1><p>Publish normalized data, evaluate travel evidence, curate catalog records, and retain an auditable decision history.</p></div><div class="admin-title-actions"><a class="button secondary" href="admin/apps/">Open private apps</a><button id="refreshButton" class="button secondary" type="button">Refresh data</button><span id="lastRefresh">Not refreshed</span></div></div>
 
       <div id="summaryGrid" class="admin-summary-grid v12-summary">
+        <div class="admin-stat"><span>Pending capture pairs</span><strong id="sumCaptures">—</strong></div>
         <div class="admin-stat"><span>Pending batches</span><strong id="sumPending">—</strong></div>
         <div class="admin-stat"><span>Pending discoveries</span><strong id="sumPendingRecords">—</strong></div>
         <div class="admin-stat"><span>Pending verifications</span><strong id="sumVerifications">—</strong></div>
@@ -46,11 +47,32 @@
 
       <div class="admin-mode-tabs" role="tablist">
         <button class="admin-mode active" data-mode="submissions" type="button">Data submissions</button>
+        <button class="admin-mode" data-mode="captures" type="button">Capture pairs <span id="captureTabCount">0</span></button>
         <button class="admin-mode" data-mode="verifications" type="button">Verifications <span id="verificationTabCount">0</span></button>
         <button class="admin-mode" data-mode="catalog" type="button">Catalog editor</button>
         <button class="admin-mode" data-mode="assets" type="button">Assets <span id="assetTabCount">0</span></button>
         <button class="admin-mode" data-mode="images" type="button">Images <span id="imageTabCount">0</span></button>
       </div>
+
+      <section class="admin-mode-panel" data-panel="captures" hidden>
+        <div class="admin-workspace">
+          <aside class="queue-panel">
+            <div class="queue-toolbar"><div class="status-tabs" role="tablist"><button class="capture-status-tab active" data-status="pending" type="button">Pending</button><button class="capture-status-tab" data-status="approved" type="button">Approved</button><button class="capture-status-tab" data-status="rejected" type="button">Rejected</button></div><input id="captureSearch" type="search" placeholder="Search contributor, save, or type…"></div>
+            <div id="captureList" class="queue-list"></div><div id="captureEmpty" class="empty-state" hidden><span>◈</span><strong>No capture pairs found</strong><p>Confirmed screenshots from Capture Companion will arrive here.</p></div>
+          </aside>
+          <section class="review-panel">
+            <div id="capturePlaceholder" class="review-placeholder"><span>◈</span><h2>Select a confirmed pair</h2><p>Review the private screenshot beside its normalized discovery. One approval publishes both together.</p></div>
+            <div id="captureContent" hidden>
+              <div class="review-header"><div><div class="review-meta"><span id="captureStatus" class="detail-status">Pending</span><span id="captureType" class="wc-id">—</span></div><h2 id="captureSave">—</h2><p id="captureContributor">—</p></div></div>
+              <div class="admin-image-preview"><img id="captureImage" alt="Locally confirmed Wonder screenshot"></div>
+              <div id="captureMetadata" class="detail-summary"></div>
+              <div id="captureDiscovery" class="review-note-existing"></div>
+              <details class="raw-asset-details"><summary>Normalized discovery fields</summary><pre id="captureRaw" class="raw-preview"></pre></details>
+              <div id="captureActions" class="review-actions"><label>Reviewer note<textarea id="captureReviewNote" rows="3" placeholder="Decision notes for the audit history"></textarea><label class="field" style="margin-top:10px">Image role<select id="captureApprovalRole"><option value="primary">Primary catalog image</option><option value="alternate">Alternate image</option></select></label></label><div><button id="rejectCapture" class="button danger" type="button">Reject pair</button><button id="approveCapture" class="button success" type="button">Publish discovery + image</button></div></div><div id="captureReviewResult" class="inline-alert" hidden></div>
+            </div>
+          </section>
+        </div>
+      </section>
 
       <section class="admin-mode-panel" data-panel="submissions">
         <div class="admin-workspace">
@@ -142,6 +164,6 @@
   <div id="toast" class="toast" hidden></div>
   <script src="glyphs.js?v=1.6.0"></script>
   <script src="locations.js?v=1.6.0"></script>
-  <script src="admin.js?v=1.9.1"></script>
+  <script src="admin.js?v=1.10.0"></script>
 </body>
 </html>
