@@ -73,11 +73,16 @@
     const individual = data.wonder_individual_name_status === 'captured'
       ? `Captured in-game name: ${data.wonder_individual_name}`
       : `Individual/name signal ${data.wonder_individual_reference || 'encoded'} — exact name not decoded yet`;
+    const descriptorCount = Number(data.descriptor_token_count || 0);
+    const categories = Array.isArray(data.descriptor_visual_categories) ? data.descriptor_visual_categories : [];
+    const appearance = exact && descriptorCount
+      ? `<p class="descriptor-evidence">${number(descriptorCount)} appearance signal${descriptorCount === 1 ? '' : 's'} observed in the exact paired pet record${categories.length ? ` · token-name research hints: ${escapeHtml(categories.join(', '))}` : ''}. These hints are not yet confirmed body-part mappings.</p>`
+      : '';
     element.classList.toggle('exact', exact);
     element.classList.toggle('inferred', !exact);
     element.innerHTML = `<p class="kicker">WONDER IDENTITY</p>
       <div class="fauna-identity-heading"><strong>${escapeHtml(family)}</strong><span class="fauna-behavior">${escapeHtml(individual)}</span></div>
-      <p>${escapeHtml(evidence)} · ${escapeHtml(data.wonder_projector_fingerprint_label || 'Projector fingerprint under review')}</p>`;
+      <p>${escapeHtml(evidence)} · ${escapeHtml(data.wonder_projector_fingerprint_label || 'Projector fingerprint under review')}</p>${appearance}`;
     element.hidden = false;
   }
 
@@ -145,6 +150,10 @@
       item('Visual family', data.wonder_family_label, false),
       item('Individual identity', data.wonder_individual_name || data.wonder_individual_reference || 'Encoded', false),
       item('Identity evidence', data.wonder_projector_fingerprint_label, false),
+      ...(data.descriptor_token_count ? [
+        item('Appearance signals', `${data.descriptor_token_count} observed`, false),
+        item('Visual profile', data.visual_profile_fingerprint || 'Under review', false),
+      ] : []),
     ] : [];
     $('#dataList').innerHTML = [
       ...identityData,

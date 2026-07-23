@@ -48,7 +48,12 @@
       : item.wonder_family_source === 'confirmed_vp1_mapping'
         ? `Confirmed VP1 family mapping${evidenceCount ? ` · ${number(evidenceCount)} exact match${evidenceCount === 1 ? '' : 'es'}` : ''}`
         : 'VP1 visual-family signal · VP0 individual/name signal';
-    return `<div class="fauna-identity card-identity ${exact ? 'exact' : 'inferred'}"><div class="fauna-identity-heading"><span class="fauna-family-badge">${escapeHtml(family)}</span><span class="fauna-behavior">${escapeHtml(exact ? behavior : individual)}</span></div><small>${escapeHtml(evidence)}</small></div>`;
+    const descriptorCount = Number(item.descriptor_token_count || 0);
+    const categories = Array.isArray(item.descriptor_visual_categories) ? item.descriptor_visual_categories : [];
+    const descriptorEvidence = exact && descriptorCount
+      ? `<small class="descriptor-evidence">${number(descriptorCount)} observed appearance signal${descriptorCount === 1 ? '' : 's'}${categories.length ? ` · research hints: ${escapeHtml(categories.join(', '))}` : ''}</small>`
+      : '';
+    return `<div class="fauna-identity card-identity ${exact ? 'exact' : 'inferred'}"><div class="fauna-identity-heading"><span class="fauna-family-badge">${escapeHtml(family)}</span><span class="fauna-behavior">${escapeHtml(exact ? behavior : individual)}</span></div><small>${escapeHtml(evidence)}</small>${descriptorEvidence}</div>`;
   }
 
   function imageMarkup(item, name) {
@@ -89,9 +94,10 @@
   }
 
   function assetIdentityMarkup(item) {
-    const className = item.class || 'Class under review';
+    const className = item.class_label || item.class || 'Class under review';
     const source = (item.source_role || 'unknown').replaceAll('_', ' ');
-    return `<div class="asset-identity card-identity"><div class="asset-identity-heading"><span class="asset-class-badge">${escapeHtml(className)}</span><span>${escapeHtml(source)}</span></div><small>Identity: ${escapeHtml(item.identity_basis || 'normalized asset key')} · ${escapeHtml(item.confidence || 'Beta extracted')}</small></div>`;
+    const classNote = item.native_class_known ? 'native class confirmed' : 'current class; native spawn class unknown';
+    return `<div class="asset-identity card-identity"><div class="asset-identity-heading"><span class="asset-class-badge">${escapeHtml(className)}</span><span>${escapeHtml(source)}</span></div><small>${escapeHtml(classNote)} · Identity: ${escapeHtml(item.identity_basis || 'normalized asset key')} · ${escapeHtml(item.confidence || 'Beta extracted')}</small></div>`;
   }
 
   function assetCard(item) {

@@ -5,6 +5,8 @@ import hashlib
 import re
 from typing import Any, Iterable
 
+from .descriptors import descriptor_profile
+
 
 SUPPORTED_FAUNA_ARCHETYPES = {
     "ANTELOPE": ("fauna.antelope", "Slender grazer"),
@@ -167,7 +169,7 @@ def archetype_metadata(
     discovery: Any,
     pet_match: Any | None = None,
     vp1_family: dict[str, str | int] | None = None,
-) -> dict[str, str | int]:
+) -> dict[str, Any]:
     """Attach evidence-safe family identity and representative artwork metadata."""
     discovery_type = str(getattr(discovery, "discovery_type", "") or "")
     family_id = ""
@@ -225,7 +227,7 @@ def archetype_metadata(
         and str(getattr(discovery, "vp1", "") or "").strip()
     )
 
-    return {
+    metadata: dict[str, Any] = {
         "archetype_key": archetype_key,
         "archetype_label": archetype_label,
         "archetype_source": archetype_source,
@@ -256,3 +258,5 @@ def archetype_metadata(
             else "Partial projector identity"
         ),
     }
+    metadata.update(descriptor_profile(family_id, pet_match if identity_source == "exact_pet_match" else None))
+    return metadata

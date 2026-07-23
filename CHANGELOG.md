@@ -1,5 +1,24 @@
 # Wonder Codex changelog
 
+## v1.16.0 — Asset identity and Descriptor Atlas evidence
+
+- Added deterministic visual-profile fingerprints for exact pet/discovery pairs.
+- Added normalized descriptor-token coverage and cautious token-name research
+  hints to fauna records.
+- Added public appearance-signal summaries while retaining raw VP values off the
+  record page.
+- Added an evidence-gated Descriptor Atlas v2 registry and JSON Schema for
+  controlled Wonder Projector correlations.
+- Clarified current-versus-native class evidence for starships, freighters,
+  frigates, and multi-tools.
+- Exposed stable procedural-identity fingerprints and explicitly labels
+  appearance seeds as identity evidence, not location claims.
+- Kept reconstruction language explicit: representative artwork is not the exact
+  specimen without an approved specimen image.
+- Preserved Galactic Map performance by avoiding lazy loading of PetData raw
+  records in the lean map query.
+- Preserved the v1.15 questionnaire, owner console, and all newer site features.
+
 ## v1.15.0 — Explorer feedback and pricing research
 
 - Added a public four-step feedback questionnaire covering ease of use, UI

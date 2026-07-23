@@ -56,6 +56,7 @@
 .record-identity strong{color:#f1f5ff;font:700 1.22rem "Space Grotesk",sans-serif}
 .record-identity>p:last-child{margin:0;color:#aab8d4;font-size:.75rem}
 .record-identity code{color:#d9faff}
+.descriptor-evidence{display:block;color:#8edff2!important;border-top:1px solid rgba(109,231,255,.12);padding-top:7px;margin-top:2px!important}
 
 /* v1.9 — procedural asset catalog lanes */
 .catalog-lanes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:16px}
