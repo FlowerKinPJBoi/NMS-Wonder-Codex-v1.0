@@ -214,7 +214,7 @@
       $('#glyphCode').textContent = '';
       $('#copyGlyphs').hidden = true;
     }
-    $('#evidenceLink').href = `contribute.html?mode=evidence&record=${data.id}`;
+    $('#evidenceLink').href = `contribute.html?mode=image&record=${data.id}`;
     configurePegasusTransit(data);
     $('#recordLayout').hidden = false;
     window.WonderAnalytics?.track('record_view', {

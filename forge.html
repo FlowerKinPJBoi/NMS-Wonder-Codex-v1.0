@@ -9,15 +9,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=1.18.0">
-  <link rel="stylesheet" href="forge.css?v=1.18.0">
+  <link rel="stylesheet" href="styles.css?v=1.18.1">
+  <link rel="stylesheet" href="forge.css?v=1.18.1">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
   <header class="site-header">
     <a class="brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Wonder Forge</small></span></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
-    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="forge.html" aria-current="page">Forge</a><a href="map.html">Map</a><a href="decoder.html">Decoder</a><a href="contributors.html">Contributors</a><a href="contribute.html" class="nav-cta">Contribute</a></nav>
+    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="forge.html" aria-current="page">Forge</a><a href="map.html">Map</a><a href="decoder.html">Decoder</a><a href="contributors.html">Contributors</a><a href="contribute.html">Contribute</a><a href="contribute.html?mode=image" class="nav-cta">Submit screenshot</a></nav>
   </header>
 
   <main>
@@ -41,6 +41,44 @@
 
       <div class="forge-policy"><strong>Catalog rule:</strong> “Representative family image — not this exact specimen.” An approved community screenshot always replaces representative art on its own record.</div>
 
+      <section class="forge-builder surface" aria-labelledby="forgeBuilderTitle">
+        <div class="forge-builder-intro">
+          <div>
+            <p class="kicker">BUILD A HOLOGRAM · EARLY FORGE</p>
+            <h2 id="forgeBuilderTitle">Choose a base. Narrow the parts. Preview the form.</h2>
+          </div>
+          <p>The Forge now reads each certified recipe as a compatible set. Every dropdown narrows the next one, so the preview always remains a combination that exists in the current expedition catalog.</p>
+        </div>
+        <div class="forge-builder-layout">
+          <form class="forge-builder-controls" id="forgeBuilderControls">
+            <label>Creature base<select id="forgeBuilderFamily" aria-describedby="forgeBuilderStatus"></select></label>
+            <div id="forgeBuilderParts" class="forge-builder-parts"></div>
+            <div class="forge-builder-actions">
+              <button id="forgeRandomize" class="button primary" type="button">Randomize available parts</button>
+              <a class="button secondary" href="contribute.html?mode=image">Submit an exact screenshot</a>
+            </div>
+            <p id="forgeBuilderStatus" class="forge-builder-status">Loading compatible Forge recipes…</p>
+            <p class="forge-builder-roadmap"><strong>Next layer:</strong> certified color, size, horn, tail, and other isolated part maps—building toward selections such as “Blue Diplo · long tail · spiky horns · XL.”</p>
+          </form>
+          <article class="forge-builder-preview" aria-live="polite">
+            <div class="forge-builder-stage">
+              <img id="forgeBuilderImage" alt="" hidden>
+              <span id="forgeBuilderClass" class="forge-class">Loading</span>
+            </div>
+            <div class="forge-builder-caption">
+              <span id="forgeBuilderFamilyName" class="forge-family">Wonder Forge</span>
+              <h3 id="forgeBuilderName">Opening the recipe catalog…</h3>
+              <div id="forgeBuilderTraits" class="forge-traits"></div>
+              <p id="forgeBuilderEvidence">The preview will retain its evidence class.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <div class="forge-gallery-heading">
+        <div><p class="kicker">COMPLETE HOLOGRAM GALLERY</p><h2>Browse every certified render.</h2></div>
+        <p>Use the filters to compare verified reference forms and research-only synthetic combinations.</p>
+      </div>
       <div class="forge-toolbar surface">
         <label>Search forms<input id="forgeSearch" type="search" placeholder="T-Rex, shell, mushroom…"></label>
         <label>Evidence class<select id="forgeClass"><option value="">All holograms</option><option value="verified">Verified natural forms</option><option value="synthetic">Synthetic variants</option></select></label>
@@ -53,7 +91,7 @@
 
   <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Preserve the procedural universe</small></span></a><p>Independent community research project. Not affiliated with Hello Games.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="forge.html">Forge</a><a href="map.html">Map</a><a href="contribute.html">Contribute</a><a href="privacy.html">Privacy</a></div></footer>
   <script src="analytics.js?v=1.13.0"></script>
-  <script src="script.js?v=1.18.0"></script>
-  <script src="forge.js?v=1.18.0"></script>
+  <script src="script.js?v=1.18.1"></script>
+  <script src="forge.js?v=1.18.1"></script>
 </body>
 </html>

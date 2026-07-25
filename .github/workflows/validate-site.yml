@@ -40,3 +40,9 @@ jobs:
 
       - name: Test Wonder Projector decoder vectors
         run: node tests/projector_decoder.test.js
+
+      - name: Test public site invariants
+        run: |
+          node tests/site_invariants.test.js
+          node tests/forge_builder.test.js
+          node tests/feedback_questionnaire.test.js

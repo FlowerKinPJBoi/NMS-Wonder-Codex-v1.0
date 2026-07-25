@@ -11,10 +11,14 @@
     const aliases = {image: 'evidence', verify: 'evidence'};
     const requested = aliases[mode] || mode;
     const selected = ['save','evidence','research'].includes(requested) ? requested : 'save';
-    $$('.contribution-tab').forEach((tab) => tab.classList.toggle('active', tab.dataset.mode === selected));
+    $$('.contribution-tab').forEach((tab) => {
+      const active = tab.dataset.mode === selected;
+      tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', String(active));
+    });
     $$('[data-section]').forEach((section) => section.hidden = section.dataset.section !== selected);
     const url = new URL(location.href);
-    url.searchParams.set('mode', selected);
+    url.searchParams.set('mode', aliases[mode] ? mode : selected);
     history.replaceState({}, '', url);
   }
 
@@ -255,6 +259,9 @@
     requestedMode === 'image' || requestedEvidence === 'image' || requestedEvidence === 'both',
     requestedMode === 'verify' || requestedEvidence === 'location' || requestedEvidence === 'both',
   );
+  if (['image','verify'].includes(requestedMode) || requestedEvidence) {
+    requestAnimationFrame(() => document.querySelector('.contribution-tabs')?.scrollIntoView({block:'start'}));
+  }
   const recordId = params.get('record');
   if (recordId && /^\d+$/.test(recordId) && ['evidence','image','verify'].includes(requestedMode)) selectRecord(Number(recordId));
 })();
