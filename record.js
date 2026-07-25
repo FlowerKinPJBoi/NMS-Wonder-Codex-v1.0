@@ -89,18 +89,37 @@
 
   function showArchetype(data, note = '') {
     const archetype = WCArchetypes.resolve(data);
+    const forgeUrl = String(data.forge_image_url || '').trim();
     const gallery = $('#recordGallery');
     const frame = gallery.querySelector('.record-primary-image');
     const primary = $('#recordPrimaryImage');
     frame.classList.add('is-archetype');
+    frame.classList.toggle('is-forge', Boolean(forgeUrl));
+    const showStaticArchetype = () => {
+      frame.classList.remove('is-forge');
+      primary.onerror = () => {
+        primary.onerror = null;
+        primary.removeAttribute('src');
+        $('#recordImageCaption').textContent = 'The representative archetype could not be loaded. Please report this record ID to an administrator.';
+      };
+      primary.src = archetype.url;
+      primary.alt = archetype.alt;
+      $('#recordImageCaption').textContent = `${data.archetype_label || archetype.label} • Representative archetype — not this exact specimen${note ? ` • ${note}` : ''}`;
+    };
     primary.onerror = () => {
+      if (forgeUrl) {
+        showStaticArchetype();
+        return;
+      }
       primary.onerror = null;
       primary.removeAttribute('src');
       $('#recordImageCaption').textContent = 'The representative archetype could not be loaded. Please report this record ID to an administrator.';
     };
-    primary.src = archetype.url;
-    primary.alt = archetype.alt;
-    $('#recordImageCaption').textContent = `${data.archetype_label || archetype.label} • Representative archetype — not this exact specimen${note ? ` • ${note}` : ''}`;
+    primary.src = forgeUrl || archetype.url;
+    primary.alt = forgeUrl ? `${data.fauna_family_label || 'Fauna'} family representative from Wonder Forge` : archetype.alt;
+    $('#recordImageCaption').textContent = forgeUrl
+      ? `${data.forge_form_name || data.fauna_family_label} • Wonder Forge verified natural form • ${data.forge_display_label || 'Representative family image — not this exact specimen.'}${note ? ` • ${note}` : ''}`
+      : `${data.archetype_label || archetype.label} • Representative archetype — not this exact specimen${note ? ` • ${note}` : ''}`;
     $('#recordThumbnails').innerHTML = '';
     $('#recordThumbnails').hidden = true;
     gallery.hidden = false;
@@ -114,7 +133,7 @@
     const show = (image) => {
       active = image;
       const primary = $('#recordPrimaryImage');
-      gallery.querySelector('.record-primary-image').classList.remove('is-archetype');
+      gallery.querySelector('.record-primary-image').classList.remove('is-archetype', 'is-forge');
       primary.onerror = () => {
         showArchetype(data, 'approved image temporarily unavailable');
       };
@@ -142,7 +161,8 @@
     $('#recordType').textContent = data.discovery_type === 'Animal' ? 'Fauna' : data.discovery_type;
     $('#recordAttribution').textContent = `Contributed by ${data.contributor || data.owner || 'Unknown explorer'}${data.save_name ? ` • ${data.save_name}` : ''}`;
     renderWonderIdentity(data);
-    $('#recordBadges').innerHTML = badge('Location', data.travel_status) + badge('Projector', data.projector_status) + badge('Image', data.image_status);
+    $('#recordBadges').innerHTML = badge('Location', data.travel_status) + badge('Projector', data.projector_status) + badge('Image', data.image_status)
+      + (data.forge_image_url && data.image_status !== 'available' ? '<span class="status-chip forge">Forge family representative</span>' : '');
     renderImages(data.images || [], data);
     $('#messageId').textContent = data.message_id || 'No Wonder Projector Message ID available';
     $('#copyMessage').hidden = !data.message_id;
@@ -150,6 +170,9 @@
       item('Visual family', data.wonder_family_label, false),
       item('Individual identity', data.wonder_individual_name || data.wonder_individual_reference || 'Encoded', false),
       item('Identity evidence', data.wonder_projector_fingerprint_label, false),
+      ...(data.forge_image_url ? [
+        item('Forge image basis', `${data.forge_match_label} · representative only`, false),
+      ] : []),
       ...(data.descriptor_token_count ? [
         item('Appearance signals', `${data.descriptor_token_count} observed`, false),
         item('Visual profile', data.visual_profile_fingerprint || 'Under review', false),

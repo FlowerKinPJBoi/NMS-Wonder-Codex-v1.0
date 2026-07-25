@@ -18,6 +18,7 @@ from app.services.descriptors import (
     visual_profile_fingerprint,
 )
 from app.services.locations import decode_portal_coordinates, decode_universal_address
+from app.services.forge import VERIFIED_FAMILY_FORMS
 
 
 def sample_discovery() -> Discovery:
@@ -269,6 +270,42 @@ def test_unambiguous_vp1_mapping_labels_related_discoveries_without_copying_beha
     assert metadata["fauna_family_label"] == "T-Rex"
     assert metadata["fauna_behavior"] == ""
     assert metadata["fauna_identity_source"] == "confirmed_vp1_mapping"
+    assert metadata["forge_image_url"].startswith("/assets/forge/verified/trex/")
+    assert metadata["forge_match_basis"] == "confirmed_vp1_mapping"
+    assert metadata["forge_exact_specimen"] is False
+    assert metadata["forge_display_label"] == "Representative family image — not this exact specimen."
+
+
+def test_forge_family_representative_is_stable_and_never_exact():
+    row = sample_discovery()
+    match = sample_pet_match(row, "TRICERATOPS", "Prey")
+    first = archetype_metadata(row, match)
+    second = archetype_metadata(row, match)
+    assert first["forge_image_url"] == second["forge_image_url"]
+    assert first["forge_form_id"] == second["forge_form_id"]
+    assert first["forge_match_basis"] == "exact_pet_match"
+    assert first["forge_selection_basis"] == "deterministic_vp0_family_pool"
+    assert first["forge_authenticity_status"] == "VERIFIED_REFERENCE_FORM"
+    assert first["forge_exact_specimen"] is False
+
+
+def test_synthetic_only_family_is_not_attached_to_a_record():
+    row = sample_discovery()
+    metadata = archetype_metadata(row, sample_pet_match(row, "CAT"))
+    assert metadata["fauna_family_id"] == "CAT"
+    assert "forge_image_url" not in metadata
+
+
+def test_record_eligible_forge_pool_contains_only_30_verified_forms():
+    assert sum(len(forms) for forms in VERIFIED_FAMILY_FORMS.values()) == 30
+    assert set(VERIFIED_FAMILY_FORMS) == {
+        "BLOB",
+        "FLOATSPIDER",
+        "HERMITCRAB",
+        "TREX",
+        "TRICERATOPS",
+        "WALKINGBUILDING",
+    }
 
 
 def test_conflicting_vp1_family_evidence_is_not_inferred():

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore evidence-labeled No Man's Sky family forms and synthetic variants produced by Wonder Forge.">
+  <meta name="theme-color" content="#080b16">
+  <title>Wonder Forge Gallery | Wonder Codex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=1.18.0">
+  <link rel="stylesheet" href="forge.css?v=1.18.0">
+</head>
+<body>
+  <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Wonder Forge</small></span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
+    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="forge.html" aria-current="page">Forge</a><a href="map.html">Map</a><a href="decoder.html">Decoder</a><a href="contributors.html">Contributors</a><a href="contribute.html" class="nav-cta">Contribute</a></nav>
+  </header>
+
+  <main>
+    <section class="page-hero forge-hero">
+      <p class="eyebrow">WONDER FORGE · EVIDENCE-LABELED VISUAL ATLAS</p>
+      <h1>More forms. Clear <span>boundaries.</span></h1>
+      <p>Explore the first Forge holograms while every image keeps its evidence class visible. Verified natural forms can represent a confirmed family in the Database; experimental combinations remain a separate research gallery.</p>
+      <div class="forge-stats" aria-label="Wonder Forge gallery counts">
+        <div><strong id="forgeTotal">—</strong><span>Hologram forms</span></div>
+        <div><strong id="forgeVerified">—</strong><span>Verified references</span></div>
+        <div><strong id="forgeSynthetic">—</strong><span>Synthetic variants</span></div>
+        <div><strong id="forgeFamilies">—</strong><span>Fauna families</span></div>
+      </div>
+    </section>
+
+    <section class="page-shell">
+      <div class="evidence-boundary surface">
+        <article class="verified"><span class="forge-evidence-mark">✓</span><div><h2>Verified natural reference forms</h2><p>Built from forms marked <code>VERIFIED_REFERENCE_FORM</code> in the returned Forge manifests. On a VP/PetData-confirmed family record, these may appear as representative art—never as an exact specimen claim.</p></div></article>
+        <article class="synthetic"><span class="forge-evidence-mark">◇</span><div><h2>NMS-parts synthetic variants</h2><p>Authentic game component combinations created for visual research. Their natural in-game spawn is not yet confirmed, so they remain gallery-only and are never assigned to a discovery record.</p></div></article>
+      </div>
+
+      <div class="forge-policy"><strong>Catalog rule:</strong> “Representative family image — not this exact specimen.” An approved community screenshot always replaces representative art on its own record.</div>
+
+      <div class="forge-toolbar surface">
+        <label>Search forms<input id="forgeSearch" type="search" placeholder="T-Rex, shell, mushroom…"></label>
+        <label>Evidence class<select id="forgeClass"><option value="">All holograms</option><option value="verified">Verified natural forms</option><option value="synthetic">Synthetic variants</option></select></label>
+        <label>Family<select id="forgeFamily"><option value="">All families</option></select></label>
+      </div>
+      <div class="forge-meta"><span id="forgeCount">Loading Wonder Forge…</span><a href="database.html">See representative forms in the Database →</a></div>
+      <div id="forgeGrid" class="forge-grid" aria-live="polite"><div class="forge-loading surface">Opening the Forge catalog…</div></div>
+    </section>
+  </main>
+
+  <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Preserve the procedural universe</small></span></a><p>Independent community research project. Not affiliated with Hello Games.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="forge.html">Forge</a><a href="map.html">Map</a><a href="contribute.html">Contribute</a><a href="privacy.html">Privacy</a></div></footer>
+  <script src="analytics.js?v=1.13.0"></script>
+  <script src="script.js?v=1.18.0"></script>
+  <script src="forge.js?v=1.18.0"></script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-# Wonder Codex v1.17.0
+# Wonder Codex v1.18.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -18,6 +18,13 @@ community missions, the owner-only product questionnaire, and the clean-room
 Descriptor Atlas evidence layer. It also includes a private receiver and owner
 review lane for locally confirmed Capture Companion discovery/screenshot pairs;
 nothing from that lane becomes public without an administrator decision.
+
+v1.18 adds the public Wonder Forge gallery with 95 evidence-labeled fauna
+holograms. Thirty verified natural forms can serve as deterministic
+representative family artwork on VP/PetData-confirmed catalog records; 65
+synthetic NMS-parts variants remain gallery-only. Approved community screenshots
+always take precedence and representative art never satisfies exact image
+evidence.
 
 ## Repository boundary
 

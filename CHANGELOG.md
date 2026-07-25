@@ -1,5 +1,25 @@
 # Wonder Codex changelog
 
+## v1.18.0 — Galactic museum and Wonder Forge gallery
+
+- Added a public Wonder Forge gallery with 95 optimized hologram forms across
+  Blob, Cat, Float Spider, Hermit Crab, Strider, T-Rex, Triceratops, and Walking
+  Building families.
+- Separated 30 verified natural reference forms from 65 NMS-parts synthetic
+  variants with persistent, plain-language evidence labels.
+- Added deterministic VP0-based selection of verified family representatives
+  for Database records whose family identity is supported by exact PetData or
+  an unambiguous VP1 mapping.
+- Kept representative Forge art explicitly non-exact, left `image_status`
+  unchanged, and preserved approved community screenshots as the highest image
+  priority.
+- Added “an interactive, user-contributed museum of the galaxies” to the public
+  mission language while preserving the permanent Preserve identity.
+- Replaced the tiled white-dot background with an irregular deep-space
+  starfield and quieter Pegasus ambience.
+- Added public-site invariants and regression tests for image evidence,
+  synthetic-gallery boundaries, exact-image priority, and Preserve language.
+
 ## v1.17.0 — Capture Companion private review bridge
 
 - Added a credentialed Capture Companion receiver for one locally confirmed
