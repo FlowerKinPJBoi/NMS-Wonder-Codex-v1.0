@@ -41,6 +41,10 @@
 .record-primary-image.is-archetype{background:#060b18}
 .record-primary-image.is-archetype img{aspect-ratio:16/9;object-fit:cover}
 .record-primary-image.is-archetype .record-image-caption{border-top:1px solid rgba(109,231,255,.12);color:#b9c6df}
+.wonder-card-image.is-forge,.record-primary-image.is-forge{background:radial-gradient(circle at 50% 45%,rgba(78,152,183,.13),rgba(4,8,18,.96) 64%)}
+.wonder-card-image.is-forge img{object-fit:contain;padding:4px}
+.record-primary-image.is-forge img{object-fit:contain}
+.status-chip.forge{color:#aeeeff;border-color:rgba(109,231,255,.38);background:linear-gradient(110deg,rgba(109,231,255,.1),rgba(157,140,255,.08))}
 
 /* v1.8 — evidence-backed fauna family identity */
 .fauna-identity{border:1px solid rgba(109,231,255,.22);background:linear-gradient(135deg,rgba(109,231,255,.065),rgba(157,140,255,.035))}

@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-label="Irregular deep-space star field">
+  <g fill="#ffffff">
+    <circle cx="27" cy="121" r="1.2" opacity=".78"/><circle cx="94" cy="466" r=".7" opacity=".52"/>
+    <circle cx="151" cy="71" r=".55" opacity=".48"/><circle cx="207" cy="824" r="1.05" opacity=".7"/>
+    <circle cx="262" cy="317" r=".65" opacity=".55"/><circle cx="316" cy="608" r="1.4" opacity=".82"/>
+    <circle cx="382" cy="169" r=".75" opacity=".57"/><circle cx="429" cy="906" r=".55" opacity=".5"/>
+    <circle cx="501" cy="421" r="1.05" opacity=".76"/><circle cx="538" cy="52" r=".6" opacity=".44"/>
+    <circle cx="596" cy="736" r=".8" opacity=".62"/><circle cx="649" cy="263" r="1.3" opacity=".78"/>
+    <circle cx="719" cy="943" r=".65" opacity=".48"/><circle cx="763" cy="558" r=".55" opacity=".5"/>
+    <circle cx="824" cy="114" r=".9" opacity=".63"/><circle cx="879" cy="681" r="1.4" opacity=".8"/>
+    <circle cx="938" cy="349" r=".55" opacity=".46"/><circle cx="1008" cy="862" r=".85" opacity=".7"/>
+    <circle cx="1052" cy="197" r=".65" opacity=".53"/><circle cx="1129" cy="493" r="1.15" opacity=".77"/>
+    <circle cx="1184" cy="76" r=".5" opacity=".4"/><circle cx="1247" cy="768" r="1.3" opacity=".82"/>
+    <circle cx="1303" cy="286" r=".7" opacity=".58"/><circle cx="1377" cy="926" r=".6" opacity=".46"/>
+    <circle cx="1432" cy="537" r="1" opacity=".69"/><circle cx="1519" cy="151" r=".7" opacity=".52"/>
+    <circle cx="1571" cy="704" r="1.3" opacity=".77"/><circle cx="66" cy="721" r=".5" opacity=".42"/>
+    <circle cx="178" cy="245" r="1.15" opacity=".74"/><circle cx="343" cy="787" r=".55" opacity=".47"/>
+    <circle cx="465" cy="116" r="1.45" opacity=".85"/><circle cx="574" cy="516" r=".55" opacity=".43"/>
+    <circle cx="692" cy="84" r=".8" opacity=".58"/><circle cx="792" cy="813" r="1.1" opacity=".73"/>
+    <circle cx="912" cy="44" r=".55" opacity=".4"/><circle cx="1047" cy="617" r=".7" opacity=".56"/>
+    <circle cx="1162" cy="353" r=".55" opacity=".46"/><circle cx="1288" cy="624" r=".95" opacity=".68"/>
+    <circle cx="1398" cy="205" r="1.25" opacity=".8"/><circle cx="1535" cy="889" r=".55" opacity=".43"/>
+  </g>
+  <g fill="#8feaff">
+    <circle cx="116" cy="592" r=".9" opacity=".55"/><circle cx="288" cy="92" r="1.1" opacity=".6"/>
+    <circle cx="407" cy="512" r=".65" opacity=".47"/><circle cx="624" cy="893" r=".85" opacity=".56"/>
+    <circle cx="744" cy="389" r="1.2" opacity=".65"/><circle cx="966" cy="718" r=".7" opacity=".5"/>
+    <circle cx="1101" cy="91" r="1" opacity=".58"/><circle cx="1339" cy="452" r=".75" opacity=".48"/>
+    <circle cx="1488" cy="635" r="1.15" opacity=".64"/>
+  </g>
+  <g fill="#b8abff">
+    <circle cx="232" cy="541" r=".65" opacity=".46"/><circle cx="458" cy="742" r=".85" opacity=".54"/>
+    <circle cx="851" cy="464" r=".75" opacity=".49"/><circle cx="1212" cy="159" r=".9" opacity=".55"/>
+    <circle cx="1457" cy="811" r=".7" opacity=".45"/>
+  </g>
+</svg>

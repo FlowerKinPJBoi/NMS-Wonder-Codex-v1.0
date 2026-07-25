@@ -6,6 +6,7 @@ import re
 from typing import Any, Iterable
 
 from .descriptors import descriptor_profile
+from .forge import forge_representative_metadata
 
 
 SUPPORTED_FAUNA_ARCHETYPES = {
@@ -259,4 +260,5 @@ def archetype_metadata(
         ),
     }
     metadata.update(descriptor_profile(family_id, pet_match if identity_source == "exact_pet_match" else None))
+    metadata.update(forge_representative_metadata(discovery, family_id, identity_source))
     return metadata
