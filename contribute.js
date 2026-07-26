@@ -5,7 +5,10 @@
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-  const state = {record: null, submitting: false};
+  const imageSubmissionAccepted = (data) => Boolean(data?.ok && data?.queued && data?.image_id);
+  if (typeof module !== 'undefined' && module.exports) module.exports = {imageSubmissionAccepted};
+  if (typeof document === 'undefined') return;
+  const state = {record: null, submitting: false, humanInteracted: false};
 
   function setMode(mode) {
     const aliases = {image: 'evidence', verify: 'evidence'};
@@ -158,9 +161,13 @@
     form.append('caption', $('#imageCaption').value.trim());
     form.append('permission_confirmed', 'true');
     form.append('public_attribution', String(publicAttribution));
-    form.append('website', $('#evidenceWebsite').value);
+    form.append('website', state.humanInteracted ? '' : $('#evidenceWebsite').value);
     form.append('image', file, file.name);
-    return responseData(await fetch(`${API}/images`, {method:'POST', body:form}));
+    const data = await responseData(await fetch(`${API}/images`, {method:'POST', body:form}));
+    if (!imageSubmissionAccepted(data)) {
+      throw new Error('The screenshot was not added to the review queue. Please refresh the page and try again.');
+    }
+    return data;
   }
 
   async function submitLocation(contributor, publicAttribution) {
@@ -247,6 +254,12 @@
   $('#includeImageEvidence').addEventListener('change', toggleEvidencePanels);
   $('#includeLocationEvidence').addEventListener('change', toggleEvidencePanels);
   $('#imageFile').addEventListener('change', previewImage);
+  $('#evidenceForm').addEventListener('pointerdown', (event) => {
+    if (event.isTrusted) state.humanInteracted = true;
+  }, {capture:true});
+  $('#evidenceForm').addEventListener('keydown', (event) => {
+    if (event.isTrusted) state.humanInteracted = true;
+  }, {capture:true});
   $('#evidenceForm').addEventListener('submit', submitEvidence);
   WCGlyphs.bindKeypad('#verifyGlyphs','#verifyGlyphKeypad','#verifyGlyphPreview','#verifyGlyphStatus');
   $('#verifyGlyphLegend').innerHTML = WCGlyphs.values.map((glyph) => WCGlyphs.glyphHtml(glyph)).join('');
