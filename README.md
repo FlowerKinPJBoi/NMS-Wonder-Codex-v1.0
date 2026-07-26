@@ -1,4 +1,4 @@
-# Wonder Codex v1.18.0
+# Wonder Codex v1.18.1
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -25,6 +25,10 @@ representative family artwork on VP/PetData-confirmed catalog records; 65
 synthetic NMS-parts variants remain gallery-only. Approved community screenshots
 always take precedence and representative art never satisfies exact image
 evidence.
+
+v1.18.1 adds a compatible-part preview configurator, restores the richer
+galactic stage behind transparent Forge renders, and promotes exact-specimen
+screenshot submission to a primary public action.
 
 ## Repository boundary
 

@@ -1,5 +1,21 @@
 # Wonder Codex changelog
 
+## v1.18.1 — Forge preview and Screenshot Find
+
+- Restored a layered galactic stage behind transparent Forge holograms in the
+  gallery and on Database record representatives.
+- Added the first progressive Wonder Forge configurator. It reads certified
+  recipe traits, offers only compatible downstream parts, previews an existing
+  rendered combination, and supports one-click randomization.
+- Added complete-form selection for families whose isolated part maps have not
+  yet been certified, without implying that flattened renders are composable
+  layers.
+- Made screenshot submission a primary navigation action, added a prominent
+  Contribution Hub shortcut, renamed the public lane “Submit screenshots,” and
+  opens direct screenshot links at the correct form.
+- Preserved exact-specimen screenshot priority, visible evidence classes,
+  gallery-only synthetic variants, and the permanent Preserve language.
+
 ## v1.18.0 — Galactic museum and Wonder Forge gallery
 
 - Added a public Wonder Forge gallery with 95 optimized hologram forms across

@@ -9,15 +9,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=1.18.0">
-  <link rel="stylesheet" href="catalog.css?v=1.12.0">
+  <link rel="stylesheet" href="styles.css?v=1.18.1">
+  <link rel="stylesheet" href="catalog.css?v=1.18.1">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
   <header class="site-header">
     <a class="brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Contributions Hub</small></span></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
-    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="map.html">Map</a><a href="decoder.html">Decoder</a><a href="contributors.html">Contributors</a><a href="contribute.html" aria-current="page">Contribute</a><a href="import.html" class="nav-cta">Contribute save data</a></nav>
+    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="forge.html">Forge</a><a href="map.html">Map</a><a href="decoder.html">Decoder</a><a href="contributors.html">Contributors</a><a href="contribute.html" aria-current="page">Contribute</a><a href="contribute.html?mode=image" class="nav-cta">Submit screenshot</a></nav>
   </header>
 
   <main>
@@ -25,13 +25,17 @@
       <p class="eyebrow">CONTRIBUTIONS HUB</p>
       <h1>Help the Codex <span>see, verify, and remember.</span></h1>
       <p>Contribute normalized save data, prepare catalog screenshots, verify galaxies and portal addresses, or share research evidence. Every public change passes through review.</p>
+      <div class="contribution-quick-actions">
+        <a class="button primary" href="contribute.html?mode=image">Submit a screenshot →</a>
+        <a class="button secondary" href="import.html">Contribute save data</a>
+      </div>
     </section>
 
     <section class="page-shell">
       <div class="contribution-tabs" role="tablist" aria-label="Contribution type">
-        <button class="contribution-tab active" data-mode="save" type="button">Save data</button>
-        <button class="contribution-tab" data-mode="evidence" type="button">Images &amp; verification</button>
-        <button class="contribution-tab" data-mode="research" type="button">Research evidence</button>
+        <button class="contribution-tab active" data-mode="save" type="button" role="tab" aria-selected="true">Save data</button>
+        <button class="contribution-tab screenshot-tab" data-mode="evidence" type="button" role="tab" aria-selected="false">Submit screenshots</button>
+        <button class="contribution-tab" data-mode="research" type="button" role="tab" aria-selected="false">Research evidence</button>
       </div>
 
       <section class="contribution-section surface" data-section="save">
@@ -54,7 +58,7 @@
       <section class="contribution-section surface" data-section="evidence" hidden>
         <div class="contribution-grid">
           <div>
-            <div class="contribution-copy"><p class="kicker">CONTRIBUTE EVIDENCE</p><h2>One record. One form. Image, location, or both.</h2><p>Select the published Wonder once, choose the evidence you have, and send it through the appropriate review queues.</p></div>
+            <div class="contribution-copy"><p class="kicker">SCREENSHOT FIND &amp; LOCATION VERIFICATION</p><h2>Add the exact specimen the catalog is waiting for.</h2><p>Select the published Wonder once, then submit its screenshot, verify its location, or do both in one reviewed contribution.</p></div>
             <form id="evidenceForm" class="form-stack">
               <label class="field">Find a catalog record<input id="evidenceRecordSearch" type="search" placeholder="Search WC ID, name, contributor, or galaxy…"></label>
               <div id="evidenceRecordResults" class="record-picker-results"></div>
@@ -64,13 +68,13 @@
               <fieldset class="evidence-selector">
                 <legend>What are you contributing?</legend><p>Select either option or choose both.</p>
                 <div class="evidence-choice-grid">
-                  <label class="evidence-choice"><input id="includeImageEvidence" type="checkbox"><span><strong>Image evidence</strong><span>Upload a screenshot of the specimen.</span></span></label>
+                  <label class="evidence-choice"><input id="includeImageEvidence" type="checkbox"><span><strong>Screenshot Find</strong><span>Upload an exact-specimen screenshot.</span></span></label>
                   <label class="evidence-choice"><input id="includeLocationEvidence" type="checkbox"><span><strong>Location verification</strong><span>Confirm or correct its travel location.</span></span></label>
                 </div>
               </fieldset>
 
               <section id="imageEvidenceFields" class="evidence-fields" hidden>
-                <h3>Image evidence</h3><p>Images are stored privately and appear publicly only after approval.</p>
+                <h3>Submit an exact-specimen screenshot</h3><p>Images are stored privately and appear publicly only after approval.</p>
                 <label class="field">Screenshot file<input id="imageFile" type="file" accept="image/png,image/jpeg,image/webp"></label>
                 <div id="imagePreview" class="image-preview"><span>No screenshot selected.</span></div>
                 <label class="field">Image role<select id="imageRole"><option value="primary_catalog">Primary catalog image</option><option value="full_specimen">Full specimen</option><option value="side_view">Side view</option><option value="front_view">Front view</option><option value="scale_reference">Scale reference</option><option value="environment">Environment</option><option value="projector_confirmation">Projector confirmation</option><option value="portal_location_evidence">Portal / location evidence</option></select></label>
@@ -110,11 +114,11 @@
     </section>
   </main>
 
-  <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Community Contributions</small></span></a><p>Raw saves stay local. Public evidence is reviewed. Attribution remains attached.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="map.html">Map</a><a href="import.html">Save data</a><a href="privacy.html">Privacy</a><a href="index.html#roadmap">Roadmap</a></div></footer>
+  <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Preserve the procedural universe</small></span></a><p>Raw saves stay local. Public evidence is reviewed. Attribution remains attached.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="forge.html">Forge</a><a href="contribute.html?mode=image">Submit screenshot</a><a href="map.html">Map</a><a href="import.html">Save data</a><a href="privacy.html">Privacy</a><a href="index.html#roadmap">Roadmap</a></div></footer>
   <script src="analytics.js?v=1.13.0"></script>
-  <script src="script.js?v=1.18.0"></script>
+  <script src="script.js?v=1.18.1"></script>
   <script src="glyphs.js?v=1.6.0"></script>
   <script src="locations.js?v=1.6.0"></script>
-  <script src="contribute.js?v=1.12.0"></script>
+  <script src="contribute.js?v=1.18.1"></script>
 </body>
 </html>
