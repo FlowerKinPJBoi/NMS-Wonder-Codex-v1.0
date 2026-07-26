@@ -10,14 +10,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1.18.1">
-  <link rel="stylesheet" href="forge.css?v=1.18.2">
+  <link rel="stylesheet" href="forge.css?v=1.19.1">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
   <header class="site-header">
     <a class="brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Wonder Forge</small></span></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
-    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="forge.html" aria-current="page">Forge</a><a href="map.html">Map</a><a href="decoder.html">Decoder</a><a href="contributors.html">Contributors</a><a href="contribute.html">Contribute</a><a href="contribute.html?mode=image" class="nav-cta">Submit screenshot</a></nav>
+    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="forge.html" aria-current="page">Forge</a><a href="map.html">Map</a><a href="contributors.html">Contributors</a><a href="contribute.html">Contribute</a><a href="feedback.html">Feedback</a><a href="account.html" class="nav-cta">Passport</a></nav>
   </header>
 
   <main>
@@ -34,6 +34,16 @@
     </section>
 
     <section class="page-shell">
+      <section id="decoder" class="forge-tool-dock surface" aria-labelledby="forgeDecoderTitle">
+        <div class="forge-tool-icon" aria-hidden="true">⌁</div>
+        <div>
+          <p class="kicker">FORGE TOOL · LIVE BETA</p>
+          <h2 id="forgeDecoderTitle">Wonder Projector Decoder</h2>
+          <p>Turn a supported fauna, flora, or mineral Message ID into its galaxy and twelve-glyph portal route.</p>
+        </div>
+        <a class="button secondary" href="decoder.html">Open Decoder <span aria-hidden="true">→</span></a>
+      </section>
+
       <div class="evidence-boundary surface">
         <article class="verified"><span class="forge-evidence-mark">✓</span><div><h2>Verified natural reference forms</h2><p>Built from forms marked <code>VERIFIED_REFERENCE_FORM</code> in the returned Forge manifests. On a VP/PetData-confirmed family record, these may appear as representative art—never as an exact specimen claim.</p></div></article>
         <article class="synthetic"><span class="forge-evidence-mark">◇</span><div><h2>NMS-parts synthetic variants</h2><p>Authentic game component combinations created for visual research. Their natural in-game spawn is not yet confirmed, so they remain gallery-only and are never assigned to a discovery record.</p></div></article>
@@ -89,7 +99,7 @@
     </section>
   </main>
 
-  <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Preserve the procedural universe</small></span></a><p>Independent community research project. Not affiliated with Hello Games.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="forge.html">Forge</a><a href="map.html">Map</a><a href="contribute.html">Contribute</a><a href="privacy.html">Privacy</a></div></footer>
+  <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Preserve the procedural universe</small></span></a><p>Independent community research project. Not affiliated with Hello Games.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="forge.html">Forge</a><a href="decoder.html">Decoder</a><a href="map.html">Map</a><a href="contribute.html">Contribute</a><a href="account.html">Passport</a><a href="privacy.html">Privacy</a></div></footer>
   <script src="analytics.js?v=1.13.0"></script>
   <script src="script.js?v=1.18.1"></script>
   <script src="forge.js?v=1.18.1"></script>
