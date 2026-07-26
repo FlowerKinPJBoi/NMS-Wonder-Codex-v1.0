@@ -1,4 +1,4 @@
-# Wonder Codex v1.18.2
+# Wonder Codex v1.18.3
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -32,6 +32,10 @@ screenshot submission to a primary public action.
 
 v1.18.2 makes the Forge stage stars visible at catalog-card scale and prevents
 browser autofill from tripping the Screenshot Find spam check.
+
+v1.18.3 keeps the Screenshot Find submit action interactive and displays the
+exact missing requirement whenever a restored search value is not a confirmed
+catalog selection.
 
 ## Repository boundary
 

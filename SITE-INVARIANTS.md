@@ -28,3 +28,7 @@ These rules are release blockers, not optional copy suggestions.
 10. **Screenshot Find reports only queued evidence as success.** Browser
     autofill must not populate the hidden spam check, and an image submission
     is successful only when the API returns a pending review reference.
+11. **Screenshot Find never has a silent dead button.** Before submission, the
+    primary action remains clickable and reports the first missing requirement;
+    visible record text is not treated as a selection without a confirmed
+    catalog record.

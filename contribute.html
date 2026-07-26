@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1.18.1">
-  <link rel="stylesheet" href="catalog.css?v=1.18.2">
+  <link rel="stylesheet" href="catalog.css?v=1.18.3">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
@@ -59,7 +59,7 @@
         <div class="contribution-grid">
           <div>
             <div class="contribution-copy"><p class="kicker">SCREENSHOT FIND &amp; LOCATION VERIFICATION</p><h2>Add the exact specimen the catalog is waiting for.</h2><p>Select the published Wonder once, then submit its screenshot, verify its location, or do both in one reviewed contribution.</p></div>
-            <form id="evidenceForm" class="form-stack">
+            <form id="evidenceForm" class="form-stack" novalidate>
               <label class="field">Find a catalog record<input id="evidenceRecordSearch" type="search" placeholder="Search WC ID, name, contributor, or galaxy…"></label>
               <div id="evidenceRecordResults" class="record-picker-results"></div>
               <div id="evidenceSelected" class="selected-record" hidden></div>
@@ -95,7 +95,8 @@
               </section>
 
               <input id="evidenceWebsite" name="website" type="text" tabindex="-1" autocomplete="new-password" aria-hidden="true" class="honeypot" data-lpignore="true" data-1p-ignore>
-              <button id="submitEvidence" class="button primary" type="submit" disabled>Submit evidence for review</button>
+              <p id="evidenceReadiness" class="submission-readiness" role="status">Choose a catalog record to begin.</p>
+              <button id="submitEvidence" class="button primary" type="submit" aria-describedby="evidenceReadiness">Submit evidence for review</button>
               <div id="evidenceResult" class="notice" hidden></div>
             </form>
           </div>
@@ -119,6 +120,6 @@
   <script src="script.js?v=1.18.1"></script>
   <script src="glyphs.js?v=1.6.0"></script>
   <script src="locations.js?v=1.6.0"></script>
-  <script src="contribute.js?v=1.18.2"></script>
+  <script src="contribute.js?v=1.18.3"></script>
 </body>
 </html>
