@@ -7,6 +7,38 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
+class UserProfileUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    contributor_name: str = Field(min_length=2, max_length=120)
+    public_attribution: bool = True
+    platform: Literal["", "steam", "xbox", "playstation", "switch"] = ""
+    nms_friend_code: str | None = Field(default=None, max_length=40)
+    bot_connect_consent: bool = False
+
+    @field_validator("contributor_name")
+    @classmethod
+    def clean_profile_name(cls, value: str) -> str:
+        cleaned = " ".join(value.replace("\x00", "").strip().split())
+        if cleaned.casefold() in {"anonymous", "unknown", "test"}:
+            raise ValueError("Choose a recognizable contributor name.")
+        return cleaned
+
+    @field_validator("nms_friend_code")
+    @classmethod
+    def clean_friend_code(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        return re.sub(r"\s+", "", value).upper()
+
+
+class UserAccessUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    access_tier: Literal["regular", "tester", "admin"]
+    account_status: Literal["active", "suspended"] = "active"
+
+
 class SubmissionPayload(BaseModel):
     model_config = ConfigDict(extra="ignore")
 

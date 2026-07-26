@@ -10,6 +10,8 @@
     catalogRecords: [], selectedCatalog: null,
     assetStatus: 'review', assets: [], selectedAsset: null,
     imageStatus: 'pending', images: [], selectedImage: null, imageDetail: null,
+    users: [],
+    newDiscoveryStatus: 'pending', newDiscoveries: [], selectedNewDiscovery: null, newDiscoveryDetail: null,
   };
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -84,6 +86,7 @@
       sumRejected: data.rejected_batches,
       verificationTabCount: data.pending_verifications,
       imageTabCount: data.pending_images,
+      newDiscoveryTabCount: data.pending_new_discoveries,
       assetTabCount: data.pending_assets,
       captureTabCount: data.pending_captures,
     };
@@ -98,6 +101,8 @@
     if (state.mode === 'catalog') jobs.push(loadCatalog());
     if (state.mode === 'assets') jobs.push(loadAssets());
     if (state.mode === 'images') jobs.push(loadImages());
+    if (state.mode === 'users') jobs.push(loadUsers());
+    if (state.mode === 'new-discoveries') jobs.push(loadNewDiscoveries());
     await Promise.all(jobs);
     $('#lastRefresh').textContent = `Updated ${new Date().toLocaleTimeString()}`;
   }
@@ -112,6 +117,119 @@
     if (mode === 'catalog') loadCatalog();
     if (mode === 'assets') loadAssets();
     if (mode === 'images') loadImages();
+    if (mode === 'users') loadUsers();
+    if (mode === 'new-discoveries') loadNewDiscoveries();
+  }
+
+  // ---------- New console screenshot discoveries ----------
+  async function loadNewDiscoveries() {
+    const data = await api(`/admin/new-discoveries?status=${encodeURIComponent(state.newDiscoveryStatus)}&limit=200`);
+    state.newDiscoveries = data.items || [];
+    renderNewDiscoveryQueue();
+  }
+
+  function renderNewDiscoveryQueue() {
+    const query = $('#newDiscoverySearch').value.trim().toLowerCase();
+    const rows = state.newDiscoveries.filter((item) => `${item.reference} ${item.contributor} ${item.discovery_type} ${item.display_name}`.toLowerCase().includes(query));
+    $('#newDiscoveryEmpty').hidden = rows.length > 0;
+    $('#newDiscoveryList').innerHTML = rows.map((item) => `<button class="queue-item ${state.selectedNewDiscovery === item.id ? 'active' : ''}" data-id="${escapeHtml(item.id)}" type="button"><div class="queue-item-top"><strong>${escapeHtml(item.reference)}</strong><time>${escapeHtml(shortDate(item.created_at))}</time></div><div class="queue-item-sub">${escapeHtml(item.display_name || `New ${item.discovery_type}`)} • ${escapeHtml(item.contributor)}${item.public_attribution ? '' : ' • Private attribution'}</div><div class="queue-counts"><span>${escapeHtml(item.discovery_type)}</span><span>${number(item.width)}×${number(item.height)}</span></div></button>`).join('');
+    $$('#newDiscoveryList .queue-item').forEach((button) => button.addEventListener('click', () => selectNewDiscovery(button.dataset.id)));
+  }
+
+  async function selectNewDiscovery(id) {
+    state.selectedNewDiscovery = id;
+    renderNewDiscoveryQueue();
+    $('#newDiscoveryPlaceholder').hidden = true;
+    $('#newDiscoveryContent').hidden = false;
+    try {
+      state.newDiscoveryDetail = await api(`/admin/new-discoveries/${encodeURIComponent(id)}`);
+      renderNewDiscoveryDetail();
+    } catch (error) {
+      toast(error.message, true);
+      clearNewDiscoveryDetail();
+    }
+  }
+
+  function clearNewDiscoveryDetail() {
+    state.selectedNewDiscovery = null;
+    state.newDiscoveryDetail = null;
+    $('#newDiscoveryContent').hidden = true;
+    $('#newDiscoveryPlaceholder').hidden = false;
+  }
+
+  function renderNewDiscoveryDetail() {
+    const item = state.newDiscoveryDetail.submission;
+    $('#newDiscoveryStatus').textContent = item.status;
+    $('#newDiscoveryStatus').className = `detail-status ${item.status}`;
+    $('#newDiscoveryReference').textContent = item.reference;
+    $('#newDiscoveryName').textContent = item.display_name || `New ${item.discovery_type}`;
+    $('#newDiscoveryContributor').textContent = `Submitted by ${item.contributor}${item.public_attribution ? '' : ' • Private on public site'} • ${dateTime(item.created_at)}`;
+    $('#newDiscoveryImage').src = item.preview_url;
+    $('#newDiscoveryImage').alt = `${item.discovery_type} submitted by ${item.contributor}`;
+    $('#newDiscoveryMetadata').innerHTML = `<div><strong>${escapeHtml(item.discovery_type)}</strong><span>Category</span></div><div><strong>${escapeHtml(item.platform || 'Unknown')}</strong><span>Platform</span></div><div><strong>${escapeHtml(item.galaxy_number ? `Galaxy ${item.galaxy_number}` : 'Unknown')}</strong><span>Galaxy</span></div><div><strong>${escapeHtml(item.portal_glyphs || 'Not supplied')}</strong><span>Portal glyphs</span></div>`;
+    $('#newDiscoveryNotes').hidden = !item.notes;
+    $('#newDiscoveryNotes').textContent = item.notes ? `Contributor note: ${item.notes}` : '';
+    $('#newDiscoveryActions').hidden = item.status !== 'pending';
+    $('#newDiscoveryReviewNote').value = '';
+    $('#newDiscoveryResult').hidden = true;
+  }
+
+  async function reviewNewDiscovery(decision) {
+    const item = state.newDiscoveryDetail?.submission;
+    if (!item || item.status !== 'pending') return;
+    const verb = decision === 'approve' ? 'create a permanent WC record from this screenshot' : 'reject this new discovery';
+    if (!confirm(`Are you sure you want to ${verb}?`)) return;
+    const button = decision === 'approve' ? $('#approveNewDiscovery') : $('#rejectNewDiscovery');
+    const original = button.textContent;
+    button.disabled = true;
+    try {
+      const data = await api(`/admin/new-discoveries/${encodeURIComponent(item.id)}/${decision}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({actor:state.actor, note:$('#newDiscoveryReviewNote').value.trim()})});
+      toast(decision === 'approve' ? `${data.wc_id} created and published.` : 'New discovery rejected.');
+      clearNewDiscoveryDetail();
+      await Promise.all([loadSummary(), loadNewDiscoveries(), loadAudit()]);
+    } catch (error) {
+      toast(error.message, true);
+    } finally {
+      button.disabled = false;
+      button.textContent = original;
+    }
+  }
+
+  // ---------- Account access ----------
+  async function loadUsers() {
+    const q = $('#userSearch').value.trim();
+    const data = await api(`/admin/users?limit=200${q ? `&q=${encodeURIComponent(q)}` : ''}`);
+    state.users = data.items || [];
+    $('#userEmpty').hidden = state.users.length > 0;
+    $('#userList').innerHTML = state.users.map((user) => `
+      <article class="user-row" data-id="${escapeHtml(user.id)}">
+        <div><strong>${escapeHtml(user.contributor_name)}</strong><span>${user.discord_linked ? 'Discord linked' : 'Email account'} • Joined ${escapeHtml(shortDate(user.created_at))}${user.last_sign_in_at ? ` • Active ${escapeHtml(shortDate(user.last_sign_in_at))}` : ''}</span></div>
+        <label>Tier<select class="user-tier"><option value="regular"${user.access_tier === 'regular' ? ' selected' : ''}>Regular</option><option value="tester"${user.access_tier === 'tester' ? ' selected' : ''}>Tester</option><option value="admin"${user.access_tier === 'admin' ? ' selected' : ''}>Admin</option></select></label>
+        <label>Status<select class="user-status"><option value="active"${user.account_status === 'active' ? ' selected' : ''}>Active</option><option value="suspended"${user.account_status === 'suspended' ? ' selected' : ''}>Suspended</option></select></label>
+        <button class="small-button save-user-access" type="button">Save access</button>
+      </article>`).join('');
+    $$('.save-user-access').forEach((button) => button.addEventListener('click', () => saveUserAccess(button.closest('.user-row'))));
+  }
+
+  async function saveUserAccess(row) {
+    const button = row.querySelector('.save-user-access');
+    button.disabled = true;
+    try {
+      await api(`/admin/users/${encodeURIComponent(row.dataset.id)}`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          access_tier: row.querySelector('.user-tier').value,
+          account_status: row.querySelector('.user-status').value,
+        }),
+      });
+      toast('User access saved and audited.');
+      await Promise.all([loadUsers(), loadAudit()]);
+    } catch (error) {
+      toast(error.message, true);
+    } finally {
+      button.disabled = false;
+    }
   }
 
   // ---------- Confirmed discovery + screenshot pairs ----------
@@ -736,6 +854,12 @@
   $('#assetForm').addEventListener('submit', (event) => saveAsset(event, false));
   $('#publishAsset').addEventListener('click', (event) => saveAsset(event, true));
   $('#imageSearch').addEventListener('input', renderImageQueue);
+  $('#newDiscoverySearch').addEventListener('input', renderNewDiscoveryQueue);
+  $$('.new-discovery-status-tab').forEach((tab) => tab.addEventListener('click', async () => { state.newDiscoveryStatus = tab.dataset.status; $$('.new-discovery-status-tab').forEach((item) => item.classList.toggle('active', item === tab)); clearNewDiscoveryDetail(); await loadNewDiscoveries(); }));
+  $('#approveNewDiscovery').addEventListener('click', () => reviewNewDiscovery('approve'));
+  $('#rejectNewDiscovery').addEventListener('click', () => reviewNewDiscovery('reject'));
+  let userTimer;
+  $('#userSearch').addEventListener('input', () => { clearTimeout(userTimer); userTimer = setTimeout(loadUsers, 250); });
   $$('.image-status-tab').forEach((tab) => tab.addEventListener('click', async () => { state.imageStatus = tab.dataset.status; $$('.image-status-tab').forEach((item) => item.classList.toggle('active', item === tab)); clearImageDetail(); await loadImages(); }));
   $('#approveImage').addEventListener('click', () => reviewImage('approve'));
   $('#rejectImage').addEventListener('click', () => reviewImage('reject'));

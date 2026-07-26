@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Wonder Codex API"
-    app_version: str = "1.18.0"
+    app_version: str = "1.19.0"
     environment: str = "production"
     database_url: str = ""
     allowed_origins: List[str] = Field(
@@ -53,6 +53,10 @@ class Settings(BaseSettings):
     max_issues_per_submission: int = 5_000
     run_migrations_on_start: bool = True
     database_connect_timeout_seconds: int = 10
+    auth_supabase_url: str = ""
+    auth_supabase_anon_key: str = ""
+    auth_jwt_secret: str = ""
+    profile_encryption_key: str = ""
 
     spaces_access_key: str = ""
     spaces_secret_key: str = ""
@@ -95,6 +99,13 @@ class Settings(BaseSettings):
             self.spaces_bucket,
             self.spaces_endpoint,
         ])
+
+    @property
+    def accounts_ready(self) -> bool:
+        return bool(
+            self.auth_supabase_url.strip()
+            and self.auth_supabase_anon_key.strip()
+        )
 
     @field_validator("allowed_origins", mode="before")
     @classmethod

@@ -33,6 +33,17 @@ variables. Never commit real values. The service currently recognizes:
   `TESTER_API_KEY_VISCERAL`, and `TESTER_API_KEY_EKIMO`
 - `SPACES_ACCESS_KEY`, `SPACES_SECRET_KEY`, `SPACES_REGION`,
   `SPACES_BUCKET`, `SPACES_ENDPOINT`, and `SPACES_CDN_URL`
+- `AUTH_SUPABASE_URL` and the public `AUTH_SUPABASE_ANON_KEY`
+- `AUTH_JWT_SECRET` only when the Supabase project still signs access tokens
+  with HS256; asymmetric signing keys are discovered through the project's JWKS
+- `PROFILE_ENCRYPTION_KEY`, a Fernet key generated once with
+  `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`
+
+Accounts remain safely disabled unless both Supabase values are present. Add
+Wonder Codex's production and local account-page callback URLs to the Supabase
+redirect allow list, and configure the Discord provider in Supabase before
+enabling the values in production. Never rotate `PROFILE_ENCRYPTION_KEY`
+without first re-encrypting any stored NMS friend codes.
 
 Use independent random administrator keys. Keep the legacy `ADMIN_API_KEY`
 only while migrating an older client, then remove it from the service
@@ -74,8 +85,24 @@ After both components are healthy:
     **Capture pairs** lane of the owner review console.
 12. Reject that test pair and confirm neither its discovery nor image appears in
     the public catalog.
+13. Open `/account.html`, test Discord and email magic-link sign-in, save a
+    contributor profile, and confirm `/contribute.html?mode=image` fills that
+    contributor name and attribution preference.
+14. In the admin console's **Users** lane, change the test account from Regular
+    to Tester, refresh the account page, and confirm its tier updates. Return the
+    test account to Regular afterward.
+15. Open `/contribute.html?mode=image`, keep **New discovery** selected, submit
+    a clearly labeled console screenshot without choosing a catalog record, and
+    confirm a `NEW-XXXXXXXX` reference appears.
+16. Approve it from the admin console's **New screenshots** lane, confirm a WC
+    record and primary image are created together, then remove the test record
+    through the normal review process if it should not remain public.
 
 The v1.17.0 deployment adds private Capture Companion migration
 `0008_capture_submissions`. With `RUN_MIGRATIONS_ON_START=true`, the API applies
 it automatically. No new environment variable is required. Capture submissions
 use the existing named tester/admin credentials and private object storage.
+
+The account foundation adds migration `0009_user_accounts`. Existing named
+administrator and tester keys remain active during the account migration.
+Migration `0010_new_discovery_screenshots` adds the private non-PC intake queue.
