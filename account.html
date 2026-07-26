@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Sign in and manage your private Wonder Codex contributor profile.">
+  <meta name="theme-color" content="#080b16">
+  <title>Galactic Passport | Wonder Codex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=1.19.0">
+  <link rel="stylesheet" href="account.css?v=1.19.0">
+</head>
+<body>
+  <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Galactic Passport</small></span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
+    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="forge.html">Forge</a><a href="contributors.html">Contributors</a><a href="contribute.html">Contribute</a><a href="account.html" aria-current="page" class="nav-cta">Passport</a></nav>
+  </header>
+
+  <main class="account-shell">
+    <section class="account-hero"><p class="eyebrow">GALACTIC PASSPORT</p><h1>Your identity across the <span>Wonder Codex.</span></h1><p>Sign in once to carry your contributor name, preferences, tester access, and—later—Wonder Bot connection details across the museum.</p></section>
+
+    <section id="accountLoading" class="account-card"><p>Reading passport signal…</p></section>
+    <section id="accountUnavailable" class="account-card" hidden><p class="kicker">FOUNDATION READY</p><h2>Account activation is awaiting configuration.</h2><p>The profile system is installed safely, but public sign-in remains off until its authentication keys are connected.</p></section>
+
+    <section id="accountLogin" class="account-grid" hidden>
+      <article class="account-card primary-card"><p class="kicker">RECOMMENDED</p><h2>Continue with Discord</h2><p>Connect the identity that will eventually work with Wonder Bot and the community server.</p><button id="discordLogin" class="button primary" type="button">Continue with Discord</button></article>
+      <article class="account-card"><p class="kicker">EMAIL FALLBACK</p><h2>Send a magic link</h2><p>No password required. We’ll send a single-use sign-in link to your inbox.</p><form id="magicForm" class="account-form"><label class="field">Email address<input id="magicEmail" type="email" autocomplete="email" required placeholder="explorer@example.com"></label><button class="button secondary" type="submit">Email my sign-in link</button></form></article>
+    </section>
+
+    <section id="accountProfile" class="account-grid profile-grid" hidden>
+      <form id="profileForm" class="account-card account-form">
+        <div class="profile-heading"><div><p class="kicker">CONTRIBUTOR PROFILE</p><h2 id="profileGreeting">Welcome, Explorer</h2></div><span id="tierBadge" class="tier-badge">Regular</span></div>
+        <label class="field">Contributor name<input id="profileContributor" type="text" minlength="2" maxlength="120" required></label>
+        <label class="field">NMS platform<select id="profilePlatform"><option value="">Not selected</option><option value="xbox">Xbox / Game Pass</option><option value="steam">Steam</option><option value="playstation">PlayStation</option><option value="switch">Nintendo Switch</option></select></label>
+        <label class="checkbox-row"><input id="profilePrivate" type="checkbox"><span>Keep my contributor name private on public records. Reviewers will still see it.</span></label>
+        <button class="button primary" type="submit">Save passport</button>
+      </form>
+      <aside class="account-card bot-card">
+        <p class="kicker">FUTURE WONDER BOT</p><h2>Private NMS connection</h2><p>Your friend code is encrypted and never returned in public catalog or user-list APIs.</p>
+        <label class="field">NMS friend code<input id="profileFriendCode" type="text" maxlength="40" autocomplete="off" placeholder="Optional until Bot services launch"></label>
+        <label class="checkbox-row"><input id="profileBotConsent" type="checkbox"><span>Allow Wonder Bot to use this friend code when I explicitly request a service.</span></label>
+        <p id="friendCodeStatus" class="account-note"></p>
+        <button id="signOut" class="button secondary" type="button">Sign out</button>
+      </aside>
+    </section>
+    <div id="accountResult" class="notice account-result" hidden></div>
+  </main>
+
+  <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Preserve the procedural universe</small></span></a><p>An interactive, user-contributed museum of the galaxies.</p></div><div class="footer-links"><a href="contribute.html">Contribute</a><a href="privacy.html">Privacy</a></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js?v=1.18.1"></script>
+  <script src="account-session.js?v=1.19.0"></script>
+  <script src="account.js?v=1.19.0"></script>
+</body>
+</html>

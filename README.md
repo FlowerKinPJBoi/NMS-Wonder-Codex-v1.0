@@ -1,4 +1,4 @@
-# Wonder Codex v1.18.3
+# Wonder Codex v1.19.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -36,6 +36,14 @@ browser autofill from tripping the Screenshot Find spam check.
 v1.18.3 keeps the Screenshot Find submit action interactive and displays the
 exact missing requirement whenever a restored search value is not a confirmed
 catalog selection.
+
+v1.19.0 establishes the optional Galactic Passport account layer: Discord or
+email sign-in, contributor profiles, server-enforced access tiers, admin user
+management, contribution autofill, and encrypted friend-code storage for future
+Wonder Bot services. It also lets non-PC explorers submit a brand-new discovery
+screenshot without selecting an existing record; owner approval creates its WC
+record and primary image together. Existing tester keys remain available during
+migration.
 
 ## Repository boundary
 

@@ -17,7 +17,7 @@
   <header class="site-header">
     <a class="brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Contributions Hub</small></span></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
-    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="forge.html">Forge</a><a href="map.html">Map</a><a href="decoder.html">Decoder</a><a href="contributors.html">Contributors</a><a href="contribute.html" aria-current="page">Contribute</a><a href="contribute.html?mode=image" class="nav-cta">Submit screenshot</a></nav>
+    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="forge.html">Forge</a><a href="map.html">Map</a><a href="decoder.html">Decoder</a><a href="contributors.html">Contributors</a><a href="contribute.html" aria-current="page">Contribute</a><a href="account.html">Passport</a><a href="contribute.html?mode=image" class="nav-cta">Submit screenshot</a></nav>
   </header>
 
   <main>
@@ -58,17 +58,31 @@
       <section class="contribution-section surface" data-section="evidence" hidden>
         <div class="contribution-grid">
           <div>
-            <div class="contribution-copy"><p class="kicker">SCREENSHOT FIND &amp; LOCATION VERIFICATION</p><h2>Add the exact specimen the catalog is waiting for.</h2><p>Select the published Wonder once, then submit its screenshot, verify its location, or do both in one reviewed contribution.</p></div>
+            <div class="contribution-copy"><p class="kicker">NEW DISCOVERIES &amp; CATALOG EVIDENCE</p><h2>Preserve a new find—or strengthen an existing record.</h2><p>Console explorers can create a reviewed discovery from a screenshot without save data. You can also select an existing Wonder to add its exact screenshot, verify its location, or do both.</p></div>
             <form id="evidenceForm" class="form-stack" novalidate>
-              <label class="field">Find a catalog record<input id="evidenceRecordSearch" type="search" placeholder="Search WC ID, name, contributor, or galaxy…"></label>
-              <div id="evidenceRecordResults" class="record-picker-results"></div>
-              <div id="evidenceSelected" class="selected-record" hidden></div>
+              <fieldset class="evidence-selector">
+                <legend>Is this discovery new to Wonder Codex?</legend>
+                <div class="evidence-choice-grid">
+                  <label class="evidence-choice"><input id="submissionNew" name="submissionKind" type="radio" value="new" checked><span><strong>New discovery</strong><span>Create a new reviewed catalog entry from my screenshot.</span></span></label>
+                  <label class="evidence-choice"><input id="submissionExisting" name="submissionKind" type="radio" value="existing"><span><strong>Existing record</strong><span>Add evidence to a Wonder already in the catalog.</span></span></label>
+                </div>
+              </fieldset>
+              <section id="existingRecordFields" class="evidence-fields" hidden>
+                <label class="field">Find a catalog record<input id="evidenceRecordSearch" type="search" placeholder="Search WC ID, name, contributor, or galaxy…"></label>
+                <div id="evidenceRecordResults" class="record-picker-results"></div>
+                <div id="evidenceSelected" class="selected-record" hidden></div>
+              </section>
+              <section id="newDiscoveryFields" class="evidence-fields">
+                <h3>Tell us what you found</h3><p>Enter what you know. Unknown save-data fields can be linked later without blocking this screenshot.</p>
+                <div class="form-grid"><label class="field">Discovery category<select id="newDiscoveryType"><option value="Animal">Fauna</option><option value="Flora">Flora</option><option value="Mineral">Mineral</option></select></label><label class="field">In-game or descriptive name<input id="newDisplayName" type="text" maxlength="200" placeholder="Optional, but helpful"></label></div>
+                <label class="field">NMS platform<select id="newPlatform"><option value="">Not selected</option><option value="xbox">Xbox / Game Pass</option><option value="playstation">PlayStation</option><option value="switch">Nintendo Switch</option><option value="steam">Steam</option></select></label>
+              </section>
               <div class="form-grid"><label class="field">Contributor name<input id="evidenceContributor" type="text" required maxlength="120" placeholder="Your community name"></label><label class="checkbox-row privacy-option"><input id="evidencePrivateAttribution" type="checkbox"><span>Keep my name private publicly. Reviewers will still see it.</span></label></div>
 
               <fieldset class="evidence-selector">
                 <legend>What are you contributing?</legend><p>Select either option or choose both.</p>
                 <div class="evidence-choice-grid">
-                  <label class="evidence-choice"><input id="includeImageEvidence" type="checkbox"><span><strong>Screenshot Find</strong><span>Upload an exact-specimen screenshot.</span></span></label>
+                  <label class="evidence-choice"><input id="includeImageEvidence" type="checkbox" checked><span><strong>Screenshot Find</strong><span>Upload an exact-specimen screenshot.</span></span></label>
                   <label class="evidence-choice"><input id="includeLocationEvidence" type="checkbox"><span><strong>Location verification</strong><span>Confirm or correct its travel location.</span></span></label>
                 </div>
               </fieldset>
@@ -120,6 +134,8 @@
   <script src="script.js?v=1.18.1"></script>
   <script src="glyphs.js?v=1.6.0"></script>
   <script src="locations.js?v=1.6.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="account-session.js?v=1.19.0"></script>
   <script src="contribute.js?v=1.18.3"></script>
 </body>
 </html>

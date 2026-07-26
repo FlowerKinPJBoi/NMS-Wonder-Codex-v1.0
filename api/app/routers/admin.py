@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import hashlib
+import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select, update
@@ -14,13 +16,16 @@ from ..models import (
     Discovery,
     LocationVerification,
     ImageContribution,
+    NewDiscoverySubmission,
     PetDiscoveryMatch,
     SubmissionBatch,
     SubmissionIssue,
     SubmittedDiscovery,
     SubmittedPetMatch,
+    UserProfile,
 )
-from ..schemas import CatalogUpdate, ImageReviewAction, ReviewAction, VerificationReviewAction
+from ..schemas import CatalogUpdate, ImageReviewAction, ReviewAction, UserAccessUpdate, VerificationReviewAction
+from ..services.accounts import serialize_profile
 from ..services.catalog import serialize_discovery, wc_id
 from ..services.bulk import insert_conflict_safe
 from ..services.security import require_admin_key
@@ -75,6 +80,9 @@ def admin_summary(session: Session = Depends(get_session)):
         "pending_images": session.scalar(
             select(func.count()).select_from(ImageContribution).where(ImageContribution.status == "pending")
         ) or 0,
+        "pending_new_discoveries": session.scalar(
+            select(func.count()).select_from(NewDiscoverySubmission).where(NewDiscoverySubmission.status == "pending")
+        ) or 0,
         "pending_assets": session.scalar(
             select(func.count()).select_from(AssetSpecimen).where(AssetSpecimen.publication_state == "review")
         ) or 0,
@@ -82,6 +90,205 @@ def admin_summary(session: Session = Depends(get_session)):
             select(func.count()).select_from(AssetSpecimen).where(AssetSpecimen.publication_state == "published")
         ) or 0,
     }
+
+
+def _new_discovery_payload(row: NewDiscoverySubmission, *, detail: bool = False) -> dict:
+    payload = {
+        "id": row.id,
+        "reference": f"NEW-{row.id.split('-')[0].upper()}",
+        "created_at": row.created_at.isoformat(),
+        "reviewed_at": row.reviewed_at.isoformat() if row.reviewed_at else None,
+        "status": row.status,
+        "contributor": row.contributor,
+        "public_attribution": row.public_attribution,
+        "discovery_type": row.discovery_type,
+        "display_name": row.display_name,
+        "platform": row.platform,
+        "galaxy_number": row.galaxy_number,
+        "galaxy_name": row.galaxy_name,
+        "portal_glyphs": row.portal_glyphs,
+        "notes": row.notes,
+        "width": row.width,
+        "height": row.height,
+        "size_bytes": row.size_bytes,
+        "original_filename": row.original_filename,
+        "reviewer_note": row.reviewer_note,
+        "published_discovery_id": row.published_discovery_id,
+    }
+    if detail:
+        payload["preview_url"] = signed_review_url(row.object_key) if row.status == "pending" else (
+            f"/api/images/{row.published_image_id}/content" if row.published_image_id else ""
+        )
+    return payload
+
+
+@router.get("/new-discoveries")
+def list_new_discoveries(
+    status: str = Query(default="pending"),
+    limit: int = Query(default=100, ge=1, le=200),
+    session: Session = Depends(get_session),
+):
+    rows = session.scalars(
+        select(NewDiscoverySubmission)
+        .where(NewDiscoverySubmission.status == status)
+        .order_by(NewDiscoverySubmission.created_at.desc())
+        .limit(limit)
+    ).all()
+    return {"items": [_new_discovery_payload(row) for row in rows]}
+
+
+@router.get("/new-discoveries/{intake_id}")
+def get_new_discovery(intake_id: str, session: Session = Depends(get_session)):
+    row = session.get(NewDiscoverySubmission, intake_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="New discovery submission not found.")
+    return {"submission": _new_discovery_payload(row, detail=True)}
+
+
+@router.post("/new-discoveries/{intake_id}/approve")
+def approve_new_discovery(
+    intake_id: str,
+    action: ReviewAction,
+    session: Session = Depends(get_session),
+):
+    row = session.get(NewDiscoverySubmission, intake_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="New discovery submission not found.")
+    if row.status != "pending":
+        raise HTTPException(status_code=409, detail=f"Submission is already {row.status}.")
+    verify_object(row.object_key)
+    record_hash = hashlib.sha256(f"console-screenshot:{row.id}".encode()).hexdigest()
+    discovery = Discovery(
+        approved_from_batch_id=row.id,
+        contributor=row.contributor,
+        save_name="Console screenshot contribution",
+        discovery_type=row.discovery_type,
+        ua="",
+        message_id="",
+        owner=row.contributor,
+        platform=row.platform,
+        record_hash=record_hash,
+        raw_record={
+            "source": "new_discovery_screenshot",
+            "intake_id": row.id,
+            "notes": row.notes,
+        },
+        public_attribution=row.public_attribution,
+        display_name=row.display_name,
+        galaxy_number=row.galaxy_number,
+        galaxy_name=row.galaxy_name,
+        portal_glyphs=row.portal_glyphs,
+        location_status="pending" if row.galaxy_number or row.portal_glyphs else "unverified",
+        projector_status="unverified",
+        image_status="available",
+        catalog_note="Created from an approved non-PC screenshot contribution; save-data identity remains unlinked.",
+    )
+    session.add(discovery)
+    session.flush()
+    image = ImageContribution(
+        id=str(uuid.uuid4()),
+        discovery_id=discovery.id,
+        contributor=row.contributor,
+        image_role="primary_catalog",
+        caption=row.notes,
+        permission_confirmed=True,
+        status="approved",
+        reviewed_at=datetime.now(timezone.utc),
+        reviewer_note=action.note,
+        object_key=row.object_key,
+        original_filename=row.original_filename,
+        content_type=row.content_type,
+        width=row.width,
+        height=row.height,
+        size_bytes=row.size_bytes,
+        sha256=row.sha256,
+        is_primary=True,
+        submitter_ip_hash=row.submitter_ip_hash,
+        user_agent=row.user_agent,
+        public_attribution=row.public_attribution,
+    )
+    session.add(image)
+    row.status = "approved"
+    row.reviewed_at = datetime.now(timezone.utc)
+    row.reviewer_note = action.note
+    row.published_discovery_id = discovery.id
+    row.published_image_id = image.id
+    session.add(AuditEvent(
+        event_type="new_discovery_approved",
+        actor=action.actor,
+        batch_id=row.id,
+        detail={"wc_id": wc_id(discovery), "source": "console_screenshot", "note": action.note},
+    ))
+    session.commit()
+    return {"ok": True, "status": "approved", "discovery_id": discovery.id, "wc_id": wc_id(discovery)}
+
+
+@router.post("/new-discoveries/{intake_id}/reject")
+def reject_new_discovery(
+    intake_id: str,
+    action: ReviewAction,
+    session: Session = Depends(get_session),
+):
+    row = session.get(NewDiscoverySubmission, intake_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="New discovery submission not found.")
+    if row.status != "pending":
+        raise HTTPException(status_code=409, detail=f"Submission is already {row.status}.")
+    delete_object(row.object_key)
+    row.object_key = ""
+    row.status = "rejected"
+    row.reviewed_at = datetime.now(timezone.utc)
+    row.reviewer_note = action.note
+    session.add(AuditEvent(
+        event_type="new_discovery_rejected",
+        actor=action.actor,
+        batch_id=row.id,
+        detail={"reference": f"NEW-{row.id.split('-')[0].upper()}", "note": action.note},
+    ))
+    session.commit()
+    return {"ok": True, "status": "rejected"}
+
+
+@router.get("/users")
+def list_users(
+    q: str = Query(default="", max_length=120),
+    limit: int = Query(default=100, ge=1, le=200),
+    session: Session = Depends(get_session),
+):
+    statement = select(UserProfile).order_by(UserProfile.created_at.desc()).limit(limit)
+    if q.strip():
+        pattern = f"%{q.strip()}%"
+        statement = statement.where(UserProfile.contributor_name.ilike(pattern))
+    rows = session.scalars(statement).all()
+    return {"items": [serialize_profile(row) for row in rows], "count": len(rows)}
+
+
+@router.patch("/users/{user_id}")
+def update_user_access(
+    user_id: str,
+    changes: UserAccessUpdate,
+    actor: str = Depends(require_admin_key),
+    session: Session = Depends(get_session),
+):
+    profile = session.get(UserProfile, user_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail="User account not found.")
+    previous = {"access_tier": profile.access_tier, "account_status": profile.account_status}
+    profile.access_tier = changes.access_tier
+    profile.account_status = changes.account_status
+    session.add(AuditEvent(
+        actor=actor,
+        event_type="user_access_updated",
+        batch_id=profile.id,
+        detail={
+            "contributor_name": profile.contributor_name,
+            "before": previous,
+            "after": changes.model_dump(),
+        },
+    ))
+    session.commit()
+    session.refresh(profile)
+    return {"profile": serialize_profile(profile)}
 
 
 def _capture_payload(row: CaptureSubmission) -> dict:

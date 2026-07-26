@@ -18,6 +18,10 @@ assert.deepEqual(evidenceRequirements({
 assert.deepEqual(evidenceRequirements({
   hasRecord:true, image:true, location:false, contributor:'PJBoi', hasFile:true, permission:true, glyphs:'',
 }), []);
+assert.deepEqual(evidenceRequirements({
+  hasRecord:false, newDiscovery:true, discoveryType:'Animal', image:true, location:false,
+  contributor:'PJBoi', hasFile:true, permission:true, glyphs:'',
+}), []);
 
 const page = read('contribute.html');
 const styles = read('catalog.css');
@@ -25,6 +29,9 @@ const client = read('contribute.js');
 assert.match(page, /id="evidenceWebsite"[^>]*class="honeypot"/);
 assert.match(page, /id="evidenceForm"[^>]*novalidate/);
 assert.match(page, /id="submitEvidence"[^>]*type="submit"(?![^>]*disabled)/);
+assert.match(page, /id="submissionNew"[^>]*value="new"[^>]*checked/);
+assert.match(page, /id="submissionExisting"[^>]*value="existing"/);
+assert.match(client, /fetch\(`\$\{API\}\/new-discoveries`/);
 assert.match(styles, /\.honeypot\{[^}]*left:-10000px!important[^}]*pointer-events:none!important/);
 assert.match(client, /state\.humanInteracted \? '' : \$\('#evidenceWebsite'\)\.value/);
 assert.match(client, /button\.disabled = state\.submitting \|\| state\.completed/);

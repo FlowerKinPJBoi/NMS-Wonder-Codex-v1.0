@@ -10,6 +10,31 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
 
+class UserProfile(Base):
+    __tablename__ = "user_profiles"
+    __table_args__ = (
+        UniqueConstraint("auth_subject", name="uq_user_profiles_auth_subject"),
+        UniqueConstraint("discord_user_id", name="uq_user_profiles_discord_user_id"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    auth_subject: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+    last_sign_in_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    contributor_name: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    public_attribution: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    platform: Mapped[str] = mapped_column(String(40), default="", nullable=False)
+    access_tier: Mapped[str] = mapped_column(String(30), default="regular", nullable=False, index=True)
+    account_status: Mapped[str] = mapped_column(String(30), default="active", nullable=False, index=True)
+    discord_user_id: Mapped[str | None] = mapped_column(String(40))
+    nms_friend_code_encrypted: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    bot_connect_consent: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    friend_code_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class SubmissionBatch(Base):
     __tablename__ = "submission_batches"
 
@@ -211,6 +236,39 @@ class ImageContribution(Base):
     submitter_ip_hash: Mapped[str] = mapped_column(String(64), default="", nullable=False)
     user_agent: Mapped[str] = mapped_column(Text, default="", nullable=False)
     public_attribution: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+
+class NewDiscoverySubmission(Base):
+    """A console-friendly screenshot intake that does not require a prior record."""
+
+    __tablename__ = "new_discovery_submissions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(30), default="pending", nullable=False, index=True)
+    contributor: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    public_attribution: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    discovery_type: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    display_name: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    platform: Mapped[str] = mapped_column(String(40), default="", nullable=False)
+    galaxy_number: Mapped[int | None] = mapped_column(Integer)
+    galaxy_name: Mapped[str] = mapped_column(String(120), default="", nullable=False)
+    portal_glyphs: Mapped[str] = mapped_column(String(12), default="", nullable=False)
+    notes: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    permission_confirmed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    object_key: Mapped[str] = mapped_column(Text, nullable=False)
+    original_filename: Mapped[str] = mapped_column(String(255), default="", nullable=False)
+    content_type: Mapped[str] = mapped_column(String(100), default="image/webp", nullable=False)
+    width: Mapped[int] = mapped_column(Integer, nullable=False)
+    height: Mapped[int] = mapped_column(Integer, nullable=False)
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    reviewer_note: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    published_discovery_id: Mapped[int | None] = mapped_column(ForeignKey("discoveries.id", ondelete="SET NULL"), index=True)
+    published_image_id: Mapped[str] = mapped_column(String(36), default="", nullable=False)
+    submitter_ip_hash: Mapped[str] = mapped_column(String(64), default="", nullable=False)
+    user_agent: Mapped[str] = mapped_column(Text, default="", nullable=False)
 
 
 class CaptureSubmission(Base):

@@ -8,3 +8,5 @@ alembic==1.16.2
 boto3==1.39.3
 Pillow==11.3.0
 python-multipart==0.0.20
+PyJWT[crypto]==2.10.1
+cryptography==45.0.5

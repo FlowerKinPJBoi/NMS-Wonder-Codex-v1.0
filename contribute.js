@@ -6,9 +6,10 @@
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const imageSubmissionAccepted = (data) => Boolean(data?.ok && data?.queued && data?.image_id);
-  const evidenceRequirements = ({hasRecord, image, location, contributor, hasFile, permission, glyphs}) => {
+  const evidenceRequirements = ({hasRecord, newDiscovery = false, discoveryType = '', image, location, contributor, hasFile, permission, glyphs}) => {
     const missing = [];
-    if (!hasRecord) missing.push('choose a catalog record from the search results');
+    if (!newDiscovery && !hasRecord) missing.push('choose a catalog record from the search results');
+    if (newDiscovery && !discoveryType) missing.push('choose the new discovery category');
     if (!image && !location) missing.push('choose Screenshot Find, Location verification, or both');
     if (!contributor) missing.push('enter your contributor name');
     if (image && !hasFile) missing.push('choose a screenshot file');
@@ -139,11 +140,29 @@
     };
   }
 
+  function isNewDiscovery() {
+    return $('#submissionNew').checked;
+  }
+
+  function setSubmissionKind(kind) {
+    const isNew = kind === 'new';
+    $('#submissionNew').checked = isNew;
+    $('#submissionExisting').checked = !isNew;
+    $('#newDiscoveryFields').hidden = !isNew;
+    $('#existingRecordFields').hidden = isNew;
+    $('#includeImageEvidence').checked = isNew || $('#includeImageEvidence').checked;
+    $('#includeImageEvidence').disabled = isNew;
+    if (isNew) $('#includeLocationEvidence').checked = false;
+    toggleEvidencePanels();
+  }
+
   function updateSubmitState() {
     const selected = selectedEvidence();
     const glyphs = WCGlyphs.normalize($('#verifyGlyphs').value);
     const missing = evidenceRequirements({
       hasRecord: Boolean(state.record),
+      newDiscovery: isNewDiscovery(),
+      discoveryType: $('#newDiscoveryType').value,
       image: selected.image,
       location: selected.location,
       contributor: $('#evidenceContributor').value.trim(),
@@ -215,6 +234,24 @@
     return data;
   }
 
+  async function submitNewDiscovery(contributor, publicAttribution) {
+    const file = $('#imageFile').files[0];
+    const form = new FormData();
+    form.append('contributor', contributor);
+    form.append('discovery_type', $('#newDiscoveryType').value);
+    form.append('display_name', $('#newDisplayName').value.trim());
+    form.append('platform', $('#newPlatform').value);
+    if ($('#verifyGalaxyNumber').value) form.append('galaxy_number', $('#verifyGalaxyNumber').value);
+    form.append('galaxy_name', $('#verifyGalaxyName').value.trim());
+    form.append('portal_glyphs', WCGlyphs.normalize($('#verifyGlyphs').value));
+    form.append('notes', $('#imageCaption').value.trim());
+    form.append('permission_confirmed', 'true');
+    form.append('public_attribution', String(publicAttribution));
+    form.append('website', state.humanInteracted ? '' : $('#evidenceWebsite').value);
+    form.append('image', file, file.name);
+    return responseData(await fetch(`${API}/new-discoveries`, {method:'POST', body:form}));
+  }
+
   async function submitLocation(contributor, publicAttribution) {
     const payload = {
       discovery_id: state.record.id,
@@ -238,7 +275,8 @@
     result.hidden = false;
     result.className = 'notice';
     const selected = selectedEvidence();
-    if (!state.record) { result.textContent = 'Select a Wonder record first.'; result.classList.add('error'); return; }
+    const isNew = isNewDiscovery();
+    if (!isNew && !state.record) { result.textContent = 'Select a Wonder record first.'; result.classList.add('error'); return; }
     if (!selected.image && !selected.location) { result.textContent = 'Choose image evidence, location verification, or both.'; result.classList.add('error'); return; }
     const contributor = $('#evidenceContributor').value.trim();
     if (!contributor) { result.textContent = 'Enter your contributor name.'; result.classList.add('error'); return; }
@@ -250,7 +288,7 @@
     const publicAttribution = !$('#evidencePrivateAttribution').checked;
     const evidenceType = selected.image && selected.location ? 'both' : selected.image ? 'image' : 'location';
     window.WonderAnalytics?.track('contribution_started', {
-      entity_type:'discovery', entity_id:state.record.wc_id, evidence_type:evidenceType,
+      entity_type:'discovery', entity_id:isNew ? 'new' : state.record.wc_id, evidence_type:isNew ? 'new_screenshot' : evidenceType,
       public_attribution:publicAttribution,
     });
     const button = $('#submitEvidence');
@@ -260,7 +298,13 @@
     result.textContent = 'Sending your evidence to the private review queues…';
 
     const outcomes = [];
-    if (selected.image) {
+    if (isNew) {
+      try {
+        const data = await submitNewDiscovery(contributor, publicAttribution);
+        if (!data?.ok || !data?.queued || !data?.intake_id) throw new Error('The new discovery was not added to the review queue.');
+        outcomes.push({kind:'New discovery screenshot', ok:true, reference:data.reference});
+      } catch (error) { outcomes.push({kind:'New discovery screenshot', ok:false, error:error.message}); }
+    } else if (selected.image) {
       try {
         const data = await submitImage(contributor, publicAttribution);
         outcomes.push({kind:'Image', ok:true, reference:data.image_id});
@@ -268,7 +312,7 @@
         $('#includeImageEvidence').disabled = true;
       } catch (error) { outcomes.push({kind:'Image', ok:false, error:error.message}); }
     }
-    if (selected.location) {
+    if (!isNew && selected.location) {
       try {
         const data = await submitLocation(contributor, publicAttribution);
         outcomes.push({kind:'Location verification', ok:true, reference:data.verification_id});
@@ -290,7 +334,7 @@
     button.textContent = failures.length ? 'Retry remaining evidence' : 'Submitted ✓';
     updateSubmitState();
     if (successes.length) window.WonderAnalytics?.track('contribution_completed', {
-      entity_type:'discovery', entity_id:state.record.wc_id, evidence_type:evidenceType,
+      entity_type:'discovery', entity_id:isNew ? 'new' : state.record.wc_id, evidence_type:isNew ? 'new_screenshot' : evidenceType,
       public_attribution:publicAttribution,
     });
   }
@@ -299,6 +343,7 @@
   makeRecordSearch();
   $('#includeImageEvidence').addEventListener('change', toggleEvidencePanels);
   $('#includeLocationEvidence').addEventListener('change', toggleEvidencePanels);
+  $$('input[name="submissionKind"]').forEach((input) => input.addEventListener('change', () => setSubmissionKind(input.value)));
   $('#evidenceContributor').addEventListener('input', updateSubmitState);
   $('#imageFile').addEventListener('change', () => { previewImage(); updateSubmitState(); });
   $('#imagePermission').addEventListener('change', updateSubmitState);
@@ -324,6 +369,17 @@
     requestAnimationFrame(() => document.querySelector('.contribution-tabs')?.scrollIntoView({block:'start'}));
   }
   const recordId = params.get('record');
+  setSubmissionKind(
+    (recordId && /^\d+$/.test(recordId)) || requestedMode === 'verify' ? 'existing' : 'new'
+  );
   if (recordId && /^\d+$/.test(recordId) && ['evidence','image','verify'].includes(requestedMode)) selectRecord(Number(recordId));
+  window.WCAccount?.ready.then(({profile}) => {
+    if (!profile) return;
+    $('#evidenceContributor').value = profile.contributor_name;
+    $('#evidencePrivateAttribution').checked = !profile.public_attribution;
+    if (profile.platform) $('#newPlatform').value = profile.platform;
+    $('#evidenceContributor').dataset.accountFilled = 'true';
+    updateSubmitState();
+  }).catch(() => {});
   updateSubmitState();
 })();

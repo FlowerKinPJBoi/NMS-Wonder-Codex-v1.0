@@ -1,5 +1,23 @@
 # Wonder Codex changelog
 
+## v1.19.0 — Galactic Passport foundation
+
+- Added optional Discord and email magic-link authentication through a managed
+  Supabase Auth boundary; accounts stay disabled until production values exist.
+- Added private contributor profiles with Regular, Tester, and Admin access
+  tiers, platform and attribution defaults, and encrypted NMS friend-code
+  storage for future Wonder Bot services.
+- Added the Galactic Passport page and automatic contributor-name/privacy
+  population on the Screenshot Find form.
+- Added a non-PC **New discovery** screenshot lane that requires no prior Wonder
+  record, issues a private intake reference, and assigns the permanent WC number
+  only after admin approval.
+- Added a dedicated admin queue that can approve a new screenshot into a
+  catalog record and its primary image together.
+- Added a Users lane to the existing admin console for audited tier and account
+  status changes without exposing credentials or NMS friend codes.
+- Preserved all existing named admin/tester keys as the migration fallback.
+
 ## v1.18.3 — Screenshot Find interaction hotfix
 
 - Keeps “Submit evidence for review” clickable until an upload is actively

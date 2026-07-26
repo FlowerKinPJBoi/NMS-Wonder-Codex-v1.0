@@ -52,6 +52,8 @@
         <button class="admin-mode" data-mode="catalog" type="button">Catalog editor</button>
         <button class="admin-mode" data-mode="assets" type="button">Assets <span id="assetTabCount">0</span></button>
         <button class="admin-mode" data-mode="images" type="button">Images <span id="imageTabCount">0</span></button>
+        <button class="admin-mode" data-mode="new-discoveries" type="button">New screenshots <span id="newDiscoveryTabCount">0</span></button>
+        <button class="admin-mode" data-mode="users" type="button">Users</button>
       </div>
 
       <section class="admin-mode-panel" data-panel="captures" hidden>
@@ -158,12 +160,33 @@
         </div>
       </section>
 
+      <section class="admin-mode-panel" data-panel="new-discoveries" hidden>
+        <div class="admin-workspace">
+          <aside class="queue-panel"><div class="queue-toolbar"><div class="status-tabs" role="tablist"><button class="new-discovery-status-tab active" data-status="pending" type="button">Pending</button><button class="new-discovery-status-tab" data-status="approved" type="button">Approved</button><button class="new-discovery-status-tab" data-status="rejected" type="button">Rejected</button></div><input id="newDiscoverySearch" type="search" placeholder="Search reference, contributor, or type…"></div><div id="newDiscoveryList" class="queue-list"></div><div id="newDiscoveryEmpty" class="empty-state" hidden><span>✦</span><strong>No new screenshots found</strong></div></aside>
+          <section class="review-panel"><div id="newDiscoveryPlaceholder" class="review-placeholder"><span>✦</span><h2>Select a new discovery</h2><p>Review a non-PC screenshot and its contributor-supplied details before assigning a permanent WC record.</p></div><div id="newDiscoveryContent" hidden>
+            <div class="review-header"><div><div class="review-meta"><span id="newDiscoveryStatus" class="detail-status">Pending</span><span id="newDiscoveryReference" class="wc-id">—</span></div><h2 id="newDiscoveryName">—</h2><p id="newDiscoveryContributor">—</p></div></div>
+            <div class="admin-image-preview"><img id="newDiscoveryImage" alt="New discovery screenshot"></div>
+            <div id="newDiscoveryMetadata" class="detail-summary"></div>
+            <div id="newDiscoveryNotes" class="review-note-existing" hidden></div>
+            <div id="newDiscoveryActions" class="review-actions"><label>Reviewer note<textarea id="newDiscoveryReviewNote" rows="3" placeholder="Decision notes for the audit history"></textarea></label><div><button id="rejectNewDiscovery" class="button danger" type="button">Reject submission</button><button id="approveNewDiscovery" class="button success" type="button">Create WC record</button></div></div><div id="newDiscoveryResult" class="inline-alert" hidden></div>
+          </div></section>
+        </div>
+      </section>
+
+      <section class="admin-mode-panel" data-panel="users" hidden>
+        <div class="user-admin-panel">
+          <div class="user-admin-heading"><div><p class="kicker">ACCOUNT ACCESS</p><h2>Wonder Codex users</h2><p>Assign site access without exposing private friend codes or authentication credentials.</p></div><input id="userSearch" type="search" placeholder="Search contributor name…"></div>
+          <div id="userList" class="user-list"></div>
+          <div id="userEmpty" class="empty-state" hidden><span>♙</span><strong>No accounts found</strong><p>Accounts appear after their first successful sign-in.</p></div>
+        </div>
+      </section>
+
       <section class="audit-section"><div class="audit-heading"><div><p class="kicker">AUDIT HISTORY</p><h2>Recent admin actions</h2></div><button id="refreshAudit" class="text-button" type="button">Refresh</button></div><div id="auditList" class="audit-list"></div></section>
     </section>
   </main>
   <div id="toast" class="toast" hidden></div>
   <script src="glyphs.js?v=1.6.0"></script>
   <script src="locations.js?v=1.6.0"></script>
-  <script src="admin.js?v=1.10.0"></script>
+  <script src="admin.js?v=1.19.0"></script>
 </body>
 </html>

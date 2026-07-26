@@ -49,7 +49,8 @@ assert.match(forgeScript, /Dropdowns only offer parts that lead to a current pre
 assert.match(forgeStyles, /forge-stage-starfield\.svg/);
 assert.match(catalogStyles, /forge-stage-starfield\.svg/);
 assert.ok(fs.existsSync(path.join(root, 'assets/brand/forge-stage-starfield.svg')));
-assert.match(contribute, /SCREENSHOT FIND &amp; LOCATION VERIFICATION/);
+assert.match(contribute, /NEW DISCOVERIES &amp; CATALOG EVIDENCE/);
+assert.match(contribute, /Preserve a new find/);
 assert.match(contribute, /contribute\.html\?mode=image[^>]*>Submit a screenshot/);
 
-console.log('Wonder Codex v1.18.3 site invariants passed.');
+console.log('Wonder Codex v1.19.0 site invariants passed.');
