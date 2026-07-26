@@ -1,5 +1,16 @@
 # Wonder Codex changelog
 
+## v1.18.3 — Screenshot Find interaction hotfix
+
+- Keeps “Submit evidence for review” clickable until an upload is actively
+  sending or has completed, so hidden client state cannot create a dead button.
+- Adds a visible readiness message naming the first missing requirement.
+- Adds an explicit selected-record confirmation and clears stale record state
+  when restored or manually edited search text no longer represents a selected
+  catalog result.
+- Uses client-side validation consistently so every click produces actionable
+  feedback instead of being intercepted by native form validation.
+
 ## v1.18.2 — Forge stage and Screenshot Find hotfix
 
 - Replaced the sub-pixel Forge backdrop with a brighter, irregular deep-space

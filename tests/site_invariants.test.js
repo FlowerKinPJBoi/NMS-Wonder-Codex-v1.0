@@ -52,4 +52,4 @@ assert.ok(fs.existsSync(path.join(root, 'assets/brand/forge-stage-starfield.svg'
 assert.match(contribute, /SCREENSHOT FIND &amp; LOCATION VERIFICATION/);
 assert.match(contribute, /contribute\.html\?mode=image[^>]*>Submit a screenshot/);
 
-console.log('Wonder Codex v1.18.2 site invariants passed.');
+console.log('Wonder Codex v1.18.3 site invariants passed.');

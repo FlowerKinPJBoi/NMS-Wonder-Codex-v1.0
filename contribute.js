@@ -6,9 +6,19 @@
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const imageSubmissionAccepted = (data) => Boolean(data?.ok && data?.queued && data?.image_id);
-  if (typeof module !== 'undefined' && module.exports) module.exports = {imageSubmissionAccepted};
+  const evidenceRequirements = ({hasRecord, image, location, contributor, hasFile, permission, glyphs}) => {
+    const missing = [];
+    if (!hasRecord) missing.push('choose a catalog record from the search results');
+    if (!image && !location) missing.push('choose Screenshot Find, Location verification, or both');
+    if (!contributor) missing.push('enter your contributor name');
+    if (image && !hasFile) missing.push('choose a screenshot file');
+    if (image && !permission) missing.push('confirm permission to display the screenshot');
+    if (location && glyphs && glyphs.length !== 12) missing.push('complete all 12 portal glyphs or clear them');
+    return missing;
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = {evidenceRequirements, imageSubmissionAccepted};
   if (typeof document === 'undefined') return;
-  const state = {record: null, submitting: false, humanInteracted: false};
+  const state = {record: null, submitting: false, completed: false, humanInteracted: false};
 
   function setMode(mode) {
     const aliases = {image: 'evidence', verify: 'evidence'};
@@ -42,7 +52,7 @@
   }
 
   function selectedMarkup(record) {
-    return `<span class="wc-id">${escapeHtml(record.wc_id)}</span><h3>${escapeHtml(record.display_name)}</h3><p>${escapeHtml(record.discovery_type)} • Contributor ${escapeHtml(record.contributor || 'Unknown')}</p>${locationPanel(record)}`;
+    return `<p class="selection-confirmation">✓ Record selected for this submission</p><span class="wc-id">${escapeHtml(record.wc_id)}</span><h3>${escapeHtml(record.display_name)}</h3><p>${escapeHtml(record.discovery_type)} • Contributor ${escapeHtml(record.contributor || 'Unknown')}</p>${locationPanel(record)}`;
   }
 
   function optionMarkup(record, active) {
@@ -69,7 +79,18 @@
         results.innerHTML = `<div class="notice error">${escapeHtml(error.message)}</div>`;
       }
     }
-    input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(search, 280); });
+    input.addEventListener('input', () => {
+      if (state.record && input.value !== input.dataset.selectedLabel) {
+        state.record = null;
+        state.completed = false;
+        delete input.dataset.recordId;
+        delete input.dataset.selectedLabel;
+        $('#evidenceSelected').hidden = true;
+      }
+      updateSubmitState();
+      clearTimeout(timer);
+      timer = setTimeout(search, 280);
+    });
   }
 
   async function fetchRecord(id) {
@@ -83,10 +104,14 @@
     try {
       const record = WCLocation.enrich(await fetchRecord(id));
       state.record = record;
+      state.completed = false;
       $('#evidenceSelected').innerHTML = selectedMarkup(record);
       $('#evidenceSelected').hidden = false;
       $('#evidenceRecordResults').innerHTML = '';
-      $('#evidenceRecordSearch').value = `${record.wc_id} — ${record.display_name}`;
+      const selectedLabel = `${record.wc_id} — ${record.display_name}`;
+      $('#evidenceRecordSearch').value = selectedLabel;
+      $('#evidenceRecordSearch').dataset.recordId = String(record.id);
+      $('#evidenceRecordSearch').dataset.selectedLabel = selectedLabel;
       $('#verifyTravelPanel').innerHTML = locationPanel(record);
       if (record.has_travel_address) {
         $('#verifyGalaxyNumber').value = record.galaxy_number || '';
@@ -116,7 +141,27 @@
 
   function updateSubmitState() {
     const selected = selectedEvidence();
-    $('#submitEvidence').disabled = state.submitting || !state.record || (!selected.image && !selected.location);
+    const glyphs = WCGlyphs.normalize($('#verifyGlyphs').value);
+    const missing = evidenceRequirements({
+      hasRecord: Boolean(state.record),
+      image: selected.image,
+      location: selected.location,
+      contributor: $('#evidenceContributor').value.trim(),
+      hasFile: Boolean($('#imageFile').files[0]),
+      permission: $('#imagePermission').checked,
+      glyphs,
+    });
+    const button = $('#submitEvidence');
+    const readiness = $('#evidenceReadiness');
+    button.disabled = state.submitting || state.completed;
+    readiness.classList.toggle('ready', missing.length === 0);
+    readiness.textContent = state.submitting
+      ? 'Submitting to the private review queue…'
+      : state.completed
+        ? 'Evidence received. This submission is complete.'
+        : missing.length
+          ? `Before submitting: ${missing[0]}.`
+          : 'Ready to submit for private review.';
   }
 
   function toggleEvidencePanels() {
@@ -236,6 +281,7 @@
     toggleEvidencePanels();
     const successes = outcomes.filter((item) => item.ok);
     const failures = outcomes.filter((item) => !item.ok);
+    state.completed = successes.length > 0 && failures.length === 0;
     const lines = outcomes.map((item) => item.ok
       ? `<li><strong>${escapeHtml(item.kind)} received</strong> — reference <code>${escapeHtml(item.reference)}</code></li>`
       : `<li><strong>${escapeHtml(item.kind)} failed</strong> — ${escapeHtml(item.error)}</li>`).join('');
@@ -253,7 +299,9 @@
   makeRecordSearch();
   $('#includeImageEvidence').addEventListener('change', toggleEvidencePanels);
   $('#includeLocationEvidence').addEventListener('change', toggleEvidencePanels);
-  $('#imageFile').addEventListener('change', previewImage);
+  $('#evidenceContributor').addEventListener('input', updateSubmitState);
+  $('#imageFile').addEventListener('change', () => { previewImage(); updateSubmitState(); });
+  $('#imagePermission').addEventListener('change', updateSubmitState);
   $('#evidenceForm').addEventListener('pointerdown', (event) => {
     if (event.isTrusted) state.humanInteracted = true;
   }, {capture:true});
@@ -277,4 +325,5 @@
   }
   const recordId = params.get('record');
   if (recordId && /^\d+$/.test(recordId) && ['evidence','image','verify'].includes(requestedMode)) selectRecord(Number(recordId));
+  updateSubmitState();
 })();
