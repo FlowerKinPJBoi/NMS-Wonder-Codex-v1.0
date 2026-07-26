@@ -32,7 +32,7 @@
 .forge-builder-roadmap strong{color:#d9d1ff}
 .forge-builder-preview{overflow:hidden;border:1px solid rgba(109,231,255,.22);border-radius:18px;background:rgba(5,9,20,.72)}
 .forge-builder-stage,.forge-image{position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse at 50% 92%,rgba(110,73,199,.4),transparent 55%),radial-gradient(circle at 50% 46%,rgba(58,174,211,.27),transparent 47%),linear-gradient(180deg,#061326 0%,#09172d 62%,#171333 100%)}
-.forge-builder-stage::before,.forge-image::before{content:"";position:absolute;z-index:0;inset:0;background:url('assets/brand/deep-space-starfield.svg') center/cover no-repeat;opacity:.42;pointer-events:none}
+.forge-builder-stage::before,.forge-image::before{content:"";position:absolute;z-index:0;inset:0;background:url('assets/brand/forge-stage-starfield.svg') center/cover no-repeat;opacity:.96;pointer-events:none}
 .forge-builder-stage::after,.forge-image::after{content:"";position:absolute;z-index:2;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(109,231,255,.035),transparent 38%,rgba(157,140,255,.08)),repeating-linear-gradient(0deg,transparent 0 4px,rgba(195,238,255,.021) 4px 5px);box-shadow:inset 0 -36px 80px rgba(41,24,91,.26)}
 .forge-builder-stage{min-height:430px}
 .forge-builder-stage img,.forge-image img{position:relative;z-index:1;display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 20px 28px rgba(0,0,0,.34)) drop-shadow(0 0 18px rgba(109,231,255,.13))}

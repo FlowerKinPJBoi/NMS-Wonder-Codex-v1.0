@@ -1,5 +1,17 @@
 # Wonder Codex changelog
 
+## v1.18.2 — Forge stage and Screenshot Find hotfix
+
+- Replaced the sub-pixel Forge backdrop with a brighter, irregular deep-space
+  stage designed for transparent holograms at both catalog and record sizes.
+- Restored the missing CSS rule that keeps the Screenshot Find anti-spam field
+  invisible and out of password-manager autofill.
+- Prevented a human browser's autofill value from silently diverting a valid
+  screenshot, and now requires a real queued image ID before the interface
+  reports success.
+- Added regression coverage for the Forge stage asset and screenshot evidence
+  submission safeguards.
+
 ## v1.18.1 — Forge preview and Screenshot Find
 
 - Restored a layered galactic stage behind transparent Forge holograms in the

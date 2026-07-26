@@ -1,4 +1,4 @@
-# Wonder Codex v1.18.1
+# Wonder Codex v1.18.2
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -29,6 +29,9 @@ evidence.
 v1.18.1 adds a compatible-part preview configurator, restores the richer
 galactic stage behind transparent Forge renders, and promotes exact-specimen
 screenshot submission to a primary public action.
+
+v1.18.2 makes the Forge stage stars visible at catalog-card scale and prevents
+browser autofill from tripping the Screenshot Find spam check.
 
 ## Repository boundary
 

@@ -22,3 +22,9 @@ These rules are release blockers, not optional copy suggestions.
 8. **Forge controls stay evidence-backed.** A part selector may offer only
    certified rendered recipes or isolated layers present in the public Forge
    catalog; an unavailable composite must not be presented as generated.
+9. **Forge holograms retain their galactic stage.** Transparent Forge renders
+   must remain legible over a visibly starry, irregular deep-space backdrop at
+   both card and record sizes.
+10. **Screenshot Find reports only queued evidence as success.** Browser
+    autofill must not populate the hidden spam check, and an image submission
+    is successful only when the API returns a pending review reference.

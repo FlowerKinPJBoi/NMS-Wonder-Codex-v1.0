@@ -42,12 +42,13 @@
 .record-primary-image.is-archetype img{aspect-ratio:16/9;object-fit:cover}
 .record-primary-image.is-archetype .record-image-caption{border-top:1px solid rgba(109,231,255,.12);color:#b9c6df}
 .wonder-card-image.is-forge,.record-primary-image.is-forge{position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse at 50% 92%,rgba(110,73,199,.4),transparent 55%),radial-gradient(circle at 50% 46%,rgba(58,174,211,.27),transparent 47%),linear-gradient(180deg,#061326 0%,#09172d 62%,#171333 100%)}
-.wonder-card-image.is-forge::before,.record-primary-image.is-forge::before{content:"";position:absolute;z-index:0;inset:0;background:url('assets/brand/deep-space-starfield.svg') center/cover no-repeat;opacity:.42;pointer-events:none}
+.wonder-card-image.is-forge::before,.record-primary-image.is-forge::before{content:"";position:absolute;z-index:0;inset:0;background:url('assets/brand/forge-stage-starfield.svg') center/cover no-repeat;opacity:.96;pointer-events:none}
 .wonder-card-image.is-forge::after,.record-primary-image.is-forge::after{content:"";position:absolute;z-index:1;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(109,231,255,.035),transparent 38%,rgba(157,140,255,.08)),repeating-linear-gradient(0deg,transparent 0 4px,rgba(195,238,255,.021) 4px 5px);box-shadow:inset 0 -36px 80px rgba(41,24,91,.26)}
 .wonder-card-image.is-forge img,.record-primary-image.is-forge img{position:relative;z-index:1;object-fit:contain;filter:drop-shadow(0 20px 28px rgba(0,0,0,.34)) drop-shadow(0 0 18px rgba(109,231,255,.13))}
 .wonder-card-image.is-forge img{padding:4px}
 .wonder-card-image.is-forge .archetype-label,.record-primary-image.is-forge .record-image-caption{position:relative;z-index:2}
 .status-chip.forge{color:#aeeeff;border-color:rgba(109,231,255,.38);background:linear-gradient(110deg,rgba(109,231,255,.1),rgba(157,140,255,.08))}
+.honeypot{position:absolute!important;left:-10000px!important;top:auto!important;width:1px!important;height:1px!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}
 
 /* v1.8 — evidence-backed fauna family identity */
 .fauna-identity{border:1px solid rgba(109,231,255,.22);background:linear-gradient(135deg,rgba(109,231,255,.065),rgba(157,140,255,.035))}

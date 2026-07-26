@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1.18.1">
-  <link rel="stylesheet" href="catalog.css?v=1.18.1">
+  <link rel="stylesheet" href="catalog.css?v=1.18.2">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
@@ -94,7 +94,7 @@
                 <label class="field">Evidence notes<textarea id="verifyNotes" rows="4" maxlength="4000" placeholder="Describe what you checked, differences found, planet details, or anything the reviewer should know."></textarea></label>
               </section>
 
-              <input id="evidenceWebsite" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="honeypot">
+              <input id="evidenceWebsite" name="website" type="text" tabindex="-1" autocomplete="new-password" aria-hidden="true" class="honeypot" data-lpignore="true" data-1p-ignore>
               <button id="submitEvidence" class="button primary" type="submit" disabled>Submit evidence for review</button>
               <div id="evidenceResult" class="notice" hidden></div>
             </form>
@@ -119,6 +119,6 @@
   <script src="script.js?v=1.18.1"></script>
   <script src="glyphs.js?v=1.6.0"></script>
   <script src="locations.js?v=1.6.0"></script>
-  <script src="contribute.js?v=1.18.1"></script>
+  <script src="contribute.js?v=1.18.2"></script>
 </body>
 </html>
