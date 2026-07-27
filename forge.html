@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1.20.0">
-  <link rel="stylesheet" href="forge.css?v=1.20.0">
+  <link rel="stylesheet" href="forge.css?v=1.20.1">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
@@ -51,13 +51,48 @@
 
       <div class="forge-policy"><strong>Catalog rule:</strong> “Representative family image — not this exact specimen.” An approved community screenshot always replaces representative art on its own record.</div>
 
-      <section class="forge-builder surface" aria-labelledby="forgeBuilderTitle">
+      <section class="forge-builder discovery-projector surface" aria-labelledby="forgeDiscoveryTitle">
         <div class="forge-builder-intro">
           <div>
-            <p class="kicker">EXPLORE THE PARTS · EARLY FORGE</p>
-            <h2 id="forgeBuilderTitle">Choose a collection. Choose a family. Inspect a component.</h2>
+            <p class="kicker">EXPLORE DISCOVERIES · RINGLESS HOLOGRAMS</p>
+            <h2 id="forgeDiscoveryTitle">Choose a collection. Choose a family. Project a form.</h2>
           </div>
-          <p>The Forge now carries hundreds of certified parts. Friendly menus replace internal filenames while the component itself remains an unchanged Expedition render.</p>
+          <p>Explore complete representative forms from the Expedition without mixing them with construction parts. Planet globes and uncertain fauna remain gallery-only and never fill Database records.</p>
+        </div>
+        <div class="forge-builder-layout">
+          <form class="forge-builder-controls" id="forgeDiscoveryControls">
+            <label>Discovery collection<select id="forgeDiscoveryCategory" aria-describedby="forgeDiscoveryStatus"></select></label>
+            <label>Visual family<select id="forgeDiscoveryFamily"></select></label>
+            <label>Available form<select id="forgeDiscoveryForm"></select></label>
+            <div class="forge-builder-actions">
+              <button id="forgeDiscoveryRandomize" class="button primary" type="button">Random discovery</button>
+              <a class="button secondary" href="contribute.html?mode=image">Submit an exact screenshot</a>
+            </div>
+            <p id="forgeDiscoveryStatus" class="forge-builder-status">Loading representative discoveries…</p>
+            <p class="forge-builder-roadmap"><strong>Evidence boundary:</strong> these are representative family forms—not exact specimens. Approved screenshots always take precedence on Database records.</p>
+          </form>
+          <article class="forge-builder-preview" aria-live="polite">
+            <div class="forge-builder-stage">
+              <img id="forgeDiscoveryImage" alt="" hidden>
+              <span id="forgeDiscoveryClass" class="forge-class">Loading</span>
+            </div>
+            <div class="forge-builder-caption">
+              <span id="forgeDiscoveryFamilyName" class="forge-family">Wonder Forge discovery</span>
+              <h3 id="forgeDiscoveryName">Opening the representative catalog…</h3>
+              <div id="forgeDiscoveryTraits" class="forge-traits"></div>
+              <p id="forgeDiscoveryEvidence">The preview will retain its evidence class.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="forge-builder component-vault surface" aria-labelledby="forgeBuilderTitle">
+        <div class="forge-builder-intro">
+          <div>
+            <p class="kicker">BUILD WITH PARTS · EARLY FORGE</p>
+            <h2 id="forgeBuilderTitle">Choose a component collection. Inspect a construction part.</h2>
+          </div>
+          <p>Starship, freighter, and multi-tool components live here. Friendly menus replace internal filenames while each part remains an unchanged Expedition render—not a complete discovery.</p>
         </div>
         <div class="forge-builder-layout">
           <form class="forge-builder-controls" id="forgeBuilderControls">
@@ -106,6 +141,6 @@
   <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Preserve the procedural universe</small></span></a><p>Independent community research project. Not affiliated with Hello Games.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="forge.html">Forge</a><a href="decoder.html">Decoder</a><a href="map.html">Map</a><a href="contribute.html">Contribute</a><a href="account.html">Passport</a><a href="privacy.html">Privacy</a></div></footer>
   <script src="analytics.js?v=1.13.0"></script>
   <script src="script.js?v=1.20.0"></script>
-  <script src="forge.js?v=1.20.0"></script>
+  <script src="forge.js?v=1.20.1"></script>
 </body>
 </html>

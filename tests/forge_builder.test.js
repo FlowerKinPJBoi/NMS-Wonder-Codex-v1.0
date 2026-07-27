@@ -3,10 +3,13 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const {componentMatches, uniqueRows} = require('../forge.js');
+const {componentMatches, discoveryMatches, uniqueRows} = require('../forge.js');
 
 const components = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, '../assets/forge/forge-components.json'), 'utf8'),
+).entries;
+const representatives = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../assets/forge/forge-catalog.json'), 'utf8'),
 ).entries;
 
 assert.equal(components.length, 329);
@@ -26,5 +29,20 @@ assert.ok(fighterWings.length >= 10);
 assert.ok(fighterWings.every((entry) => entry.family_display === 'Fighter'));
 assert.ok(fighterWings.every((entry) => entry.slot_display === 'Wings'));
 assert.ok(fighterWings.every((entry) => !/scene|mbin|wc-part|[a-f0-9]{12}/i.test(entry.component_name)));
+
+const faunaBlobs = representatives.filter((entry) => discoveryMatches(entry, {
+  discoveryCategory: 'fauna',
+  discoveryFamily: 'BLOB',
+}));
+assert.ok(faunaBlobs.length > 0);
+assert.ok(faunaBlobs.every((entry) => entry.category_display === 'Fauna'));
+assert.ok(faunaBlobs.every((entry) => entry.family_display === 'Blob'));
+assert.equal(
+  representatives.filter((entry) => discoveryMatches(entry, {
+    discoveryCategory: 'planets',
+    discoveryFamily: '',
+  })).length,
+  8,
+);
 
 console.log('Wonder Forge component compatibility passed.');

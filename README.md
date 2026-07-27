@@ -1,4 +1,4 @@
-# Wonder Codex v1.20.0
+# Wonder Codex v1.20.1
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -53,6 +53,11 @@ evidence-safe catalog matching; all planet globes and fourteen uncertain fauna
 forms remain gallery-only. Approved screenshots still take precedence,
 representative art never changes image evidence, and isolated components are
 never presented as finished discoveries.
+
+v1.20.1 adds a client-side representative bridge so those approved holograms
+continue to appear on Database cards and records while API deployments catch
+up. The Forge now presents complete discovery representatives in a dedicated
+collection/family/form projector, separate from the component workshop.
 
 ## Repository boundary
 

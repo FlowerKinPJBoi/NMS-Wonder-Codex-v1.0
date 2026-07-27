@@ -82,6 +82,14 @@
     </div>`;
   }
 
+  function hasForgeRepresentative(item) {
+    if (String(item.primary_image_url || '').trim()) return false;
+    return Boolean(
+      String(item.forge_image_url || '').trim()
+      || window.WCExpedition?.resolve(item),
+    );
+  }
+
   function bindImageFallbacks() {
     document.querySelectorAll('#catalogGrid .wonder-card-image img[data-archetype-fallback]').forEach((image) => {
       image.addEventListener('error', function useArchetypeFallback() {
@@ -102,11 +110,12 @@
 
   function wonderCard(item) {
     item = WCLocation.enrich(item);
+    const forgeRepresentative = hasForgeRepresentative(item);
     return `<article class="wonder-card">${imageMarkup(item, item.display_name)}
       <div class="wonder-card-top"><span class="wc-id">${escapeHtml(item.wc_id)}</span><span class="type-chip">${escapeHtml(typeLabel(item.discovery_type))}</span></div>
       <h2>${escapeHtml(item.display_name)}</h2><p>Contributed by ${escapeHtml(item.contributor || item.owner || 'Unknown explorer')}</p>
       ${wonderIdentityMarkup(item)}
-      <div class="card-badges"><span class="status-chip ${escapeHtml(item.travel_status)}">Location ${escapeHtml(item.travel_status)}</span><span class="status-chip ${item.image_status === 'available' ? 'verified' : 'needed'}">Image ${escapeHtml(item.image_status)}</span>${item.forge_image_url && item.image_status !== 'available' ? '<span class="status-chip forge">Forge representative</span>' : ''}<span class="status-chip ${item.projector_status === 'verified' ? 'verified' : ''}">Projector ${escapeHtml(item.projector_status.replaceAll('_',' '))}</span></div>
+      <div class="card-badges"><span class="status-chip ${escapeHtml(item.travel_status)}">Location ${escapeHtml(item.travel_status)}</span><span class="status-chip ${item.image_status === 'available' ? 'verified' : 'needed'}">Image ${escapeHtml(item.image_status)}</span>${forgeRepresentative && item.image_status !== 'available' ? '<span class="status-chip forge">Forge representative</span>' : ''}<span class="status-chip ${item.projector_status === 'verified' ? 'verified' : ''}">Projector ${escapeHtml(item.projector_status.replaceAll('_',' '))}</span></div>
       ${locationMarkup(item)}
       <div class="wonder-card-actions"><a class="mini-link primary" href="record.html?id=${item.id}">View record</a><a class="mini-link" href="contribute.html?mode=image&record=${item.id}">Add image</a><a class="mini-link" href="contribute.html?mode=verify&record=${item.id}">Verify</a></div>
     </article>`;
@@ -120,11 +129,12 @@
   }
 
   function assetCard(item) {
+    const forgeRepresentative = hasForgeRepresentative(item);
     return `<article class="wonder-card asset-card">${imageMarkup(item, item.display_name)}
       <div class="wonder-card-top"><span class="wc-id">${escapeHtml(item.wc_id)}</span><span class="type-chip">${escapeHtml(typeLabel(item.asset_type))}</span></div>
       <h2>${escapeHtml(item.display_name)}</h2><p>Contributed by ${escapeHtml(item.contributor || 'Anonymous explorer')}</p>
       ${assetIdentityMarkup(item)}
-      <div class="card-badges"><span class="status-chip ${item.location_status === 'verified' ? 'verified' : 'unverified'}">Acquisition ${escapeHtml(item.location_status)}</span><span class="status-chip ${item.image_status === 'available' ? 'verified' : 'needed'}">Image ${escapeHtml(item.image_status)}</span>${item.modified_or_special_signal ? '<span class="status-chip pending">Special signal · review</span>' : ''}</div>
+      <div class="card-badges"><span class="status-chip ${item.location_status === 'verified' ? 'verified' : 'unverified'}">Acquisition ${escapeHtml(item.location_status)}</span><span class="status-chip ${item.image_status === 'available' ? 'verified' : 'needed'}">Image ${escapeHtml(item.image_status)}</span>${forgeRepresentative && item.image_status !== 'available' ? '<span class="status-chip forge">Forge representative</span>' : ''}${item.modified_or_special_signal ? '<span class="status-chip pending">Special signal · review</span>' : ''}</div>
       ${assetLocationMarkup(item)}
       <div class="wonder-card-actions"><a class="mini-link primary" href="asset.html?id=${item.id}">View specimen</a></div>
     </article>`;

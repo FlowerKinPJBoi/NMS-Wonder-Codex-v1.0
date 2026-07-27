@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const CATALOG_URL = 'assets/expedition/expedition-catalog.json?v=1.20.0';
+  const CATALOG_URL = 'assets/forge/forge-catalog.json?v=1.20.1';
   const state = {catalog: null, loading: null};
 
   function categoryFor(record = {}) {
@@ -35,27 +35,48 @@
       || 'wonder-codex';
   }
 
-  function eligiblePool(record = {}) {
+  function eligiblePool(record = {}, catalog = state.catalog) {
     const category = categoryFor(record);
-    if (!category || !state.catalog) return [];
-    let entries = state.catalog.catalog_entries.filter((entry) => entry.category === category);
+    if (!category || !catalog || !Array.isArray(catalog.entries)) return [];
+    let entries = catalog.entries.filter((entry) => (
+      entry.record_eligible === true
+      && entry.exact_specimen === false
+      && entry.category_id === category
+    ));
     if (category === 'fauna') {
       const family = String(record.fauna_family_id || '').toUpperCase();
       if (!family) return [];
+      const identitySource = String(
+        record.fauna_identity_source
+        || record.wonder_family_source
+        || '',
+      );
+      if (
+        identitySource
+        && !['exact_pet_match', 'confirmed_vp1_mapping'].includes(identitySource)
+      ) return [];
       entries = entries.filter((entry) => entry.family_id === family);
     }
     return entries;
   }
 
-  function resolve(record = {}) {
-    const pool = eligiblePool(record);
+  function resolveFromCatalog(record = {}, catalog = state.catalog) {
+    const pool = eligiblePool(record, catalog);
     const index = stableIndex(identitySignal(record), pool.length);
     if (index < 0) return null;
     const entry = pool[index];
     return Object.freeze({
       ...entry,
+      category: entry.category_id,
+      category_label: entry.category_display,
+      name: entry.form_name,
+      public_label: entry.display_label,
       selection_basis: 'deterministic_category_or_confirmed_family_pool',
     });
+  }
+
+  function resolve(record = {}) {
+    return resolveFromCatalog(record, state.catalog);
   }
 
   async function load() {
@@ -65,8 +86,8 @@
         .then(async (response) => {
           const data = await response.json();
           if (!response.ok) throw new Error(`Expedition catalog request failed (${response.status})`);
-          if (!Array.isArray(data.catalog_entries) || !Array.isArray(data.component_entries)) {
-            throw new Error('Expedition catalog is malformed.');
+          if (!Array.isArray(data.entries)) {
+            throw new Error('Wonder Forge catalog is malformed.');
           }
           state.catalog = Object.freeze(data);
           return state.catalog;
@@ -83,7 +104,15 @@
     return state.catalog;
   }
 
-  const api = Object.freeze({load, resolve, catalog, categoryFor, stableIndex});
+  const api = Object.freeze({
+    load,
+    resolve,
+    resolveFromCatalog,
+    eligiblePool,
+    catalog,
+    categoryFor,
+    stableIndex,
+  });
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (typeof window !== 'undefined') window.WCExpedition = api;
 })();

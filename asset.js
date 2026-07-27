@@ -8,15 +8,22 @@
   function render(item) {
     const art = WCArchetypes.resolve(item);
     const forgeImage = String(item.forge_image_url || '').trim();
-    const image = item.primary_image_url || forgeImage || art.url;
+    const expedition = item.primary_image_url || forgeImage
+      ? null
+      : window.WCExpedition?.resolve(item);
+    const representativeImage = forgeImage || String(expedition?.image_url || '');
+    const image = item.primary_image_url || representativeImage || art.url;
     const representative = !item.primary_image_url;
-    const forgeRepresentative = representative && Boolean(forgeImage);
+    const forgeRepresentative = representative && Boolean(representativeImage);
+    const forgeName = item.forge_form_name || expedition?.name || item.asset_type;
+    const forgeLabel = item.forge_display_label || expedition?.public_label
+      || 'Representative family image — not this exact specimen.';
     document.title = `${item.wc_id} | Wonder Codex`; $('#assetTitle').innerHTML = `${escapeHtml(item.wc_id)} <span>published specimen.</span>`;
     $('#assetSubtitle').textContent = 'Normalized procedural identity, source provenance, review state, and acquisition evidence.';
-    $('#assetGallery').innerHTML = `<div class="record-primary-image ${representative ? 'is-archetype' : ''} ${forgeRepresentative ? 'is-forge' : ''}"><img src="${escapeHtml(image)}" alt="${escapeHtml(representative ? `${item.asset_type} representative` : item.display_name)}"><div class="record-image-caption">${forgeRepresentative ? `${item.forge_form_name} • ${item.forge_display_label}` : representative ? 'Illustrative reconstruction — not an image of this exact specimen.' : 'Approved specimen image'}</div></div>`;
+    $('#assetGallery').innerHTML = `<div class="record-primary-image ${representative ? 'is-archetype' : ''} ${forgeRepresentative ? 'is-forge' : ''}"><img src="${escapeHtml(image)}" alt="${escapeHtml(representative ? `${item.asset_type} representative` : item.display_name)}"><div class="record-image-caption">${forgeRepresentative ? `${escapeHtml(forgeName)} • ${escapeHtml(forgeLabel)}` : representative ? 'Illustrative reconstruction — not an image of this exact specimen.' : 'Approved specimen image'}</div></div>`;
     $('#assetIllustrationNote').hidden = !representative;
     $('#assetIllustrationNote').textContent = forgeRepresentative
-      ? `${item.forge_match_label} • ${item.forge_display_label}`
+      ? `${item.forge_match_label || 'Stable catalog identity'} • ${forgeLabel}`
       : 'Illustrative reconstruction — not an image of this exact specimen.';
     $('#assetWcId').textContent = item.wc_id; $('#assetName').textContent = item.display_name; $('#assetContributor').textContent = `Contributed by ${item.contributor || 'Anonymous explorer'}`; $('#assetType').textContent = item.asset_type === 'Multitool' ? 'Multi-tool' : item.asset_type;
     $('#assetBadges').innerHTML = `<span class="status-chip ${item.location_status === 'verified' ? 'verified' : 'unverified'}">Acquisition ${escapeHtml(item.location_status)}</span><span class="status-chip ${item.image_status === 'available' ? 'verified' : 'needed'}">Image ${escapeHtml(item.image_status)}</span>${item.modified_or_special_signal ? '<span class="status-chip pending">Special signal under review</span>' : ''}`;
@@ -50,5 +57,16 @@
   }
 
   if (!Number.isInteger(id) || id < 1) { $('#assetError').textContent = 'This asset record link is invalid.'; $('#assetError').hidden = false; return; }
-  fetch(`/api/assets/${id}`).then(async (response) => { const data = await response.json(); if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`); render(data); }).catch((error) => { $('#assetError').textContent = error.message; $('#assetError').hidden = false; });
+  Promise.resolve(window.WCExpedition?.load())
+    .catch(() => null)
+    .finally(() => {
+      fetch(`/api/assets/${id}`).then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
+        render(data);
+      }).catch((error) => {
+        $('#assetError').textContent = error.message;
+        $('#assetError').hidden = false;
+      });
+    });
 })();
