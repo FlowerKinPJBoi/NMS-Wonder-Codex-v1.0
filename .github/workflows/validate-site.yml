@@ -45,5 +45,6 @@ jobs:
         run: |
           node tests/site_invariants.test.js
           node tests/forge_builder.test.js
+          node tests/expedition_gallery.test.js
           node tests/contribution_evidence.test.js
           node tests/feedback_questionnaire.test.js

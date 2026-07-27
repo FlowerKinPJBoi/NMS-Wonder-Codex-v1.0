@@ -61,14 +61,23 @@
     const representativeLabel = item.archetype_label || archetype.label;
     const approvedUrl = String(item.primary_image_url || '').trim();
     const forgeUrl = approvedUrl ? '' : String(item.forge_image_url || '').trim();
+    const expedition = approvedUrl || forgeUrl ? null : window.WCExpedition?.resolve(item);
+    const expeditionUrl = String(expedition?.image_url || '');
+    const representativeUrl = forgeUrl || expeditionUrl;
     const isRepresentative = !approvedUrl;
-    const isForge = Boolean(forgeUrl);
+    const isForge = Boolean(representativeUrl);
     const assetLabel = item.asset_type ? 'Illustrative reconstruction — not an image of this exact specimen.' : `${representativeLabel} · Representative archetype — not this exact specimen.`;
     const forgeLabel = item.forge_display_label || 'Representative family image — not this exact specimen.';
-    const labelHeading = isForge ? 'Wonder Forge · family representative' : item.asset_type ? 'Illustrative archetype' : 'Representative archetype';
-    const labelCopy = isForge ? `${item.forge_form_name || item.fauna_family_label || 'Verified natural form'} · ${forgeLabel}` : assetLabel;
+    const labelHeading = forgeUrl
+      ? 'Wonder Forge · family representative'
+      : expedition
+        ? `Wonder Forge · ${expedition.category_label} representative`
+        : item.asset_type ? 'Illustrative archetype' : 'Representative archetype';
+    const labelCopy = isForge
+      ? `${item.forge_form_name || expedition?.name || item.fauna_family_label || 'Approved representative'} · ${forgeLabel}`
+      : assetLabel;
     return `<div class="wonder-card-image ${isForge ? 'is-forge' : isRepresentative ? 'is-archetype' : 'is-approved'}">
-      <img src="${escapeHtml(approvedUrl || forgeUrl || archetype.url)}" alt="${escapeHtml(isRepresentative ? `${item.fauna_family_label || representativeLabel} representative` : name)}" loading="lazy" data-archetype-fallback="${escapeHtml(archetype.url)}" data-archetype-alt="${escapeHtml(archetype.alt)}" data-archetype-label="${escapeHtml(assetLabel)}">
+      <img src="${escapeHtml(approvedUrl || representativeUrl || archetype.url)}" alt="${escapeHtml(isRepresentative ? `${item.fauna_family_label || expedition?.category_label || representativeLabel} representative` : name)}" loading="lazy" data-archetype-fallback="${escapeHtml(archetype.url)}" data-archetype-alt="${escapeHtml(archetype.alt)}" data-archetype-label="${escapeHtml(assetLabel)}">
       <div class="archetype-label"${isRepresentative ? '' : ' hidden'}><span>${escapeHtml(labelHeading)}</span><small>${escapeHtml(labelCopy)}</small></div>
     </div>`;
   }
@@ -203,5 +212,12 @@
   ['#familyFilter','#locationFilter','#imageFilter'].forEach((selector) => $(selector).addEventListener('change', () => load(true)));
   $$('.catalog-lane').forEach((button) => button.addEventListener('click', () => { state.lane = button.dataset.catalogLane; updateLaneUi(); load(true); }));
   $('#loadMore').addEventListener('click', () => load(false));
-  updateLaneUi(); loadFamilies(); loadLaneCounts(); load(true);
+  Promise.resolve(window.WCExpedition?.load())
+    .catch(() => null)
+    .finally(() => {
+      updateLaneUi();
+      loadFamilies();
+      loadLaneCounts();
+      load(true);
+    });
 })();

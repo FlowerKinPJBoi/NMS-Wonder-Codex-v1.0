@@ -1,4 +1,4 @@
-# Wonder Codex v1.19.0
+# Wonder Codex v1.20.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -44,6 +44,14 @@ Wonder Bot services. It also lets non-PC explorers submit a brand-new discovery
 screenshot without selecting an existing record; owner approval creates its WC
 record and primary image together. Existing tester keys remain available during
 migration.
+
+v1.20.0 integrates the cumulative Wonder Forge Expedition v0.1.16 return:
+186 approved catalog representatives across fauna, flora, minerals, frigates,
+and multi-tools, plus a searchable vault of 166 starship, freighter, and
+multi-tool components organized into 102 compatibility groups. Web-sized
+derivatives retain source hashes and the galactic stage. Approved screenshots
+still take precedence, representative art never changes image evidence, and
+isolated components are never presented as finished discoveries.
 
 ## Repository boundary
 
