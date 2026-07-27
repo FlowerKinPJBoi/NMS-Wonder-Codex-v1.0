@@ -5,6 +5,7 @@ from typing import Any
 
 from ..models import AssetSighting, AssetSpecimen
 from .catalog import public_contributor
+from .forge import forge_asset_representative_metadata
 
 
 SUPPORTED_ASSET_TYPES = {"Starship", "Freighter", "Frigate", "Multitool"}
@@ -165,4 +166,5 @@ def serialize_asset(
         if sighting and item.get("sighting") is not None:
             item["sighting"]["notes"] = sighting.notes
             item["sighting"]["reviewer_note"] = sighting.reviewer_note
+    item.update(forge_asset_representative_metadata(asset))
     return item

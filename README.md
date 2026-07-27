@@ -45,13 +45,14 @@ screenshot without selecting an existing record; owner approval creates its WC
 record and primary image together. Existing tester keys remain available during
 migration.
 
-v1.20.0 integrates the cumulative Wonder Forge Expedition v0.1.16 return:
-186 approved catalog representatives across fauna, flora, minerals, frigates,
-and multi-tools, plus a searchable vault of 166 starship, freighter, and
-multi-tool components organized into 102 compatibility groups. Web-sized
-derivatives retain source hashes and the galactic stage. Approved screenshots
-still take precedence, representative art never changes image evidence, and
-isolated components are never presented as finished discoveries.
+v1.20.0 integrates the expanded Wonder Forge Expedition return: 152 ringless
+catalog representatives across fauna, flora, minerals, planets, frigates, and
+multi-tools, plus a searchable vault of 329 starship, freighter, and multi-tool
+components. Of those representatives, 130 quality-gated forms may support
+evidence-safe catalog matching; all planet globes and fourteen uncertain fauna
+forms remain gallery-only. Approved screenshots still take precedence,
+representative art never changes image evidence, and isolated components are
+never presented as finished discoveries.
 
 ## Repository boundary
 

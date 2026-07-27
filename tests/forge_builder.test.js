@@ -3,30 +3,28 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const {entriesMatchingPrefix, slotLabel, traitEntries, unique} = require('../forge.js');
+const {componentMatches, uniqueRows} = require('../forge.js');
 
-const catalog = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../assets/forge/forge-catalog.json'), 'utf8'));
-const trex = traitEntries(catalog.entries.filter((entry) => entry.family_id === 'TREX'));
+const components = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../assets/forge/forge-components.json'), 'utf8'),
+).entries;
 
-assert.ok(trex.length > 1, 'T-Rex should expose configurable certified recipes');
-assert.equal(slotLabel('TREX', 0), 'Body');
-assert.equal(slotLabel('TREX', 2), 'Tail');
+assert.equal(components.length, 329);
+assert.equal(components.filter((entry) => entry.category_id === 'starship-parts').length, 218);
+assert.equal(components.filter((entry) => entry.category_id === 'freighter-parts').length, 105);
+assert.equal(components.filter((entry) => entry.category_id === 'multitool-parts').length, 6);
 
-const bodies = unique(trex.map((entry) => entry.traits[0]));
-assert.ok(bodies.includes('Bird-Rex Body'));
+const categories = uniqueRows(components, 'category_id', 'category_display');
+assert.deepEqual(categories.map(([id]) => id), ['freighter-parts', 'multitool-parts', 'starship-parts']);
 
-const birdRex = entriesMatchingPrefix(trex, ['Bird-Rex Body']);
-assert.ok(birdRex.length > 1);
-assert.ok(birdRex.every((entry) => entry.traits[0] === 'Bird-Rex Body'));
+const fighterWings = components.filter((entry) => componentMatches(entry, {
+  componentCategory: 'starship-parts',
+  componentFamily: 'fighter',
+  componentSlot: 'wings',
+}));
+assert.ok(fighterWings.length >= 10);
+assert.ok(fighterWings.every((entry) => entry.family_display === 'Fighter'));
+assert.ok(fighterWings.every((entry) => entry.slot_display === 'Wings'));
+assert.ok(fighterWings.every((entry) => !/scene|mbin|wc-part|[a-f0-9]{12}/i.test(entry.component_name)));
 
-const birdHeads = unique(birdRex.map((entry) => entry.traits[1]));
-const chosenHead = birdHeads[0];
-const headMatches = entriesMatchingPrefix(trex, ['Bird-Rex Body', chosenHead]);
-assert.ok(headMatches.length >= 1);
-assert.ok(headMatches.every((entry) => entry.traits[0] === 'Bird-Rex Body' && entry.traits[1] === chosenHead));
-
-for (const entry of trex) {
-  assert.ok(entriesMatchingPrefix(trex, entry.traits).some((candidate) => candidate.id === entry.id));
-}
-
-console.log('Wonder Forge progressive recipe compatibility passed.');
+console.log('Wonder Forge component compatibility passed.');

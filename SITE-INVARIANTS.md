@@ -37,7 +37,8 @@ These rules are release blockers, not optional copy suggestions.
     become a complete catalog specimen image.
 13. **Representative assignment stays bounded.** Expedition representatives
     may be selected only from a confirmed fauna-family pool or the record's
-    broad catalog category. Starship and Freighter records retain their neutral
+    broad catalog category. Planet globes and uncertain fauna remain
+    gallery-only, while Starship and Freighter records retain their neutral
     archetypes until complete representative forms are certified.
 14. **The museum mission stays visible.** Public mission language continues to
     describe Wonder Codex as “an interactive, user-contributed museum of the
