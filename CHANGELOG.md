@@ -1,5 +1,20 @@
 # Wonder Codex changelog
 
+## v1.20.0 — Cumulative Expedition gallery and Component Vault
+
+- Integrated all six verified Wonder Forge Expedition v0.1.16 image bundles:
+  186 approved catalog representatives and 166 isolated Forge components.
+- Added representative shelves for fauna, flora, minerals, frigates, and
+  multi-tools while retaining the irregular deep-space hologram stage.
+- Added a searchable Component Vault with category, compatible family, slot,
+  and part selectors across starship, freighter, and multi-tool research.
+- Added evidence-safe Database representatives for confirmed fauna families,
+  flora, minerals, frigates, and multi-tools without changing image status.
+- Kept Starship and Freighter records on their neutral archetypes because the
+  returned images are components rather than complete specimens.
+- Preserved exact-screenshot precedence, visible representative/component
+  labels, the permanent Preserve identity, and the interactive museum mission.
+
 ## v1.19.0 — Galactic Passport foundation
 
 - Added optional Discord and email magic-link authentication through a managed

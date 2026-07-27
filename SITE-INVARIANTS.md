@@ -32,3 +32,13 @@ These rules are release blockers, not optional copy suggestions.
     primary action remains clickable and reports the first missing requirement;
     visible record text is not treated as a selection without a confirmed
     catalog record.
+12. **Expedition components stay components.** Starship, freighter, and
+    multi-tool part previews may appear in the Forge Component Vault but may not
+    become a complete catalog specimen image.
+13. **Representative assignment stays bounded.** Expedition representatives
+    may be selected only from a confirmed fauna-family pool or the record's
+    broad catalog category. Starship and Freighter records retain their neutral
+    archetypes until complete representative forms are certified.
+14. **The museum mission stays visible.** Public mission language continues to
+    describe Wonder Codex as “an interactive, user-contributed museum of the
+    galaxies.”

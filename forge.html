@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Explore evidence-labeled No Man's Sky family forms and synthetic variants produced by Wonder Forge.">
+  <meta name="description" content="Explore evidence-labeled No Man's Sky representatives and isolated procedural components produced by Wonder Forge.">
   <meta name="theme-color" content="#080b16">
   <title>Wonder Forge Gallery | Wonder Codex</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1.18.1">
-  <link rel="stylesheet" href="forge.css?v=1.19.1">
+  <link rel="stylesheet" href="forge.css?v=1.20.0">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
@@ -23,13 +23,13 @@
   <main>
     <section class="page-hero forge-hero">
       <p class="eyebrow">WONDER FORGE · EVIDENCE-LABELED VISUAL ATLAS</p>
-      <h1>More forms. Clear <span>boundaries.</span></h1>
-      <p>Explore the first Forge holograms while every image keeps its evidence class visible. Verified natural forms can represent a confirmed family in the Database; experimental combinations remain a separate research gallery.</p>
+      <h1>A wider universe. Clear <span>boundaries.</span></h1>
+      <p>Explore the cumulative Expedition: fauna, flora, minerals, frigates, multi-tools, and isolated ship, freighter, and weapon components. Every image keeps its evidence role visible.</p>
       <div class="forge-stats" aria-label="Wonder Forge gallery counts">
-        <div><strong id="forgeTotal">—</strong><span>Hologram forms</span></div>
-        <div><strong id="forgeVerified">—</strong><span>Verified references</span></div>
-        <div><strong id="forgeSynthetic">—</strong><span>Synthetic variants</span></div>
-        <div><strong id="forgeFamilies">—</strong><span>Fauna families</span></div>
+        <div><strong id="forgeTotal">—</strong><span>Saved previews</span></div>
+        <div><strong id="forgeVerified">—</strong><span>Catalog representatives</span></div>
+        <div><strong id="forgeComponents">—</strong><span>Forge components</span></div>
+        <div><strong id="forgeGroups">—</strong><span>Compatibility groups</span></div>
       </div>
     </section>
 
@@ -45,8 +45,8 @@
       </section>
 
       <div class="evidence-boundary surface">
-        <article class="verified"><span class="forge-evidence-mark">✓</span><div><h2>Verified natural reference forms</h2><p>Built from forms marked <code>VERIFIED_REFERENCE_FORM</code> in the returned Forge manifests. On a VP/PetData-confirmed family record, these may appear as representative art—never as an exact specimen claim.</p></div></article>
-        <article class="synthetic"><span class="forge-evidence-mark">◇</span><div><h2>NMS-parts synthetic variants</h2><p>Authentic game component combinations created for visual research. Their natural in-game spawn is not yet confirmed, so they remain gallery-only and are never assigned to a discovery record.</p></div></article>
+        <article class="verified"><span class="forge-evidence-mark">✓</span><div><h2>Approved catalog representatives</h2><p>Broad visual references from the cumulative Expedition. A representative can fill an empty catalog stage only when its confirmed category or fauna family supports the match.</p></div></article>
+        <article class="synthetic"><span class="forge-evidence-mark">◇</span><div><h2>Isolated Forge components</h2><p>Authentic game components indexed by compatible category, family, and slot. A wing, hull, engine, or weapon preview is a building part—not a finished discovery.</p></div></article>
       </div>
 
       <div class="forge-policy"><strong>Catalog rule:</strong> “Representative family image — not this exact specimen.” An approved community screenshot always replaces representative art on its own record.</div>
@@ -85,16 +85,49 @@
         </div>
       </section>
 
+      <section class="forge-builder component-vault surface" aria-labelledby="componentVaultTitle">
+        <div class="forge-builder-intro">
+          <div>
+            <p class="kicker">COMPONENT VAULT · 166 READY PREVIEWS</p>
+            <h2 id="componentVaultTitle">Inspect a family. Choose a slot. See the part.</h2>
+          </div>
+          <p>This is the evidence-backed foundation for the full modular Forge. These controls display one returned component at a time; they do not claim that an unrendered composite already exists.</p>
+        </div>
+        <div class="forge-builder-layout">
+          <form class="forge-builder-controls" id="componentControls">
+            <label>Component category<select id="componentCategory"></select></label>
+            <label>Compatible family<select id="componentFamily"></select></label>
+            <label>Part slot<select id="componentSlot"></select></label>
+            <label>Available component<select id="componentPart"></select></label>
+            <div class="forge-builder-actions">
+              <button id="componentRandomize" class="button primary" type="button">Random component</button>
+            </div>
+            <p id="componentStatus" class="forge-builder-status">Loading the component atlas…</p>
+            <p class="forge-builder-roadmap"><strong>Evidence boundary:</strong> Wonder Forge component preview — not a complete discovery.</p>
+          </form>
+          <article class="forge-builder-preview" aria-live="polite">
+            <div class="forge-builder-stage">
+              <img id="componentImage" alt="" hidden>
+              <span class="forge-class synthetic">Component preview</span>
+            </div>
+            <div class="forge-builder-caption">
+              <span id="componentPath" class="forge-family">Wonder Forge component</span>
+              <h3 id="componentName">Opening the component vault…</h3>
+              <p id="componentEvidence">Component previews remain separate from complete discoveries.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <div class="forge-gallery-heading">
-        <div><p class="kicker">COMPLETE HOLOGRAM GALLERY</p><h2>Browse every certified render.</h2></div>
-        <p>Use the filters to compare verified reference forms and research-only synthetic combinations.</p>
+        <div><p class="kicker">CUMULATIVE REPRESENTATIVE GALLERY</p><h2>Browse 186 approved forms.</h2></div>
+        <p>Fauna, flora, minerals, frigates, and multi-tools now share one evidence-labeled museum shelf.</p>
       </div>
       <div class="forge-toolbar surface">
-        <label>Search forms<input id="forgeSearch" type="search" placeholder="T-Rex, shell, mushroom…"></label>
-        <label>Evidence class<select id="forgeClass"><option value="">All holograms</option><option value="verified">Verified natural forms</option><option value="synthetic">Synthetic variants</option></select></label>
-        <label>Family<select id="forgeFamily"><option value="">All families</option></select></label>
+        <label>Search representatives<input id="forgeSearch" type="search" placeholder="T-Rex, cactus, rock, frigate…"></label>
+        <label>Catalog category<select id="forgeCategory"><option value="">All categories</option></select></label>
       </div>
-      <div class="forge-meta"><span id="forgeCount">Loading Wonder Forge…</span><a href="database.html">See representative forms in the Database →</a></div>
+      <div class="forge-meta"><span id="forgeCount">Loading Wonder Forge…</span><a href="database.html">See evidence-safe representatives in the Database →</a></div>
       <div id="forgeGrid" class="forge-grid" aria-live="polite"><div class="forge-loading surface">Opening the Forge catalog…</div></div>
     </section>
   </main>
@@ -102,6 +135,6 @@
   <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Preserve the procedural universe</small></span></a><p>Independent community research project. Not affiliated with Hello Games.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="forge.html">Forge</a><a href="decoder.html">Decoder</a><a href="map.html">Map</a><a href="contribute.html">Contribute</a><a href="account.html">Passport</a><a href="privacy.html">Privacy</a></div></footer>
   <script src="analytics.js?v=1.13.0"></script>
   <script src="script.js?v=1.18.1"></script>
-  <script src="forge.js?v=1.18.1"></script>
+  <script src="forge.js?v=1.20.0"></script>
 </body>
 </html>

@@ -90,11 +90,13 @@
   function showArchetype(data, note = '') {
     const archetype = WCArchetypes.resolve(data);
     const forgeUrl = String(data.forge_image_url || '').trim();
+    const expedition = forgeUrl ? null : window.WCExpedition?.resolve(data);
+    const representativeUrl = forgeUrl || String(expedition?.image_url || '');
     const gallery = $('#recordGallery');
     const frame = gallery.querySelector('.record-primary-image');
     const primary = $('#recordPrimaryImage');
     frame.classList.add('is-archetype');
-    frame.classList.toggle('is-forge', Boolean(forgeUrl));
+    frame.classList.toggle('is-forge', Boolean(representativeUrl));
     const showStaticArchetype = () => {
       frame.classList.remove('is-forge');
       primary.onerror = () => {
@@ -107,7 +109,7 @@
       $('#recordImageCaption').textContent = `${data.archetype_label || archetype.label} • Representative archetype — not this exact specimen${note ? ` • ${note}` : ''}`;
     };
     primary.onerror = () => {
-      if (forgeUrl) {
+      if (representativeUrl) {
         showStaticArchetype();
         return;
       }
@@ -115,10 +117,10 @@
       primary.removeAttribute('src');
       $('#recordImageCaption').textContent = 'The representative archetype could not be loaded. Please report this record ID to an administrator.';
     };
-    primary.src = forgeUrl || archetype.url;
-    primary.alt = forgeUrl ? `${data.fauna_family_label || 'Fauna'} family representative from Wonder Forge` : archetype.alt;
-    $('#recordImageCaption').textContent = forgeUrl
-      ? `${data.forge_form_name || data.fauna_family_label} • Wonder Forge verified natural form • ${data.forge_display_label || 'Representative family image — not this exact specimen.'}${note ? ` • ${note}` : ''}`
+    primary.src = representativeUrl || archetype.url;
+    primary.alt = representativeUrl ? `${data.fauna_family_label || expedition?.category_label || 'Wonder'} representative from Wonder Forge` : archetype.alt;
+    $('#recordImageCaption').textContent = representativeUrl
+      ? `${data.forge_form_name || expedition?.name || data.fauna_family_label || 'Approved representative'} • Wonder Forge ${forgeUrl ? 'verified natural form' : 'Expedition representative'} • ${data.forge_display_label || expedition?.public_label || 'Representative family image — not this exact specimen.'}${note ? ` • ${note}` : ''}`
       : `${data.archetype_label || archetype.label} • Representative archetype — not this exact specimen${note ? ` • ${note}` : ''}`;
     $('#recordThumbnails').innerHTML = '';
     $('#recordThumbnails').hidden = true;
@@ -248,5 +250,7 @@
   $('#copyMessage').addEventListener('click', async () => { if (record?.message_id) { await navigator.clipboard.writeText(record.message_id); toast('Wonder Projector Message ID copied.'); } });
   $('#copyGlyphs').addEventListener('click', async () => { if (record?.portal_glyphs) { await WCGlyphs.copy(record.portal_glyphs); toast('Portal glyph code copied.'); } });
   $('#pegasusTransit').addEventListener('click', downloadPegasusTicket);
-  load();
+  Promise.resolve(window.WCExpedition?.load())
+    .catch(() => null)
+    .finally(load);
 })();
