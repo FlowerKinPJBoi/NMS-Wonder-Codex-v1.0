@@ -18,7 +18,7 @@ from app.services.descriptors import (
     visual_profile_fingerprint,
 )
 from app.services.locations import decode_portal_coordinates, decode_universal_address
-from app.services.forge import VERIFIED_FAMILY_FORMS
+from app.services.forge import CATALOG_ENTRIES
 
 
 def sample_discovery() -> Discovery:
@@ -270,7 +270,7 @@ def test_unambiguous_vp1_mapping_labels_related_discoveries_without_copying_beha
     assert metadata["fauna_family_label"] == "T-Rex"
     assert metadata["fauna_behavior"] == ""
     assert metadata["fauna_identity_source"] == "confirmed_vp1_mapping"
-    assert metadata["forge_image_url"].startswith("/assets/forge/verified/trex/")
+    assert metadata["forge_image_url"].startswith("/assets/forge/catalog/fauna/")
     assert metadata["forge_match_basis"] == "confirmed_vp1_mapping"
     assert metadata["forge_exact_specimen"] is False
     assert metadata["forge_display_label"] == "Representative family image — not this exact specimen."
@@ -284,27 +284,26 @@ def test_forge_family_representative_is_stable_and_never_exact():
     assert first["forge_image_url"] == second["forge_image_url"]
     assert first["forge_form_id"] == second["forge_form_id"]
     assert first["forge_match_basis"] == "exact_pet_match"
-    assert first["forge_selection_basis"] == "deterministic_vp0_family_pool"
-    assert first["forge_authenticity_status"] == "VERIFIED_REFERENCE_FORM"
+    assert first["forge_selection_basis"] == "deterministic_evidence_safe_pool"
+    assert first["forge_authenticity_status"] == "APPROVED_REPRESENTATIVE"
     assert first["forge_exact_specimen"] is False
+    assert first["forge_ringless"] is True
 
 
-def test_synthetic_only_family_is_not_attached_to_a_record():
+def test_approved_cat_family_pool_is_attached_without_exact_claim():
     row = sample_discovery()
     metadata = archetype_metadata(row, sample_pet_match(row, "CAT"))
     assert metadata["fauna_family_id"] == "CAT"
-    assert "forge_image_url" not in metadata
+    assert metadata["forge_image_url"].startswith("/assets/forge/catalog/fauna/")
+    assert metadata["forge_exact_specimen"] is False
 
 
-def test_record_eligible_forge_pool_contains_only_30_verified_forms():
-    assert sum(len(forms) for forms in VERIFIED_FAMILY_FORMS.values()) == 30
-    assert set(VERIFIED_FAMILY_FORMS) == {
-        "BLOB",
-        "FLOATSPIDER",
-        "HERMITCRAB",
-        "TREX",
-        "TRICERATOPS",
-        "WALKINGBUILDING",
+def test_record_eligible_forge_pool_is_quality_gated_and_ringless():
+    assert len(CATALOG_ENTRIES) == 130
+    assert all(entry["ringless"] is True for entry in CATALOG_ENTRIES)
+    assert all(entry["exact_specimen"] is False for entry in CATALOG_ENTRIES)
+    assert {entry["category_id"] for entry in CATALOG_ENTRIES} == {
+        "fauna", "flora", "frigates", "minerals", "multitools",
     }
 
 

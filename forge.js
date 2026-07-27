@@ -3,219 +3,216 @@
 
   const state = {
     entries: [],
-    builderFamily: '',
-    builderSelections: [],
-    builderEntry: null,
+    components: [],
+    componentCategory: '',
+    componentFamily: '',
+    componentSlot: '',
+    componentId: '',
   };
   const $ = (selector) => document.querySelector(selector);
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
-  const SLOT_LABELS = {
-    CAT: ['Body', 'Head', 'Tail', 'Back trait', 'Ears / crest'],
-    STRIDER: ['Body', 'Head', 'Tail', 'Additional trait'],
-    TREX: ['Body', 'Head', 'Tail', 'Additional trait'],
-  };
 
-  function evidenceClass(entry) {
-    return entry.record_eligible ? 'verified' : 'synthetic';
-  }
-
-  function familyEntries(familyId) {
-    return state.entries.filter((entry) => entry.family_id === familyId);
+  function uniqueRows(rows, idKey, labelKey) {
+    return [...new Map(rows.map((row) => [row[idKey], row[labelKey]])).entries()]
+      .sort((a, b) => a[1].localeCompare(b[1]));
   }
 
   function option(value, label, selected = false) {
     return `<option value="${escapeHtml(value)}"${selected ? ' selected' : ''}>${escapeHtml(label)}</option>`;
   }
 
-  function unique(values) {
-    return [...new Set(values.filter(Boolean))];
-  }
-
-  function traitEntries(entries) {
-    return entries.filter((entry) => Array.isArray(entry.traits) && entry.traits.length);
-  }
-
-  function entriesMatchingPrefix(entries, selections, length = selections.length) {
-    return entries.filter((entry) => selections.slice(0, length).every((value, index) => !value || entry.traits[index] === value));
-  }
-
-  function slotLabel(familyId, index) {
-    return SLOT_LABELS[familyId]?.[index] || `Part ${index + 1}`;
+  function componentMatches(component, filters = state) {
+    return (!filters.componentCategory || component.category_id === filters.componentCategory)
+      && (!filters.componentFamily || component.family_id === filters.componentFamily)
+      && (!filters.componentSlot || component.slot_id === filters.componentSlot);
   }
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {entriesMatchingPrefix, slotLabel, traitEntries, unique};
+    module.exports = {componentMatches, uniqueRows};
   }
   if (typeof document === 'undefined') return;
 
-  function setBuilderPreview(entry) {
-    state.builderEntry = entry || null;
+  function setComponentPreview(component) {
     const image = $('#forgeBuilderImage');
-    if (!entry) {
+    if (!component) {
       image.hidden = true;
       image.removeAttribute('src');
       $('#forgeBuilderClass').textContent = 'Unavailable';
       $('#forgeBuilderFamilyName').textContent = 'Wonder Forge';
-      $('#forgeBuilderName').textContent = 'No compatible render found';
+      $('#forgeBuilderName').textContent = 'No compatible component found';
       $('#forgeBuilderTraits').innerHTML = '';
-      $('#forgeBuilderEvidence').textContent = 'Choose another available combination.';
+      $('#forgeBuilderEvidence').textContent = 'Choose another available component.';
       return;
     }
-
-    const verified = entry.record_eligible;
-    image.src = entry.image_url;
-    image.alt = `${entry.family_display} — ${entry.form_name} Forge hologram`;
+    image.src = component.image_url;
+    image.alt = `${component.family_display} ${component.component_name} component preview`;
     image.hidden = false;
-    $('#forgeBuilderClass').textContent = verified ? 'Verified reference' : 'Synthetic variant';
-    $('#forgeBuilderClass').classList.toggle('synthetic', !verified);
-    $('#forgeBuilderFamilyName').textContent = entry.family_display;
-    $('#forgeBuilderName').textContent = entry.form_name;
-    $('#forgeBuilderTraits').innerHTML = (entry.traits || []).map((trait) => `<span>${escapeHtml(trait)}</span>`).join('');
-    $('#forgeBuilderEvidence').textContent = verified
-      ? 'Verified natural reference form · Representative family image — not this exact specimen.'
-      : 'Synthetic NMS-parts variant · Natural in-game spawn not yet confirmed.';
+    $('#forgeBuilderClass').textContent = 'Component preview';
+    $('#forgeBuilderFamilyName').textContent = component.family_display;
+    $('#forgeBuilderName').textContent = component.component_name;
+    $('#forgeBuilderTraits').innerHTML = [
+      component.category_display,
+      component.slot_display,
+    ].map((label) => `<span>${escapeHtml(label)}</span>`).join('');
+    $('#forgeBuilderEvidence').textContent = component.display_label;
   }
 
-  function renderBuilderParts() {
-    const entries = familyEntries(state.builderFamily);
-    const configurable = traitEntries(entries);
-    const container = $('#forgeBuilderParts');
-
-    if (!configurable.length) {
-      const selectedId = state.builderSelections[0] || entries[0]?.id || '';
-      const selected = entries.find((entry) => entry.id === selectedId) || entries[0];
-      state.builderSelections = selected ? [selected.id] : [];
-      container.innerHTML = `<label>Complete base form<select data-builder-form>${entries.map((entry) => option(entry.id, entry.form_name, entry.id === selected?.id)).join('')}</select></label>`;
-      container.querySelector('[data-builder-form]')?.addEventListener('change', (event) => {
-        const next = entries.find((entry) => entry.id === event.target.value);
-        state.builderSelections = next ? [next.id] : [];
-        setBuilderPreview(next);
-      });
-      $('#forgeBuilderStatus').textContent = `${entries.length} complete ${entries.length === 1 ? 'form is' : 'forms are'} available for this base. Modular part maps have not yet been certified for this family.`;
-      setBuilderPreview(selected);
-      return;
+  function syncComponentSelect() {
+    const matches = state.components.filter((component) => componentMatches(component));
+    if (!matches.some((component) => component.id === state.componentId)) {
+      state.componentId = matches[0]?.id || '';
     }
-
-    const slotCount = Math.max(...configurable.map((entry) => entry.traits.length));
-    const controls = [];
-    for (let index = 0; index < slotCount; index += 1) {
-      const candidates = entriesMatchingPrefix(configurable, state.builderSelections, index);
-      const choices = unique(candidates.map((entry) => entry.traits[index]));
-      if (!choices.length) continue;
-      if (!choices.includes(state.builderSelections[index])) state.builderSelections[index] = choices[0];
-      controls.push(`<label>${escapeHtml(slotLabel(state.builderFamily, index))}<select data-builder-slot="${index}">${choices.map((choice) => option(choice, choice, choice === state.builderSelections[index])).join('')}</select></label>`);
-    }
-    state.builderSelections = state.builderSelections.slice(0, slotCount);
-    container.innerHTML = controls.join('');
-    container.querySelectorAll('[data-builder-slot]').forEach((select) => select.addEventListener('change', (event) => {
-      const index = Number(event.target.dataset.builderSlot);
-      state.builderSelections[index] = event.target.value;
-      state.builderSelections.splice(index + 1);
-      renderBuilderParts();
-    }));
-
-    const matches = entriesMatchingPrefix(configurable, state.builderSelections);
-    const selected = matches[0] || configurable[0];
-    $('#forgeBuilderStatus').textContent = `${configurable.length} compatible rendered recipes available for this base. Dropdowns only offer parts that lead to a current preview.`;
-    setBuilderPreview(selected);
+    $('#forgeBuilderComponent').innerHTML = matches.map((component) => (
+      option(component.id, component.component_name, component.id === state.componentId)
+    )).join('');
+    $('#forgeBuilderComponent').value = state.componentId;
+    $('#forgeBuilderStatus').textContent = matches.length
+      ? `${matches.length} compatible ${matches.length === 1 ? 'component' : 'components'} available in this slot.`
+      : 'No component preview is available for this selection.';
+    setComponentPreview(matches.find((component) => component.id === state.componentId));
   }
 
-  function setBuilderFamily(familyId, preferredEntry = null) {
-    state.builderFamily = familyId;
-    const entries = familyEntries(familyId);
-    const configurable = traitEntries(entries);
-    const selected = preferredEntry && preferredEntry.family_id === familyId
-      ? preferredEntry
-      : configurable[0] || entries[0];
-    state.builderSelections = selected?.traits?.length ? [...selected.traits] : selected ? [selected.id] : [];
-    $('#forgeBuilderFamily').value = familyId;
-    renderBuilderParts();
+  function syncSlotSelect() {
+    const rows = state.components.filter((component) => (
+      component.category_id === state.componentCategory
+      && component.family_id === state.componentFamily
+    ));
+    const slots = uniqueRows(rows, 'slot_id', 'slot_display');
+    if (!slots.some(([id]) => id === state.componentSlot)) state.componentSlot = slots[0]?.[0] || '';
+    $('#forgeBuilderSlot').innerHTML = slots.map(([id, label]) => option(id, label, id === state.componentSlot)).join('');
+    $('#forgeBuilderSlot').value = state.componentSlot;
+    syncComponentSelect();
   }
 
-  function randomizeBuilder() {
-    const family = familyEntries(state.builderFamily);
-    const entries = traitEntries(family).length ? traitEntries(family) : family;
-    if (!entries.length) return;
-    const entry = entries[Math.floor(Math.random() * entries.length)];
-    setBuilderFamily(state.builderFamily, entry);
-    window.WonderAnalytics?.track('forge_builder_randomized', {
-      family: entry.family_id,
-      evidence_class: evidenceClass(entry),
+  function syncFamilySelect() {
+    const rows = state.components.filter((component) => component.category_id === state.componentCategory);
+    const families = uniqueRows(rows, 'family_id', 'family_display');
+    if (!families.some(([id]) => id === state.componentFamily)) state.componentFamily = families[0]?.[0] || '';
+    $('#forgeBuilderFamily').innerHTML = families.map(([id, label]) => option(id, label, id === state.componentFamily)).join('');
+    $('#forgeBuilderFamily').value = state.componentFamily;
+    syncSlotSelect();
+  }
+
+  function setComponentCategory(categoryId) {
+    state.componentCategory = categoryId;
+    state.componentFamily = '';
+    state.componentSlot = '';
+    state.componentId = '';
+    $('#forgeBuilderCategory').value = categoryId;
+    syncFamilySelect();
+  }
+
+  function randomizeComponent() {
+    const matches = state.components.filter((component) => componentMatches(component));
+    if (!matches.length) return;
+    const component = matches[Math.floor(Math.random() * matches.length)];
+    state.componentId = component.id;
+    $('#forgeBuilderComponent').value = component.id;
+    setComponentPreview(component);
+    window.WonderAnalytics?.track('forge_component_randomized', {
+      category: component.category_id,
+      family: component.family_id,
+      slot: component.slot_id,
     });
   }
 
-  function initializeBuilder(families) {
-    const priority = ['TREX', 'TRICERATOPS', 'CAT', 'STRIDER'];
-    $('#forgeBuilderFamily').innerHTML = families.map(([id, label]) => {
-      const count = familyEntries(id).length;
-      return option(id, `${label} · ${count} ${count === 1 ? 'form' : 'forms'}`);
-    }).join('');
-    const initialFamily = priority.find((id) => families.some(([familyId]) => familyId === id)) || families[0]?.[0] || '';
-    if (initialFamily) setBuilderFamily(initialFamily);
-    $('#forgeBuilderFamily').addEventListener('change', (event) => setBuilderFamily(event.target.value));
-    $('#forgeRandomize').addEventListener('click', randomizeBuilder);
+  function initializeComponentBuilder() {
+    const categories = uniqueRows(state.components, 'category_id', 'category_display');
+    $('#forgeBuilderCategory').innerHTML = categories.map(([id, label]) => option(id, label)).join('');
+    $('#forgeBuilderCategory').addEventListener('change', (event) => setComponentCategory(event.target.value));
+    $('#forgeBuilderFamily').addEventListener('change', (event) => {
+      state.componentFamily = event.target.value;
+      state.componentSlot = '';
+      state.componentId = '';
+      syncSlotSelect();
+    });
+    $('#forgeBuilderSlot').addEventListener('change', (event) => {
+      state.componentSlot = event.target.value;
+      state.componentId = '';
+      syncComponentSelect();
+    });
+    $('#forgeBuilderComponent').addEventListener('change', (event) => {
+      state.componentId = event.target.value;
+      setComponentPreview(state.components.find((component) => component.id === state.componentId));
+    });
+    $('#forgeRandomize').addEventListener('click', randomizeComponent);
+    setComponentCategory(categories.find(([id]) => id === 'starship-parts')?.[0] || categories[0]?.[0] || '');
   }
 
-  function render() {
+  function renderGallery() {
     const query = $('#forgeSearch').value.trim().toLowerCase();
-    const selectedClass = $('#forgeClass').value;
+    const selectedCategory = $('#forgeCategory').value;
     const selectedFamily = $('#forgeFamily').value;
     const entries = state.entries.filter((entry) => {
-      const text = `${entry.family_display} ${entry.form_name} ${(entry.traits || []).join(' ')}`.toLowerCase();
+      const text = `${entry.category_display} ${entry.family_display} ${entry.form_name}`.toLowerCase();
       return (!query || text.includes(query))
-        && (!selectedClass || evidenceClass(entry) === selectedClass)
+        && (!selectedCategory || entry.category_id === selectedCategory)
         && (!selectedFamily || entry.family_id === selectedFamily);
     });
 
-    $('#forgeCount').textContent = `${entries.length.toLocaleString()} of ${state.entries.length.toLocaleString()} hologram forms`;
-    $('#forgeGrid').innerHTML = entries.length ? entries.map((entry) => {
-      const verified = entry.record_eligible;
-      const traits = (entry.traits || []).slice(0, 5);
-      const policy = verified
-        ? 'Representative family image — not this exact specimen.'
-        : 'Synthetic NMS-parts variant — natural in-game spawn not yet confirmed.';
-      return `<article class="forge-card ${verified ? 'verified' : 'synthetic'}">
+    $('#forgeCount').textContent = `${entries.length.toLocaleString()} of ${state.entries.length.toLocaleString()} representative holograms`;
+    $('#forgeGrid').innerHTML = entries.length ? entries.map((entry) => (
+      `<article class="forge-card">
         <div class="forge-image">
-          <img src="${escapeHtml(entry.image_url)}" alt="${escapeHtml(`${entry.family_display} — ${entry.form_name} hologram`)}" loading="lazy">
-          <span class="forge-class">${verified ? 'Verified reference' : 'Synthetic variant'}</span>
+          <img src="${escapeHtml(entry.image_url)}" alt="${escapeHtml(`${entry.family_display} — ${entry.form_name} representative`)}" loading="lazy">
+          <span class="forge-class">Representative</span>
         </div>
         <div class="forge-copy">
-          <span class="forge-family">${escapeHtml(entry.family_display)}</span>
+          <span class="forge-family">${escapeHtml(entry.category_display)} · ${escapeHtml(entry.family_display)}</span>
           <h2>${escapeHtml(entry.form_name)}</h2>
-          <p>${verified ? 'Natural wild form verified by the returned Forge catalog evidence.' : 'Authentic No Man’s Sky component combination held in the research-only lane.'}</p>
-          ${traits.length ? `<div class="forge-traits">${traits.map((trait) => `<span>${escapeHtml(trait)}</span>`).join('')}</div>` : ''}
-          <p class="forge-disclaimer">${escapeHtml(policy)}</p>
+          <p>Evidence-labeled Wonder Forge art for this catalog family.</p>
+          <p class="forge-disclaimer">${escapeHtml(entry.display_label)}</p>
         </div>
-      </article>`;
-    }).join('') : '<div class="forge-empty surface">No Forge forms match these filters.</div>';
+      </article>`
+    )).join('') : '<div class="forge-empty surface">No representative holograms match these filters.</div>';
+  }
+
+  function syncGalleryFamilies() {
+    const category = $('#forgeCategory').value;
+    const rows = state.entries.filter((entry) => !category || entry.category_id === category);
+    const families = uniqueRows(rows, 'family_id', 'family_display');
+    const current = $('#forgeFamily').value;
+    $('#forgeFamily').innerHTML = '<option value="">All families</option>' + families.map(([id, label]) => option(id, label, id === current)).join('');
+    if (!families.some(([id]) => id === current)) $('#forgeFamily').value = '';
+    renderGallery();
   }
 
   async function load() {
     try {
-      const response = await fetch('assets/forge/forge-catalog.json?v=1.18.1');
-      const catalog = await response.json();
-      if (!response.ok) throw new Error(`Forge catalog request failed (${response.status})`);
+      const [catalogResponse, componentResponse] = await Promise.all([
+        fetch('assets/forge/forge-catalog.json?v=1.20.0'),
+        fetch('assets/forge/forge-components.json?v=1.20.0'),
+      ]);
+      const [catalog, components] = await Promise.all([
+        catalogResponse.json(),
+        componentResponse.json(),
+      ]);
+      if (!catalogResponse.ok || !componentResponse.ok) throw new Error('Wonder Forge catalog request failed.');
       state.entries = Array.isArray(catalog.entries) ? catalog.entries : [];
-      const families = [...new Map(state.entries.map((entry) => [entry.family_id, entry.family_display])).entries()]
-        .sort((a, b) => a[1].localeCompare(b[1]));
-      $('#forgeFamily').innerHTML = '<option value="">All families</option>' + families.map(([id, label]) => `<option value="${escapeHtml(id)}">${escapeHtml(label)}</option>`).join('');
-      $('#forgeTotal').textContent = Number(catalog.entry_count || state.entries.length).toLocaleString();
-      $('#forgeVerified').textContent = Number(catalog.verified_reference_count || 0).toLocaleString();
-      $('#forgeSynthetic').textContent = Number(catalog.synthetic_variant_count || 0).toLocaleString();
-      $('#forgeFamilies').textContent = families.length.toLocaleString();
-      initializeBuilder(families);
-      render();
-      window.WonderAnalytics?.track('forge_gallery_view', {entry_count: state.entries.length});
+      state.components = Array.isArray(components.entries) ? components.entries : [];
+
+      const categories = uniqueRows(state.entries, 'category_id', 'category_display');
+      $('#forgeCategory').innerHTML = '<option value="">All collections</option>' + categories.map(([id, label]) => option(id, label)).join('');
+      $('#forgeTotal').textContent = state.entries.length.toLocaleString();
+      $('#forgeComponents').textContent = state.components.length.toLocaleString();
+      $('#forgeCollections').textContent = categories.length.toLocaleString();
+      $('#forgeFamilies').textContent = uniqueRows(state.entries, 'family_id', 'family_display').length.toLocaleString();
+      initializeComponentBuilder();
+      syncGalleryFamilies();
+      window.WonderAnalytics?.track('forge_gallery_view', {
+        entry_count: state.entries.length,
+        component_count: state.components.length,
+      });
     } catch (error) {
       $('#forgeGrid').innerHTML = `<div class="forge-empty surface">${escapeHtml(error.message)}</div>`;
       $('#forgeCount').textContent = 'Wonder Forge is temporarily unavailable.';
-      $('#forgeBuilderStatus').textContent = 'The Forge recipe catalog is temporarily unavailable.';
-      setBuilderPreview(null);
+      $('#forgeBuilderStatus').textContent = 'The Forge component catalog is temporarily unavailable.';
+      setComponentPreview(null);
     }
   }
 
-  $('#forgeSearch').addEventListener('input', render);
-  $('#forgeClass').addEventListener('change', render);
-  $('#forgeFamily').addEventListener('change', render);
+  $('#forgeSearch').addEventListener('input', renderGallery);
+  $('#forgeCategory').addEventListener('change', syncGalleryFamilies);
+  $('#forgeFamily').addEventListener('change', renderGallery);
   load();
 })();

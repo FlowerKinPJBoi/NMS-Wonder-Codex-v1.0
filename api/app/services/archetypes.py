@@ -260,5 +260,10 @@ def archetype_metadata(
         ),
     }
     metadata.update(descriptor_profile(family_id, pet_match if identity_source == "exact_pet_match" else None))
-    metadata.update(forge_representative_metadata(discovery, family_id, identity_source))
+    metadata.update(forge_representative_metadata(
+        discovery,
+        family_id,
+        identity_source,
+        discovery_type,
+    ))
     return metadata

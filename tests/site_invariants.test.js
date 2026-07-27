@@ -7,25 +7,42 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
 const catalog = JSON.parse(read('assets/forge/forge-catalog.json'));
+const components = JSON.parse(read('assets/forge/forge-components.json'));
 
-assert.equal(catalog.entry_count, 95);
-assert.equal(catalog.verified_reference_count, 30);
-assert.equal(catalog.synthetic_variant_count, 65);
+assert.equal(catalog.entry_count, 152);
 assert.equal(catalog.entries.length, catalog.entry_count);
+assert.deepEqual(catalog.category_counts, {
+  fauna: 112,
+  flora: 8,
+  frigates: 5,
+  minerals: 13,
+  multitools: 6,
+  planets: 8,
+});
 assert.equal(
   catalog.record_image_policy.representative_label,
   'Representative family image — not this exact specimen.',
 );
-assert.equal(catalog.record_image_policy.synthetic_variants_attach_to_records, false);
+assert.equal(catalog.record_image_policy.exact_screenshots_override_representatives, true);
+assert.equal(catalog.record_image_policy.raw_evidence_unchanged, true);
+assert.equal(catalog.record_image_policy.ringless_presentation, true);
 
 for (const entry of catalog.entries) {
   assert.equal(entry.exact_specimen, false);
+  assert.equal(entry.ringless, true);
   assert.ok(fs.existsSync(path.join(root, entry.image_url)), `Missing Forge image: ${entry.image_url}`);
-  if (entry.record_eligible) {
-    assert.equal(entry.authenticity_status, 'VERIFIED_REFERENCE_FORM');
-  } else {
-    assert.equal(entry.authenticity_status, 'NMS_PARTS_AUTHENTIC_SYNTHETIC_VARIANT');
-  }
+  assert.doesNotMatch(JSON.stringify(entry), /scene-mbin|wc-part/i);
+}
+
+assert.equal(components.entry_count, 329);
+assert.equal(components.entries.length, components.entry_count);
+assert.equal(components.policy.component_previews_are_not_complete_discoveries, true);
+assert.equal(components.policy.ringless_presentation, true);
+for (const entry of components.entries) {
+  assert.equal(entry.complete_discovery, false);
+  assert.equal(entry.ringless, true);
+  assert.ok(fs.existsSync(path.join(root, entry.image_url)), `Missing component image: ${entry.image_url}`);
+  assert.doesNotMatch(JSON.stringify(entry), /scene-mbin|wc-part|targeted-/i);
 }
 
 const index = read('index.html');
@@ -42,12 +59,12 @@ assert.match(index, /account\.html[^>]*class="nav-cta"[^>]*>Passport/i);
 assert.doesNotMatch(index.match(/<nav id="primaryNav"[\s\S]*?<\/nav>/i)[0], /Submit screenshot|decoder\.html/i);
 assert.match(database, /Representative family image — not this exact specimen\./);
 assert.match(record, /Representative family image — not this exact specimen\./);
-assert.match(forge, /Synthetic variants.*never assigned to a discovery record/s);
+assert.match(forge, /Construction component library/);
 assert.match(forge, /id="decoder"[\s\S]*Wonder Projector Decoder[\s\S]*href="decoder\.html"/i);
 assert.match(forge, /id="forgeBuilderFamily"/);
 assert.match(forge, /Blue Diplo · long tail · spiky horns · XL/);
-assert.match(forgeScript, /entriesMatchingPrefix/);
-assert.match(forgeScript, /Dropdowns only offer parts that lead to a current preview/);
+assert.match(forgeScript, /componentMatches/);
+assert.match(forgeScript, /forge-components\.json/);
 assert.match(forgeStyles, /forge-stage-starfield\.svg/);
 assert.match(catalogStyles, /forge-stage-starfield\.svg/);
 assert.ok(fs.existsSync(path.join(root, 'assets/brand/forge-stage-starfield.svg')));
@@ -55,4 +72,4 @@ assert.match(contribute, /NEW DISCOVERIES &amp; CATALOG EVIDENCE/);
 assert.match(contribute, /Preserve a new find/);
 assert.match(contribute, /contribute\.html\?mode=image[^>]*>Submit a screenshot/);
 
-console.log('Wonder Codex v1.19.0 site invariants passed.');
+console.log('Wonder Codex v1.20.0 site invariants passed.');
