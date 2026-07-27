@@ -1,5 +1,20 @@
 # Wonder Codex changelog
 
+## v1.20.1 — Database representative bridge
+
+- Restored ringless Expedition representatives throughout Database cards,
+  discovery records, and asset records when the API has not yet supplied
+  `forge_image_url`.
+- Kept exact approved screenshots above every representative fallback.
+- Enforced the same client-side eligibility boundary as the API: confirmed
+  fauna families and approved category pools only; planets, Starships,
+  Freighters, and uncertain fauna remain unassigned.
+- Added a dedicated Discovery Projector to the Forge with collection, family,
+  and form selectors for fauna, flora, minerals, planets, frigates, and
+  multi-tools.
+- Kept Starship, Freighter, and Multi-tool construction parts in a separate
+  component workshop so parts are never presented as complete discoveries.
+
 ## v1.20.0 — Ringless Expedition gallery and Component Vault
 
 - Integrated the expanded Wonder Forge Expedition return as 152 ringless

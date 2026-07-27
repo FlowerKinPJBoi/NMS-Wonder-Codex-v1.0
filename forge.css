@@ -22,6 +22,7 @@
 .forge-policy{margin-bottom:16px;padding:13px 16px;border:1px solid rgba(255,215,131,.22);border-radius:12px;color:#d6deef;background:rgba(255,215,131,.045);font-size:.78rem}
 .forge-policy strong{color:var(--gold)}
 .forge-builder{margin:26px 0 48px;padding:25px;overflow:hidden;background:radial-gradient(circle at 88% 14%,rgba(109,231,255,.08),transparent 26rem),linear-gradient(145deg,rgba(18,26,51,.94),rgba(8,13,28,.94))}
+.discovery-projector{background:radial-gradient(circle at 88% 14%,rgba(114,239,189,.1),transparent 27rem),linear-gradient(145deg,rgba(15,29,48,.96),rgba(7,13,28,.95))}
 .component-vault{margin-top:0;background:radial-gradient(circle at 12% 18%,rgba(157,140,255,.1),transparent 25rem),linear-gradient(145deg,rgba(20,23,49,.95),rgba(7,13,29,.95))}
 .forge-builder-intro{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:36px;align-items:end;margin-bottom:22px}
 .forge-builder-intro h2,.forge-gallery-heading h2{margin:.5rem 0 0;font:700 clamp(1.75rem,3.2vw,2.75rem)/1.05 "Space Grotesk",sans-serif;letter-spacing:-.035em}
@@ -48,7 +49,7 @@
 .forge-builder-caption h3{margin:7px 0 9px;font:700 1.35rem/1.1 "Space Grotesk",sans-serif}
 .forge-builder-caption>p{margin:13px 0 0;padding-top:11px;border-top:1px solid var(--line);color:#c7d2e7;font-size:.7rem}
 .forge-gallery-heading{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);gap:28px;align-items:end;margin:0 2px 20px}
-.forge-toolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.38fr);gap:12px;padding:18px}
+.forge-toolbar{display:grid;grid-template-columns:minmax(0,1fr) repeat(2,minmax(190px,.32fr));gap:12px;padding:18px}
 .forge-toolbar label{display:grid;gap:6px;color:var(--muted);font-size:.72rem;font-weight:800}
 .forge-toolbar input,.forge-toolbar select{min-height:46px;padding:.72rem .82rem;border:1px solid var(--line);border-radius:11px;color:var(--text);background:rgba(5,9,20,.75);outline:none}
 .forge-toolbar input:focus,.forge-toolbar select:focus{border-color:rgba(109,231,255,.52);box-shadow:0 0 0 3px rgba(109,231,255,.08)}

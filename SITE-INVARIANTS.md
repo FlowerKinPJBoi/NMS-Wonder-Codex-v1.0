@@ -43,3 +43,8 @@ These rules are release blockers, not optional copy suggestions.
 14. **The museum mission stays visible.** Public mission language continues to
     describe Wonder Codex as “an interactive, user-contributed museum of the
     galaxies.”
+15. **Representative delivery survives API rollout gaps.** Database, discovery,
+    and asset pages load the public ringless Forge manifest as a client-side
+    fallback when the API does not return representative metadata. The fallback
+    must enforce the same record-eligibility boundaries and exact-image
+    precedence as the API.

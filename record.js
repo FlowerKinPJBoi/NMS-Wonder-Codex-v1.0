@@ -155,6 +155,8 @@
   function render(data) {
     data = WCLocation.enrich(data);
     record = data;
+    const expedition = data.forge_image_url ? null : window.WCExpedition?.resolve(data);
+    const hasForgeRepresentative = Boolean(data.forge_image_url || expedition);
     document.title = `${data.wc_id} — ${data.display_name} | Wonder Codex`;
     $('#recordHero').innerHTML = `${escapeHtml(data.wc_id)} <span>published record.</span>`;
     $('#recordIntro').textContent = 'Projector data, attribution, verification status, and travel information for this Wonder Codex discovery.';
@@ -164,7 +166,7 @@
     $('#recordAttribution').textContent = `Contributed by ${data.contributor || data.owner || 'Unknown explorer'}${data.save_name ? ` • ${data.save_name}` : ''}`;
     renderWonderIdentity(data);
     $('#recordBadges').innerHTML = badge('Location', data.travel_status) + badge('Projector', data.projector_status) + badge('Image', data.image_status)
-      + (data.forge_image_url && data.image_status !== 'available' ? '<span class="status-chip forge">Forge family representative</span>' : '');
+      + (hasForgeRepresentative && data.image_status !== 'available' ? '<span class="status-chip forge">Forge family representative</span>' : '');
     renderImages(data.images || [], data);
     $('#messageId').textContent = data.message_id || 'No Wonder Projector Message ID available';
     $('#copyMessage').hidden = !data.message_id;
@@ -172,8 +174,8 @@
       item('Visual family', data.wonder_family_label, false),
       item('Individual identity', data.wonder_individual_name || data.wonder_individual_reference || 'Encoded', false),
       item('Identity evidence', data.wonder_projector_fingerprint_label, false),
-      ...(data.forge_image_url ? [
-        item('Forge image basis', `${data.forge_match_label} · representative only`, false),
+      ...(hasForgeRepresentative ? [
+        item('Forge image basis', `${data.forge_match_label || expedition?.selection_basis || 'Stable catalog identity'} · representative only`, false),
       ] : []),
       ...(data.descriptor_token_count ? [
         item('Appearance signals', `${data.descriptor_token_count} observed`, false),

@@ -3,56 +3,75 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const {categoryFor, stableIndex} = require('../expedition.js');
+const {
+  categoryFor,
+  eligiblePool,
+  resolveFromCatalog,
+  stableIndex,
+} = require('../expedition.js');
 
 const root = path.resolve(__dirname, '..');
 const registry = JSON.parse(
-  fs.readFileSync(path.join(root, 'assets/expedition/expedition-catalog.json'), 'utf8'),
+  fs.readFileSync(path.join(root, 'assets/forge/forge-catalog.json'), 'utf8'),
 );
 
-assert.equal(registry.catalog_entries.length, 186);
-assert.equal(registry.component_entries.length, 166);
-assert.deepEqual(registry.counts.catalog_by_category, {
-  fauna: 133,
-  flora: 16,
+assert.equal(registry.entries.length, 152);
+assert.deepEqual(registry.category_counts, {
+  fauna: 112,
+  flora: 8,
   frigates: 5,
-  minerals: 16,
-  multitools: 16,
+  minerals: 13,
+  multitools: 6,
+  planets: 8,
 });
-assert.deepEqual(registry.counts.components_by_category, {
-  'freighter-parts': 55,
-  'multitool-parts': 6,
-  'starship-parts': 105,
-});
+assert.equal(registry.entries.filter((entry) => entry.record_eligible).length, 130);
+assert.equal(
+  registry.entries.filter((entry) => entry.category_id === 'planets' && entry.record_eligible).length,
+  0,
+);
 
-for (const entry of [...registry.catalog_entries, ...registry.component_entries]) {
+for (const entry of registry.entries) {
   assert.equal(entry.exact_specimen, false);
+  assert.equal(entry.ringless, true);
   assert.ok(
     fs.existsSync(path.join(root, entry.image_url)),
-    `Missing Expedition image: ${entry.image_url}`,
-  );
-}
-for (const entry of registry.component_entries) {
-  assert.equal(entry.complete_discovery, false);
-  assert.equal(
-    entry.public_label,
-    'Wonder Forge component preview — not a complete discovery.',
-  );
-}
-for (const entry of registry.catalog_entries) {
-  assert.equal(entry.record_image_status_unchanged, true);
-  assert.equal(
-    entry.public_label,
-    'Representative family image — not this exact specimen.',
+    `Missing ringless Forge image: ${entry.image_url}`,
   );
 }
 
+assert.equal(categoryFor({discovery_type: 'Animal'}), 'fauna');
 assert.equal(categoryFor({discovery_type: 'Flora'}), 'flora');
 assert.equal(categoryFor({discovery_type: 'Mineral'}), 'minerals');
 assert.equal(categoryFor({asset_type: 'Frigate'}), 'frigates');
 assert.equal(categoryFor({asset_type: 'Multitool'}), 'multitools');
 assert.equal(categoryFor({asset_type: 'Starship'}), '');
 assert.equal(categoryFor({asset_type: 'Freighter'}), '');
+assert.equal(categoryFor({asset_type: 'Planet'}), '');
 assert.equal(stableIndex('same identity', 16), stableIndex('same identity', 16));
 
-console.log('Wonder Forge Expedition v0.1.16 gallery passed.');
+const blobRecord = {
+  discovery_type: 'Animal',
+  fauna_family_id: 'BLOB',
+  fauna_identity_source: 'confirmed_vp1_mapping',
+  wc_id: 'WC-A-TEST',
+};
+const blobPool = eligiblePool(blobRecord, registry);
+assert.ok(blobPool.length > 0);
+assert.ok(blobPool.every((entry) => entry.record_eligible && entry.family_id === 'BLOB'));
+const blobRepresentative = resolveFromCatalog(blobRecord, registry);
+assert.equal(blobRepresentative.category, 'fauna');
+assert.equal(blobRepresentative.category_label, 'Fauna');
+assert.equal(blobRepresentative.public_label, 'Representative family image — not this exact specimen.');
+
+assert.equal(
+  resolveFromCatalog({
+    ...blobRecord,
+    fauna_identity_source: 'unconfirmed_visual_guess',
+  }, registry),
+  null,
+);
+assert.equal(resolveFromCatalog({asset_type: 'Planet', wc_id: 'WC-P-TEST'}, registry), null);
+assert.equal(resolveFromCatalog({asset_type: 'Starship', wc_id: 'WC-S-TEST'}, registry), null);
+assert.equal(resolveFromCatalog({asset_type: 'Multitool', wc_id: 'WC-MT-TEST'}, registry).category, 'multitools');
+
+console.log('Wonder Forge ringless Database bridge passed.');
