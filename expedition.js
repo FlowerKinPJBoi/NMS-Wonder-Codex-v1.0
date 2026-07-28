@@ -1,13 +1,14 @@
 (() => {
   'use strict';
 
-  const CATALOG_URL = 'assets/forge/forge-catalog.json?v=1.20.1';
+  const CATALOG_URL = 'assets/forge/forge-catalog.json?v=1.21.0';
   const state = {catalog: null, loading: null};
 
   function categoryFor(record = {}) {
     if (record.discovery_type === 'Animal') return 'fauna';
     if (record.discovery_type === 'Flora') return 'flora';
     if (record.discovery_type === 'Mineral') return 'minerals';
+    if (record.discovery_type === 'Planet') return 'planets';
     if (record.asset_type === 'Frigate') return 'frigates';
     if (record.asset_type === 'Multitool') return 'multitools';
     return '';
@@ -56,6 +57,15 @@
         && !['exact_pet_match', 'confirmed_vp1_mapping'].includes(identitySource)
       ) return [];
       entries = entries.filter((entry) => entry.family_id === family);
+    }
+    if (category === 'planets') {
+      const family = String(record.planet_family_id || record.forge_family_id || '').toUpperCase();
+      const size = String(record.planet_size_class || '').toLowerCase();
+      if (!family || !size) return [];
+      entries = entries.filter((entry) => (
+        entry.family_id === family
+        && String(entry.size_class || '').toLowerCase() === size
+      ));
     }
     return entries;
   }

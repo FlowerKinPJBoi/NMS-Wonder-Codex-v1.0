@@ -18,6 +18,7 @@ from app.services.descriptors import (
     visual_profile_fingerprint,
 )
 from app.services.locations import decode_portal_coordinates, decode_universal_address
+from app.services import forge as forge_service
 from app.services.forge import CATALOG_ENTRIES
 
 
@@ -299,12 +300,56 @@ def test_approved_cat_family_pool_is_attached_without_exact_claim():
 
 
 def test_record_eligible_forge_pool_is_quality_gated_and_ringless():
-    assert len(CATALOG_ENTRIES) == 130
+    assert len(CATALOG_ENTRIES) == 159
     assert all(entry["ringless"] is True for entry in CATALOG_ENTRIES)
     assert all(entry["exact_specimen"] is False for entry in CATALOG_ENTRIES)
     assert {entry["category_id"] for entry in CATALOG_ENTRIES} == {
-        "fauna", "flora", "frigates", "minerals", "multitools",
+        "fauna", "flora", "frigates", "minerals", "multitools", "planets",
     }
+
+
+def test_planet_vp1_selects_family_hologram_without_claiming_exact_specimen():
+    row = sample_discovery()
+    row.discovery_type = "Planet"
+    row.vp1 = "0x4"
+    metadata = archetype_metadata(row)
+    assert metadata["planet_biome_family"] == "Frozen"
+    assert metadata["planet_size_class"] == "Standard"
+    assert metadata["planet_size_status"] == "representative_size_unknown_in_discovery_data"
+    assert metadata["forge_image_url"] == "/assets/planet-holograms/04-frozen-standard.svg"
+    assert metadata["forge_exact_specimen"] is False
+    assert metadata["forge_display_label"] == "Representative family hologram — not this exact planet."
+
+
+def test_gas_giant_vp1_selects_dedicated_hologram():
+    row = sample_discovery()
+    row.discovery_type = "Planet"
+    row.vp1 = "0xF"
+    metadata = archetype_metadata(row)
+    assert metadata["planet_biome_family"] == "Gas Giant"
+    assert metadata["planet_size_class"] == "Gas Giant"
+    assert metadata["forge_image_url"].endswith("/15-gasgiant-gas-giant.svg")
+
+
+def test_giant_hologram_requires_exact_privacy_safe_join(monkeypatch):
+    row = sample_discovery()
+    row.discovery_type = "Planet"
+    row.vp1 = "0x0"
+    identity_hash = forge_service._planet_identity_hash(row)
+    monkeypatch.setattr(forge_service, "EXACT_GIANT_PLANET_HASHES", {identity_hash})
+    metadata = archetype_metadata(row)
+    assert metadata["planet_size_class"] == "Giant"
+    assert metadata["planet_size_status"] == "exact_joined_giant_base"
+    assert metadata["forge_image_url"].endswith("/00-lush-giant.svg")
+
+
+def test_planet_identity_hash_normalizes_prefixed_and_unprefixed_hex():
+    prefixed = sample_discovery()
+    unprefixed = sample_discovery()
+    unprefixed.ua = "1"
+    unprefixed.vp0 = "2"
+    unprefixed.vp1 = "3"
+    assert forge_service._planet_identity_hash(prefixed) == forge_service._planet_identity_hash(unprefixed)
 
 
 def test_conflicting_vp1_family_evidence_is_not_inferred():

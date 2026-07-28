@@ -242,7 +242,7 @@
 
   function clusterColor(cluster) {
     const type = cluster.points[0]?.record_type;
-    return ({Animal:'#6de7ff',Flora:'#72efbd',Mineral:'#ffd783',Starship:'#9d8cff',Freighter:'#ff9fbd',Frigate:'#85b7ff',Multitool:'#ffcb7b'})[type] || '#b6f5ff';
+    return ({Animal:'#6de7ff',Flora:'#72efbd',Mineral:'#ffd783',Planet:'#8bc7ff',Starship:'#9d8cff',Freighter:'#ff9fbd',Frigate:'#85b7ff',Multitool:'#ffcb7b'})[type] || '#b6f5ff';
   }
 
   function drawClusters(clusters) {

@@ -63,6 +63,22 @@
       element.innerHTML = '';
       return;
     }
+    if (data.discovery_type === 'Planet') {
+      const exactSize = data.planet_size_status === 'exact_joined_giant_base'
+        || data.planet_size_status === 'confirmed_gas_giant_family';
+      const evidence = data.planet_size_status === 'exact_joined_giant_base'
+        ? 'Giant size confirmed by an exact player-base-to-Planet join'
+        : data.planet_size_status === 'confirmed_gas_giant_family'
+          ? 'Gas Giant family confirmed by VP1'
+          : 'VP1 confirms the planet family; standard size remains representative because DiscoveryData has no size field';
+      element.classList.toggle('exact', exactSize);
+      element.classList.toggle('inferred', !exactSize);
+      element.innerHTML = `<p class="kicker">PLANET IDENTITY</p>
+        <div class="fauna-identity-heading"><strong>${escapeHtml(data.wonder_family_label)}</strong><span class="fauna-behavior">${escapeHtml(data.planet_size_class || 'Standard')}</span></div>
+        <p>${escapeHtml(evidence)} · ${escapeHtml(data.planet_name_label || 'Name evidence under review')}</p>`;
+      element.hidden = false;
+      return;
+    }
     const exact = data.fauna_identity_source === 'exact_pet_match';
     const evidenceCount = Number(data.fauna_family_evidence_count || 0);
     const family = data.wonder_family_label || `${data.fauna_family_label} family`;
@@ -118,9 +134,9 @@
       $('#recordImageCaption').textContent = 'The representative archetype could not be loaded. Please report this record ID to an administrator.';
     };
     primary.src = representativeUrl || archetype.url;
-    primary.alt = representativeUrl ? `${data.fauna_family_label || expedition?.category_label || 'Wonder'} representative from Wonder Forge` : archetype.alt;
+    primary.alt = representativeUrl ? `${data.planet_biome_family || data.fauna_family_label || expedition?.category_label || 'Wonder'} representative from Wonder Forge` : archetype.alt;
     $('#recordImageCaption').textContent = representativeUrl
-      ? `${data.forge_form_name || expedition?.name || data.fauna_family_label || 'Approved representative'} • Wonder Forge ${forgeUrl ? 'verified natural form' : 'Expedition representative'} • ${data.forge_display_label || expedition?.public_label || 'Representative family image — not this exact specimen.'}${note ? ` • ${note}` : ''}`
+      ? `${data.forge_form_name || expedition?.name || data.planet_biome_family || data.fauna_family_label || 'Approved representative'} • Wonder Forge ${forgeUrl ? 'verified natural form' : 'Expedition representative'} • ${data.forge_display_label || expedition?.public_label || 'Representative family image — not this exact specimen.'}${note ? ` • ${note}` : ''}`
       : `${data.archetype_label || archetype.label} • Representative archetype — not this exact specimen${note ? ` • ${note}` : ''}`;
     $('#recordThumbnails').innerHTML = '';
     $('#recordThumbnails').hidden = true;
@@ -170,6 +186,12 @@
     renderImages(data.images || [], data);
     $('#messageId').textContent = data.message_id || 'No Wonder Projector Message ID available';
     $('#copyMessage').hidden = !data.message_id;
+    const planetIdentityData = data.discovery_type === 'Planet' ? [
+      item('Planet family', data.planet_biome_family || data.wonder_family_label, false),
+      item('Hologram size class', data.planet_size_class || 'Standard', false),
+      item('Size evidence', String(data.planet_size_status || 'under_review').replaceAll('_', ' '), false),
+      item('Name evidence', data.planet_name_label || 'Under review', false),
+    ] : [];
     const identityData = data.wonder_family_label ? [
       item('Visual family', data.wonder_family_label, false),
       item('Individual identity', data.wonder_individual_name || data.wonder_individual_reference || 'Encoded', false),
@@ -183,6 +205,7 @@
       ] : []),
     ] : [];
     $('#dataList').innerHTML = [
+      ...planetIdentityData,
       ...identityData,
       item('Owner', data.owner, false), item('Platform', data.platform, false),
       item('Approved verifications', data.verification_counts?.approved ?? 0, false), item('Pending verifications', data.verification_counts?.pending ?? 0, false),

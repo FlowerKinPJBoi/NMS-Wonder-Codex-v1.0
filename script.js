@@ -45,6 +45,7 @@ async function loadStats() {
     setText('statAnimals', formatNumber(data.types?.Animal));
     setText('statFlora', formatNumber(data.types?.Flora));
     setText('statMinerals', formatNumber(data.types?.Mineral));
+    setText('statPlanets', formatNumber(data.types?.Planet));
     setText('statsNote', data.latest_approved_at ? `${formatNumber(data.verified_locations)} verified locations • last publication ${new Date(data.latest_approved_at).toLocaleString()}.` : 'Approved records and verified locations will appear here.');
     if (status) { status.textContent = 'Online'; status.className = 'console-status online'; }
   } catch (error) {

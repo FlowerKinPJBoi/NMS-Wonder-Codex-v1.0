@@ -15,7 +15,7 @@ from ..services.storage import prepare_upload, put_pending
 
 
 router = APIRouter(prefix="/new-discoveries", tags=["new-discoveries"])
-ALLOWED_TYPES = {"Animal", "Flora", "Mineral"}
+ALLOWED_TYPES = {"Animal", "Flora", "Mineral", "Planet"}
 ALLOWED_PLATFORMS = {"", "xbox", "playstation", "switch", "steam"}
 
 

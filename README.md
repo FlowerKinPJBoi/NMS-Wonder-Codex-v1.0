@@ -1,4 +1,4 @@
-# Wonder Codex v1.20.1
+# Wonder Codex v1.21.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -58,6 +58,22 @@ v1.20.1 adds a client-side representative bridge so those approved holograms
 continue to appear on Database cards and records while API deployments catch
 up. The Forge now presents complete discovery representatives in a dedicated
 collection/family/form projector, separate from the component workshop.
+
+v1.21.0 adds the evidence-backed Planet Hologram Bridge and Star System Census.
+Twenty-nine approved planet-family holograms now cover sixteen VP1 families,
+including four privacy-safe exact Giant joins and one Gas Giant assignment.
+All other planet sizes remain visibly representative because Planet
+DiscoveryData does not retain an explicit size field. Planet records are now a
+first-class Database and Map filter, while exact community screenshots still
+override every representative.
+
+The release also publishes a privacy-reduced 50-system Doshawchuc calibration
+set. Its balanced sample shows Yellow F/G, Red K/M, Green E, Blue B/O, and
+Purple X/Y separation, with every row paired to retained SolarSystem evidence.
+The public fixture deliberately omits raw UAs, VP controls, portal glyphs, and
+screenshot filenames. The latest Expedition did not add separately approved
+fauna, flora, or mineral forms, so their existing quality-gated imagery remains
+unchanged.
 
 ## Repository boundary
 

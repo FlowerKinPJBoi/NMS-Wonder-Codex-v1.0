@@ -11,5 +11,5 @@ def test_new_discovery_model_tracks_private_intake_and_public_result():
 
 
 def test_new_discovery_categories_and_console_platforms_are_bounded():
-    assert ALLOWED_TYPES == {"Animal", "Flora", "Mineral"}
+    assert ALLOWED_TYPES == {"Animal", "Flora", "Mineral", "Planet"}
     assert {"xbox", "playstation", "switch"}.issubset(ALLOWED_PLATFORMS)

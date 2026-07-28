@@ -60,6 +60,7 @@ CATEGORY_ARCHETYPES = {
     "Animal": ("fauna.unknown", "Unclassified fauna"),
     "Flora": ("flora.unknown", "Unclassified flora"),
     "Mineral": ("mineral.unknown", "Unclassified mineral"),
+    "Planet": ("planet.unknown", "Unclassified planet"),
 }
 
 OTHER_ARCHETYPE = ("other.unknown", "Unclassified Wonder")
@@ -72,7 +73,7 @@ def _signal_reference(discovery_type: str, role: str, value: Any) -> str:
     normalized = str(value or "").strip().lower()
     if not normalized:
         return ""
-    prefix = {"Animal": "A", "Flora": "F", "Mineral": "M"}.get(discovery_type, "W")
+    prefix = {"Animal": "A", "Flora": "F", "Mineral": "M", "Planet": "P"}.get(discovery_type, "W")
     digest = hashlib.blake2s(
         f"wonder-codex:{role}:{normalized}".encode("utf-8"),
         digest_size=3,
@@ -203,7 +204,7 @@ def archetype_metadata(
         archetype_source = "confirmed_pet_match" if identity_source == "exact_pet_match" else "confirmed_vp1_mapping"
     else:
         archetype_key, archetype_label = CATEGORY_ARCHETYPES.get(discovery_type, OTHER_ARCHETYPE)
-        if family_reference and discovery_type in {"Animal", "Flora", "Mineral"}:
+        if family_reference and discovery_type in {"Animal", "Flora", "Mineral", "Planet"}:
             family_kind = "Fauna" if discovery_type == "Animal" else discovery_type
             archetype_label = f"{family_kind} family {family_reference}"
             archetype_source = "vp1_family_signal"

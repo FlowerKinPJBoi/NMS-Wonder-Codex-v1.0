@@ -3,12 +3,42 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 
 REPRESENTATIVE_IMAGE_LABEL = "Representative family image — not this exact specimen."
-FORGE_CATALOG_VERSION = "wonder-forge-v0.1.18"
+PLANET_REPRESENTATIVE_LABEL = "Representative family hologram — not this exact planet."
+FORGE_CATALOG_VERSION = "wonder-forge-v0.1.21"
 CATALOG_PATH = Path(__file__).resolve().parents[3] / "assets" / "forge" / "forge-catalog.json"
+
+PLANET_FAMILIES = {
+    0: ("Lush", "00-lush"),
+    1: ("Toxic", "01-toxic"),
+    2: ("Scorched", "02-scorched"),
+    3: ("Radioactive", "03-radioactive"),
+    4: ("Frozen", "04-frozen"),
+    5: ("Barren", "05-barren"),
+    6: ("Dead/Airless", "06-dead-airless"),
+    7: ("Weird", "07-weird"),
+    8: ("Red", "08-red"),
+    9: ("Green", "09-green"),
+    10: ("Blue", "10-blue"),
+    11: ("Test", "11-test"),
+    12: ("Swamp", "12-swamp"),
+    13: ("Lava", "13-lava"),
+    14: ("Waterworld", "14-waterworld"),
+    15: ("Gas Giant", "15-gasgiant"),
+}
+
+# These privacy-safe digests are the four exact Planet DiscoveryData records
+# joined to explicitly named Giant player bases by Planet Linker v0.1.7.
+EXACT_GIANT_PLANET_HASHES = {
+    "78c8fbf22717420328a8cbff",
+    "1049d4d737b6c5c52635f596",
+    "b82c24f769cef182512e9896",
+    "9df2813f6ae37434645769fa",
+}
 
 
 def _catalog_entries() -> tuple[dict[str, Any], ...]:
@@ -85,6 +115,108 @@ def _metadata(
     }
 
 
+def _integer_value(value: Any, *, prefer_hex: bool = False) -> int:
+    text = str(value or "").strip()
+    if not text:
+        raise ValueError("empty numeric value")
+    if text.lower().startswith("0x"):
+        return int(text, 16)
+    return int(text, 16 if prefer_hex or re.search(r"[a-f]", text, re.IGNORECASE) else 10)
+
+
+def _canonical_hex(value: Any, *, prefer_hex: bool = False) -> str:
+    try:
+        return hex(_integer_value(value, prefer_hex=prefer_hex))
+    except ValueError:
+        return str(value or "").strip().lower()
+
+
+def _planet_identity_hash(discovery: Any) -> str:
+    identity = "|".join((
+        _canonical_hex(getattr(discovery, "ua", ""), prefer_hex=True),
+        _canonical_hex(getattr(discovery, "vp0", ""), prefer_hex=True),
+        _canonical_hex(getattr(discovery, "vp1", "")),
+    ))
+    if not all(identity.split("|")):
+        return ""
+    return hashlib.blake2s(identity.encode("utf-8"), digest_size=12).hexdigest()
+
+
+def _planet_metadata(discovery: Any) -> dict[str, Any]:
+    try:
+        vp1_low = _integer_value(getattr(discovery, "vp1", "")) & 0xFFFF
+    except ValueError:
+        return {}
+    family = PLANET_FAMILIES.get(vp1_low)
+    if not family:
+        return {}
+
+    family_name, file_stem = family
+    exact_giant = _planet_identity_hash(discovery) in EXACT_GIANT_PLANET_HASHES
+    if vp1_low == 15:
+        size_class = "Gas Giant"
+        file_name = f"{file_stem}-gas-giant.svg"
+        size_status = "confirmed_gas_giant_family"
+        match_basis = "confirmed_vp1_gas_giant_family"
+        radius = 24
+    elif exact_giant:
+        size_class = "Giant"
+        file_name = f"{file_stem}-giant.svg"
+        size_status = "exact_joined_giant_base"
+        match_basis = "exact_giant_base_planet_join"
+        radius = 24
+    else:
+        size_class = "Standard"
+        file_name = f"{file_stem}-standard.svg"
+        size_status = "representative_size_unknown_in_discovery_data"
+        match_basis = "confirmed_vp1_planet_family"
+        radius = 10
+
+    family_id = re.sub(r"[^A-Z0-9]+", "_", family_name.upper()).strip("_")
+    captured_name = str(getattr(discovery, "display_name", "") or "").strip()
+    return {
+        "forge_catalog_version": FORGE_CATALOG_VERSION,
+        "forge_image_url": f"/assets/planet-holograms/{file_name}",
+        "forge_form_id": f"planet-hologram-{vp1_low:02d}-{size_class.lower().replace(' ', '-')}",
+        "forge_form_name": f"{family_name} · {size_class}",
+        "forge_family_id": family_id,
+        "forge_family_display": family_name,
+        "forge_category_id": "planets",
+        "forge_image_status": "representative_family",
+        "forge_match_basis": match_basis,
+        "forge_match_label": (
+            "Exact Giant base-to-Planet join"
+            if exact_giant
+            else "Confirmed VP1 planet family"
+        ),
+        "forge_catalog_class": "approved_representative_hologram",
+        "forge_authenticity_status": "APPROVED_REPRESENTATIVE",
+        "forge_exact_specimen": False,
+        "forge_display_label": PLANET_REPRESENTATIVE_LABEL,
+        "forge_selection_basis": size_status,
+        "forge_ringless": True,
+        "planet_family_id": family_id,
+        "planet_biome_family": family_name,
+        "planet_size_class": size_class,
+        "planet_size_status": size_status,
+        "planet_hologram_radius": radius,
+        "planet_name_status": "captured" if captured_name else "generated_name_capture_needed",
+        "planet_name_label": (
+            f"Captured name: {captured_name}"
+            if captured_name
+            else "Generated in-game name still needs visual capture"
+        ),
+        "wonder_family_label": f"{family_name} planet family",
+        "wonder_family_source": "confirmed_vp1_planet_family",
+        "wonder_individual_name_status": "captured" if captured_name else "encoded_not_decoded",
+        "wonder_individual_signal_label": (
+            f"Captured in-game name: {captured_name}"
+            if captured_name
+            else "Generated in-game name still needs visual capture"
+        ),
+    }
+
+
 def forge_representative_metadata(
     discovery: Any,
     family_id: str,
@@ -92,6 +224,9 @@ def forge_representative_metadata(
     discovery_type: str,
 ) -> dict[str, Any]:
     """Return evidence-safe representative art for a discovery."""
+    if discovery_type == "Planet":
+        return _planet_metadata(discovery)
+
     if discovery_type == "Animal":
         if identity_source not in {"exact_pet_match", "confirmed_vp1_mapping"}:
             return {}

@@ -1,0 +1,32 @@
+.stellar-hero{padding-bottom:48px;background:radial-gradient(circle at 78% 35%,rgba(157,140,255,.1),transparent 28rem)}
+.stellar-hero>p:last-of-type{max-width:850px}
+.stellar-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;max-width:900px;margin-top:30px}
+.stellar-stats div{padding:15px 16px;border:1px solid rgba(109,231,255,.18);border-radius:14px;background:rgba(8,14,29,.72)}
+.stellar-stats strong,.stellar-stats span{display:block}
+.stellar-stats strong{color:#eaf9ff;font:700 1.65rem "Space Grotesk",sans-serif}
+.stellar-stats span{margin-top:3px;color:var(--muted);font-size:.68rem;text-transform:uppercase;letter-spacing:.07em}
+.stellar-shell{display:grid;gap:48px}
+.stellar-boundary{display:grid;grid-template-columns:1fr 1fr;gap:1px;overflow:hidden;padding:0}
+.stellar-boundary>div{display:grid;grid-template-columns:auto 1fr;gap:13px;padding:21px;background:rgba(7,12,26,.88)}
+.stellar-boundary p{margin:0;color:var(--muted);font-size:.78rem;line-height:1.55}.stellar-boundary strong{color:var(--text)}
+.stellar-proof,.stellar-lock{display:grid;place-items:center;width:35px;height:35px;border:1px solid rgba(114,239,189,.3);border-radius:50%;color:var(--green);background:rgba(114,239,189,.06);font-weight:900}
+.stellar-lock{color:#d8d0ff;border-color:rgba(157,140,255,.35);background:rgba(157,140,255,.06)}
+.stellar-heading{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(260px,.9fr);gap:30px;align-items:end;margin-bottom:18px}
+.stellar-heading h2,.stellar-findings h2{margin:.45rem 0 0;font:700 clamp(1.7rem,3.2vw,2.65rem)/1.05 "Space Grotesk",sans-serif;letter-spacing:-.035em}
+.stellar-heading>p{margin:0;color:var(--muted);font-size:.84rem}
+.stellar-family-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.stellar-family{position:relative;overflow:hidden;padding:20px;border:1px solid var(--line);border-radius:17px;background:linear-gradient(150deg,rgba(18,26,50,.94),rgba(7,12,26,.95))}
+.stellar-family::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:var(--star-color)}
+.stellar-family-mark{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;color:#06101b;background:var(--star-color);box-shadow:0 0 26px color-mix(in srgb,var(--star-color) 55%,transparent);font-size:1.15rem}
+.stellar-family h3{margin:15px 0 5px;font:700 1.15rem "Space Grotesk",sans-serif}.stellar-family h3 span{color:var(--star-color)}
+.stellar-family>p{margin:0;color:var(--muted);font-size:.72rem}.stellar-family dl{display:grid;grid-template-columns:1fr auto;gap:6px;margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:.68rem}.stellar-family dt{color:var(--muted)}.stellar-family dd{margin:0;color:var(--text);font-weight:800}
+.stellar-findings{display:grid;grid-template-columns:minmax(230px,.7fr) minmax(0,1.3fr);gap:32px;padding:26px}
+.stellar-findings ol{display:grid;gap:10px;margin:0;padding:0;counter-reset:findings;list-style:none}.stellar-findings li{position:relative;padding:13px 14px 13px 44px;border:1px solid var(--line);border-radius:12px;color:#ccd7e8;background:rgba(255,255,255,.025);font-size:.76rem;line-height:1.5;counter-increment:findings}.stellar-findings li::before{content:counter(findings,decimal-leading-zero);position:absolute;left:14px;color:var(--cyan);font-weight:900}
+.records-heading{margin-bottom:16px}.records-heading>p{text-align:right}
+.stellar-toolbar{display:grid;grid-template-columns:minmax(240px,.65fr) minmax(0,1.35fr);gap:18px;align-items:end;margin-bottom:14px;padding:16px}
+.stellar-toolbar label{display:grid;gap:6px;color:var(--muted);font-size:.72rem;font-weight:800}.stellar-toolbar input{min-height:44px;padding:.7rem .8rem;border:1px solid var(--line);border-radius:11px;color:var(--text);background:rgba(5,9,20,.78);outline:none}.stellar-toolbar input:focus{border-color:rgba(109,231,255,.52);box-shadow:0 0 0 3px rgba(109,231,255,.08)}
+.stellar-filters{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px}.stellar-filter{min-height:38px;padding:.5rem .72rem;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:rgba(255,255,255,.025);cursor:pointer;font:800 .66rem Inter,sans-serif}.stellar-filter:hover,.stellar-filter.active{color:#06101b;border-color:transparent;background:var(--filter-color,var(--cyan))}
+.stellar-table-wrap{overflow:auto}.stellar-table{width:100%;border-collapse:collapse;min-width:900px}.stellar-table th,.stellar-table td{padding:13px 14px;border-bottom:1px solid var(--line);text-align:left}.stellar-table th{position:sticky;top:0;color:#9ca9bf;background:#0c1325;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase}.stellar-table td{color:#cbd5e6;font-size:.72rem}.stellar-table tbody tr:hover{background:rgba(109,231,255,.035)}.stellar-system{color:var(--text);font-weight:800}.stellar-id{color:var(--cyan);font:800 .68rem "Space Grotesk",sans-serif}.star-chip,.environment-chip,.evidence-chip{display:inline-flex;align-items:center;gap:6px;padding:.3rem .48rem;border:1px solid color-mix(in srgb,var(--chip-color) 42%,transparent);border-radius:999px;color:var(--chip-color);background:color-mix(in srgb,var(--chip-color) 8%,transparent);font-size:.61rem;font-weight:900}.star-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--chip-color);box-shadow:0 0 10px var(--chip-color)}.environment-chip{--chip-color:#9ceeff}.environment-chip.dissonant{--chip-color:#cfb8ff}.evidence-chip{--chip-color:#72efbd}
+@media(max-width:980px){.stellar-family-grid{grid-template-columns:repeat(3,1fr)}.stellar-findings{grid-template-columns:1fr}}
+@media(max-width:760px){.stellar-stats,.stellar-boundary,.stellar-heading,.stellar-toolbar{grid-template-columns:1fr}.stellar-family-grid{grid-template-columns:repeat(2,1fr)}.stellar-filters{justify-content:flex-start}.records-heading>p{text-align:left}}
+@media(max-width:500px){.stellar-stats,.stellar-family-grid{grid-template-columns:1fr}}

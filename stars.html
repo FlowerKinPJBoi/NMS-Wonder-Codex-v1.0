@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Explore the Wonder Codex evidence-backed 50-system Galactic Map color and spectral-family census.">
+  <meta name="theme-color" content="#080b16">
+  <title>Star System Census | Wonder Codex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=1.21.0">
+  <link rel="stylesheet" href="stars.css?v=1.21.0">
+</head>
+<body>
+  <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Star System Census</small></span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primaryNav">Menu</button>
+    <nav id="primaryNav"><a href="index.html">Home</a><a href="database.html">Database</a><a href="forge.html">Forge</a><a href="map.html">Map</a><a href="stars.html" aria-current="page">Research</a><a href="contributors.html">Contributors</a><a href="contribute.html">Contribute</a><a href="account.html" class="nav-cta">Passport</a></nav>
+  </header>
+
+  <main>
+    <section class="page-hero stellar-hero">
+      <p class="eyebrow">WONDER CODEX · VERIFIED STELLAR CALIBRATION</p>
+      <h1>Fifty systems. Five colors. <span>One clean signal.</span></h1>
+      <p>A balanced Galactic Map census from Doshawchuc links visible star color to observed spectral-letter families, with every row paired to a SolarSystem discovery.</p>
+      <div class="stellar-stats" aria-label="Star System Census summary">
+        <div><strong id="starVerified">—</strong><span>Verified systems</span></div>
+        <div><strong id="starScreens">—</strong><span>Map screenshots</span></div>
+        <div><strong id="starPlanets">—</strong><span>Planet pages</span></div>
+        <div><strong id="starMedian">—</strong><span>Median match delta</span></div>
+      </div>
+    </section>
+
+    <section class="page-shell stellar-shell">
+      <div class="stellar-boundary surface">
+        <div><span class="stellar-proof">✓</span><p><strong>50 / 50 verified.</strong> Each displayed system name and spectral label was read from a Galactic Map screenshot and paired to retained DiscoveryData.</p></div>
+        <div><span class="stellar-lock">◇</span><p><strong>Public evidence boundary.</strong> Raw UAs, VP values, portal glyphs, and screenshot filenames remain outside this public view.</p></div>
+      </div>
+
+      <section aria-labelledby="stellarFamiliesTitle">
+        <div class="stellar-heading">
+          <div><p class="kicker">OBSERVED COLOR FAMILIES</p><h2 id="stellarFamiliesTitle">Perfect separation in this sample.</h2></div>
+          <p>This is an evidence-backed calibration result, not yet a universal generator claim.</p>
+        </div>
+        <div id="stellarFamilies" class="stellar-family-grid" aria-live="polite"></div>
+      </section>
+
+      <section class="stellar-findings surface" aria-labelledby="stellarFindingsTitle">
+        <div><p class="kicker">WHAT THE DATA SUPPORTS</p><h2 id="stellarFindingsTitle">Findings and limits</h2></div>
+        <ol id="stellarFindings"></ol>
+      </section>
+
+      <section aria-labelledby="stellarRecordsTitle">
+        <div class="stellar-heading records-heading">
+          <div><p class="kicker">VERIFIED CENSUS RECORDS</p><h2 id="stellarRecordsTitle">Explore all fifty systems.</h2></div>
+          <p id="stellarCount">Loading records…</p>
+        </div>
+        <div class="stellar-toolbar surface">
+          <label>Search systems<input id="stellarSearch" type="search" placeholder="System name or spectral label…"></label>
+          <div id="stellarFilters" class="stellar-filters" aria-label="Filter by map color"></div>
+        </div>
+        <div class="stellar-table-wrap surface">
+          <table class="stellar-table">
+            <thead><tr><th>Research ID</th><th>System</th><th>Map color</th><th>Spectral label</th><th>Environment</th><th>Planet pages</th><th>Evidence</th></tr></thead>
+            <tbody id="stellarRows"><tr><td colspan="7">Loading verified systems…</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark">✦</span><span class="brand-copy"><strong>Wonder Codex</strong><small>Evidence first</small></span></a><p>Independent community research project. Not affiliated with Hello Games.</p></div><div class="footer-links"><a href="database.html">Database</a><a href="forge.html">Forge</a><a href="map.html">Map</a><a href="stars.html">Research</a><a href="privacy.html">Privacy</a></div></footer>
+  <script src="analytics.js?v=1.15.0"></script>
+  <script src="script.js?v=1.21.0"></script>
+  <script src="stars.js?v=1.21.0"></script>
+</body>
+</html>

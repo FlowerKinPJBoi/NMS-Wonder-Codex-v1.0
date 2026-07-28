@@ -93,7 +93,8 @@ def public_stats(session: Session = Depends(get_session)):
             "Animal": type_counts.get("Animal", 0),
             "Flora": type_counts.get("Flora", 0),
             "Mineral": type_counts.get("Mineral", 0),
-            "Other": sum(count for name, count in type_counts.items() if name not in {"Animal", "Flora", "Mineral"}),
+            "Planet": type_counts.get("Planet", 0),
+            "Other": sum(count for name, count in type_counts.items() if name not in {"Animal", "Flora", "Mineral", "Planet"}),
         },
         "latest_approved_at": latest_approved_at.isoformat() if latest_approved_at else None,
     }
@@ -157,7 +158,7 @@ def list_discoveries(
 
     cleaned_query = " ".join(q.strip().split())
     if cleaned_query:
-        wc_match = re.fullmatch(r"WC-[AFMO]-(\d{1,9})", cleaned_query.upper())
+        wc_match = re.fullmatch(r"WC-[AFMOP]-(\d{1,9})", cleaned_query.upper())
         if wc_match:
             conditions.append(Discovery.id == int(wc_match.group(1)))
         elif cleaned_query.isdigit():
