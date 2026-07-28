@@ -1,5 +1,23 @@
 # Wonder Codex changelog
 
+## v1.21.0 — Planet holograms and stellar census
+
+- Added 29 approved planet-family holograms across 16 VP1 families.
+- Mapped all 621 retained Planet discoveries to evidence-safe imagery: four
+  exact Giant joins, one Gas Giant, and 616 family-confirmed standard
+  representatives whose size remains explicitly non-exact.
+- Added Planet as a first-class Database, Map, contribution, API-stat, and WC
+  record type, with exact screenshots retaining precedence over holograms.
+- Replaced the eight earlier gallery-only biome globes with the complete Planet
+  Linker set in the Forge, including searchable Standard and Giant variants.
+- Published an interactive, privacy-reduced Star System Census with 50 verified
+  Doshawchuc systems, ten observations per Galactic Map color, and the observed
+  F/G, K/M, E, B/O, and X/Y spectral-family separation.
+- Preserved the current quality-gated fauna, flora, and mineral set because the
+  latest Expedition return contained no newly approved replacements.
+- Kept generated planet names in capture-needed status; no name is inferred
+  from UA or VP controls.
+
 ## v1.20.1 — Database representative bridge
 
 - Restored ringless Expedition representatives throughout Database cards,

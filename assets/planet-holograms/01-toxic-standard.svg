@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Toxic Standard representative hologram">
+<defs>
+  <radialGradient id="planet-toxic-standard" cx="35%" cy="28%" r="78%">
+    <stop offset="0" stop-color="#4F6567"/>
+    <stop offset=".48" stop-color="#A2A72A"/>
+    <stop offset="1" stop-color="#33772A"/>
+  </radialGradient>
+  <radialGradient id="shade-toxic-standard" cx="34%" cy="28%" r="75%">
+    <stop offset=".30" stop-color="#FFFFFF" stop-opacity=".16"/>
+    <stop offset=".72" stop-color="#001225" stop-opacity=".08"/>
+    <stop offset="1" stop-color="#000712" stop-opacity=".82"/>
+  </radialGradient>
+  <clipPath id="clip-toxic-standard"><circle cx="128" cy="126" r="82"/></clipPath>
+  <filter id="noise-toxic-standard" x="-20%" y="-20%" width="140%" height="140%">
+    <feTurbulence type="fractalNoise" baseFrequency=".021 .034" numOctaves="3" seed="4" result="noise"/>
+    <feColorMatrix in="noise" values=".33 .33 .33 0 0  .33 .33 .33 0 0  .33 .33 .33 0 0  0 0 0 .30 0" result="softNoise"/>
+    <feBlend in="SourceGraphic" in2="softNoise" mode="soft-light"/>
+  </filter>
+  <filter id="glow-toxic-standard" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="5" result="blur"/>
+    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</defs>
+<g opacity=".22" stroke="#245274" fill="none">
+  <circle cx="128" cy="126" r="119"/><circle cx="128" cy="126" r="111" stroke-dasharray="2 9"/>
+</g>
+
+<circle cx="128" cy="126" r="89" fill="none" stroke="#69E7FF" stroke-width="2" opacity=".62" filter="url(#glow-toxic-standard)"/>
+<g clip-path="url(#clip-toxic-standard)" filter="url(#noise-toxic-standard)">
+  <rect x="8" y="6" width="240" height="240" fill="url(#planet-toxic-standard)"/>
+  <path d="M30 87c20-29 48-32 66-13 17 18 28 15 45-3 20-22 48-14 56 12 7 22-7 35-26 43-24 10-26 29-12 48-25 31-63 36-88 13-18-17-12-37 2-53 16-19 6-38-31-47z" fill="#4F6567" opacity=".34"/><path d="M104 135c18-20 37-18 50-4 12 14 29 12 49-2 18 24 8 48-15 60-30 15-75 1-84-54z" fill="#A2A72A" opacity=".27"/>
+  <circle cx="128" cy="126" r="82" fill="url(#shade-toxic-standard)"/>
+  <path d="M24 78h208M18 91h220M14 104h228M11 117h234M11 130h234M14 143h228M18 156h220M24 169h208" stroke="#B8F6FF" stroke-width="1" opacity=".07"/>
+</g>
+<circle cx="128" cy="126" r="82" fill="none" stroke="#B9F4FF" stroke-width="2" opacity=".72"/>
+<path d="M24 126h18M214 126h18M128 22v14M128 216v14" stroke="#69E7FF" stroke-width="2" opacity=".82"/>
+
+</svg>

@@ -1,0 +1,476 @@
+{
+  "schemaVersion": 1,
+  "release": "wonder-codex-planet-hologram-bridge-v1",
+  "source": {
+    "tool": "Wonder Forge Planet Linker Expedition",
+    "toolVersion": "0.1.7",
+    "generatedUtc": "2026-07-28T13:32:32.206121Z"
+  },
+  "summary": {
+    "planetDiscoveryRecords": 621,
+    "planetAssetsAssigned": 621,
+    "planetExactGiantAssignments": 4,
+    "planetGasGiantAssignments": 1,
+    "planetStandardRepresentativeAssignments": 616,
+    "planetGeneratedNamesNeedingCapture": 561,
+    "playerBaseReferences": 338,
+    "playerBaseAssetsAssigned": 247,
+    "playerBaseUnresolved": 91,
+    "assetCatalogEntries": 29
+  },
+  "claimPolicy": {
+    "vp1LowConfirmsBiomeFamily": true,
+    "standardAssetIsRepresentativeWhenSizeUnknown": true,
+    "giantRequiresExactJoinedBaseForPlanetRecord": true,
+    "baseOnlyGiantEvidenceRemainsBaseReference": true,
+    "gasGiantSystemMentionDoesNotIdentifyBasePlanet": true,
+    "representativeAssetIsExactSpecimenImage": false,
+    "generatedAndCustomNamesRemainSeparate": true
+  },
+  "familyMap": [
+    {
+      "familyCode": "PF-00",
+      "biomeFamily": "Lush"
+    },
+    {
+      "familyCode": "PF-01",
+      "biomeFamily": "Toxic"
+    },
+    {
+      "familyCode": "PF-02",
+      "biomeFamily": "Scorched"
+    },
+    {
+      "familyCode": "PF-03",
+      "biomeFamily": "Radioactive"
+    },
+    {
+      "familyCode": "PF-04",
+      "biomeFamily": "Frozen"
+    },
+    {
+      "familyCode": "PF-05",
+      "biomeFamily": "Barren"
+    },
+    {
+      "familyCode": "PF-06",
+      "biomeFamily": "Dead/Airless"
+    },
+    {
+      "familyCode": "PF-07",
+      "biomeFamily": "Weird"
+    },
+    {
+      "familyCode": "PF-08",
+      "biomeFamily": "Red"
+    },
+    {
+      "familyCode": "PF-09",
+      "biomeFamily": "Green"
+    },
+    {
+      "familyCode": "PF-10",
+      "biomeFamily": "Blue"
+    },
+    {
+      "familyCode": "PF-11",
+      "biomeFamily": "Test"
+    },
+    {
+      "familyCode": "PF-12",
+      "biomeFamily": "Swamp"
+    },
+    {
+      "familyCode": "PF-13",
+      "biomeFamily": "Lava"
+    },
+    {
+      "familyCode": "PF-14",
+      "biomeFamily": "Waterworld"
+    },
+    {
+      "familyCode": "PF-15",
+      "biomeFamily": "GasGiant"
+    }
+  ],
+  "assets": [
+    {
+      "key": "Lush:Standard",
+      "name": "Lush · Standard",
+      "biomeFamily": "Lush",
+      "familyCode": "PF-00",
+      "sizeClass": "Standard",
+      "radius": 10,
+      "pattern": "organic",
+      "imageUrl": "assets/planet-holograms/00-lush-standard.svg",
+      "sha256": "b1c38e3bc286d4905522303acb60c93dec4be97102b3900084f29f78d273ea68",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative planet-family hologram; size is not claimed from DiscoveryData — not this exact planet."
+    },
+    {
+      "key": "Lush:Giant",
+      "name": "Lush · Giant",
+      "biomeFamily": "Lush",
+      "familyCode": "PF-00",
+      "sizeClass": "Giant",
+      "radius": 24,
+      "pattern": "organic",
+      "imageUrl": "assets/planet-holograms/00-lush-giant.svg",
+      "sha256": "bea9723cedafb58104f4d067bbe9867aa99903efe78e8258e4d95f6d184f99b9",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative Giant-family hologram. Giant assignment requires exact base-to-Planet evidence — not this exact planet."
+    },
+    {
+      "key": "Toxic:Standard",
+      "name": "Toxic · Standard",
+      "biomeFamily": "Toxic",
+      "familyCode": "PF-01",
+      "sizeClass": "Standard",
+      "radius": 10,
+      "pattern": "spots",
+      "imageUrl": "assets/planet-holograms/01-toxic-standard.svg",
+      "sha256": "dcc2cf4279076db458a0199e35a9966d009a87bbe4f550136277b41810155219",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative planet-family hologram; size is not claimed from DiscoveryData — not this exact planet."
+    },
+    {
+      "key": "Toxic:Giant",
+      "name": "Toxic · Giant",
+      "biomeFamily": "Toxic",
+      "familyCode": "PF-01",
+      "sizeClass": "Giant",
+      "radius": 24,
+      "pattern": "spots",
+      "imageUrl": "assets/planet-holograms/01-toxic-giant.svg",
+      "sha256": "e917397fbebd207a27103f7be1442a41052298befbf03701317923e0bac906e7",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative Giant-family hologram. Giant assignment requires exact base-to-Planet evidence — not this exact planet."
+    },
+    {
+      "key": "Scorched:Standard",
+      "name": "Scorched · Standard",
+      "biomeFamily": "Scorched",
+      "familyCode": "PF-02",
+      "sizeClass": "Standard",
+      "radius": 10,
+      "pattern": "cracks",
+      "imageUrl": "assets/planet-holograms/02-scorched-standard.svg",
+      "sha256": "3a4a02084baa22ac8dd73179df3408a8bbea671e631fb7d5a1eadbe02067bde3",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative planet-family hologram; size is not claimed from DiscoveryData — not this exact planet."
+    },
+    {
+      "key": "Scorched:Giant",
+      "name": "Scorched · Giant",
+      "biomeFamily": "Scorched",
+      "familyCode": "PF-02",
+      "sizeClass": "Giant",
+      "radius": 24,
+      "pattern": "cracks",
+      "imageUrl": "assets/planet-holograms/02-scorched-giant.svg",
+      "sha256": "9f6d5d3f2457bd0a4163a4b5fc623349a58786dbbc131799ccba4ba5ecd2cb36",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative Giant-family hologram. Giant assignment requires exact base-to-Planet evidence — not this exact planet."
+    },
+    {
+      "key": "Radioactive:Standard",
+      "name": "Radioactive · Standard",
+      "biomeFamily": "Radioactive",
+      "familyCode": "PF-03",
+      "sizeClass": "Standard",
+      "radius": 10,
+      "pattern": "hazard",
+      "imageUrl": "assets/planet-holograms/03-radioactive-standard.svg",
+      "sha256": "dd75baaa33629535d0fcc7578017d55f642fc7a0e2bac368c86cb2570adab62d",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative planet-family hologram; size is not claimed from DiscoveryData — not this exact planet."
+    },
+    {
+      "key": "Radioactive:Giant",
+      "name": "Radioactive · Giant",
+      "biomeFamily": "Radioactive",
+      "familyCode": "PF-03",
+      "sizeClass": "Giant",
+      "radius": 24,
+      "pattern": "hazard",
+      "imageUrl": "assets/planet-holograms/03-radioactive-giant.svg",
+      "sha256": "1a5f49c7d60d11a19f3e6c15bafe56cd79acb39ea9963a7cd7e5855c4779d944",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative Giant-family hologram. Giant assignment requires exact base-to-Planet evidence — not this exact planet."
+    },
+    {
+      "key": "Frozen:Standard",
+      "name": "Frozen · Standard",
+      "biomeFamily": "Frozen",
+      "familyCode": "PF-04",
+      "sizeClass": "Standard",
+      "radius": 10,
+      "pattern": "ice",
+      "imageUrl": "assets/planet-holograms/04-frozen-standard.svg",
+      "sha256": "f924d93c3fa2d259598b86bba0cffe135210baa54701c16876d9c33783188762",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative planet-family hologram; size is not claimed from DiscoveryData — not this exact planet."
+    },
+    {
+      "key": "Frozen:Giant",
+      "name": "Frozen · Giant",
+      "biomeFamily": "Frozen",
+      "familyCode": "PF-04",
+      "sizeClass": "Giant",
+      "radius": 24,
+      "pattern": "ice",
+      "imageUrl": "assets/planet-holograms/04-frozen-giant.svg",
+      "sha256": "ba4a9313f4d666e3dd3475a384a3eebbb23138bbf51a2fbb6e94d19d52c087aa",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative Giant-family hologram. Giant assignment requires exact base-to-Planet evidence — not this exact planet."
+    },
+    {
+      "key": "Barren:Standard",
+      "name": "Barren · Standard",
+      "biomeFamily": "Barren",
+      "familyCode": "PF-05",
+      "sizeClass": "Standard",
+      "radius": 10,
+      "pattern": "dunes",
+      "imageUrl": "assets/planet-holograms/05-barren-standard.svg",
+      "sha256": "b2553a16a628b069bcb574bb3242bb454f95db29d74caad70a17eee475b8717a",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative planet-family hologram; size is not claimed from DiscoveryData — not this exact planet."
+    },
+    {
+      "key": "Barren:Giant",
+      "name": "Barren · Giant",
+      "biomeFamily": "Barren",
+      "familyCode": "PF-05",
+      "sizeClass": "Giant",
+      "radius": 24,
+      "pattern": "dunes",
+      "imageUrl": "assets/planet-holograms/05-barren-giant.svg",
+      "sha256": "083ceb97ec3a8aff916387ecd36265e1aeffb929ee55c105f880b4bc3d1ca73c",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative Giant-family hologram. Giant assignment requires exact base-to-Planet evidence — not this exact planet."
+    },
+    {
+      "key": "Dead/Airless:Standard",
+      "name": "Dead/Airless · Standard",
+      "biomeFamily": "Dead/Airless",
+      "familyCode": "PF-06",
+      "sizeClass": "Standard",
+      "radius": 10,
+      "pattern": "craters",
+      "imageUrl": "assets/planet-holograms/06-dead-airless-standard.svg",
+      "sha256": "a082fbe35872f602fe250e6ee3eb68033c43fc14e8d857a1155cb5c71402d879",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative planet-family hologram; size is not claimed from DiscoveryData — not this exact planet."
+    },
+    {
+      "key": "Dead/Airless:Giant",
+      "name": "Dead/Airless · Giant",
+      "biomeFamily": "Dead/Airless",
+      "familyCode": "PF-06",
+      "sizeClass": "Giant",
+      "radius": 24,
+      "pattern": "craters",
+      "imageUrl": "assets/planet-holograms/06-dead-airless-giant.svg",
+      "sha256": "3d734d2d40df017aab9235173af063ca5ed07de4019ce6c7da9eb56d37a55f3f",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative Giant-family hologram. Giant assignment requires exact base-to-Planet evidence — not this exact planet."
+    },
+    {
+      "key": "Weird:Standard",
+      "name": "Weird · Standard",
+      "biomeFamily": "Weird",
+      "familyCode": "PF-07",
+      "sizeClass": "Standard",
+      "radius": 10,
+      "pattern": "hex",
+      "imageUrl": "assets/planet-holograms/07-weird-standard.svg",
+      "sha256": "b96569ab2fbd0839ddd346b8db7154b292db48a659f47935e59f4ca73c396b3b",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative planet-family hologram; size is not claimed from DiscoveryData — not this exact planet."
+    },
+    {
+      "key": "Weird:Giant",
+      "name": "Weird · Giant",
+      "biomeFamily": "Weird",
+      "familyCode": "PF-07",
+      "sizeClass": "Giant",
+      "radius": 24,
+      "pattern": "hex",
+      "imageUrl": "assets/planet-holograms/07-weird-giant.svg",
+      "sha256": "7c003620569e6ae35dfe564b55a42d15b3611012cbdef5df1c6aaaa8674be65d",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative Giant-family hologram. Giant assignment requires exact base-to-Planet evidence — not this exact planet."
+    },
+    {
+      "key": "Red:Standard",
+      "name": "Red · Standard",
+      "biomeFamily": "Red",
+      "familyCode": "PF-08",
+      "sizeClass": "Standard",
+      "radius": 10,
+      "pattern": "anomaly",
+      "imageUrl": "assets/planet-holograms/08-red-standard.svg",
+      "sha256": "f9e06175c3aa4f6bb8dc76731c42270aa87c6a2b47e88cfa420d8a7b30c252cf",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative planet-family hologram; size is not claimed from DiscoveryData — not this exact planet."
+    },
+    {
+      "key": "Red:Giant",
+      "name": "Red · Giant",
+      "biomeFamily": "Red",
+      "familyCode": "PF-08",
+      "sizeClass": "Giant",
+      "radius": 24,
+      "pattern": "anomaly",
+      "imageUrl": "assets/planet-holograms/08-red-giant.svg",
+      "sha256": "e8118dd2aca21dca433ed9a1c7409c0d817e9ac65bb7633ee06cc2798fc8f9d1",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative Giant-family hologram. Giant assignment requires exact base-to-Planet evidence — not this exact planet."
+    },
+    {
+      "key": "Green:Standard",
+      "name": "Green · Standard",
+      "biomeFamily": "Green",
+      "familyCode": "PF-09",
+      "sizeClass": "Standard",
+      "radius": 10,
+      "pattern": "anomaly",
+      "imageUrl": "assets/planet-holograms/09-green-standard.svg",
+      "sha256": "3d572891d1e0f67957ea91946d0dd816e841e7069e02d43b1ea754d3b562d2f7",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative planet-family hologram; size is not claimed from DiscoveryData — not this exact planet."
+    },
+    {
+      "key": "Green:Giant",
+      "name": "Green · Giant",
+      "biomeFamily": "Green",
+      "familyCode": "PF-09",
+      "sizeClass": "Giant",
+      "radius": 24,
+      "pattern": "anomaly",
+      "imageUrl": "assets/planet-holograms/09-green-giant.svg",
+      "sha256": "1c5696a53dfb31630ab2370d8c9dd5090f717cb7c9662d214fc2005e0e530b8a",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative Giant-family hologram. Giant assignment requires exact base-to-Planet evidence — not this exact planet."
+    },
+    {
+      "key": "Blue:Standard",
+      "name": "Blue · Standard",
+      "biomeFamily": "Blue",
+      "familyCode": "PF-10",
+      "sizeClass": "Standard",
+      "radius": 10,
+      "pattern": "anomaly",
+      "imageUrl": "assets/planet-holograms/10-blue-standard.svg",
+      "sha256": "7aed0773482dfe6041452473530ae1481b10779caa16174cf3058c7b54d55ad9",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative planet-family hologram; size is not claimed from DiscoveryData — not this exact planet."
+    },
+    {
+      "key": "Blue:Giant",
+      "name": "Blue · Giant",
+      "biomeFamily": "Blue",
+      "familyCode": "PF-10",
+      "sizeClass": "Giant",
+      "radius": 24,
+      "pattern": "anomaly",
+      "imageUrl": "assets/planet-holograms/10-blue-giant.svg",
+      "sha256": "429758a7a53dc77630ba6ff2ccce5810bbefa9530bb6e322c77474530137578d",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative Giant-family hologram. Giant assignment requires exact base-to-Planet evidence — not this exact planet."
+    },
+    {
+      "key": "Test:Standard",
+      "name": "Test · Standard",
+      "biomeFamily": "Test",
+      "familyCode": "PF-11",
+      "sizeClass": "Standard",
+      "radius": 10,
+      "pattern": "grid",
+      "imageUrl": "assets/planet-holograms/11-test-standard.svg",
+      "sha256": "e20df02f77788dd26f48ae972a7a034ccf86827bf97e67b75b2f8e042ec1695b",
+      "confidence": "🟨 internal diagnostic family",
+      "displayLabel": "Representative planet-family hologram; size is not claimed from DiscoveryData — not this exact planet."
+    },
+    {
+      "key": "Swamp:Standard",
+      "name": "Swamp · Standard",
+      "biomeFamily": "Swamp",
+      "familyCode": "PF-12",
+      "sizeClass": "Standard",
+      "radius": 10,
+      "pattern": "marsh",
+      "imageUrl": "assets/planet-holograms/12-swamp-standard.svg",
+      "sha256": "5083de17de65fcedd704503d846debd7f00c0d37e2ce2f557d5cb026cdaaa999",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative planet-family hologram; size is not claimed from DiscoveryData — not this exact planet."
+    },
+    {
+      "key": "Swamp:Giant",
+      "name": "Swamp · Giant",
+      "biomeFamily": "Swamp",
+      "familyCode": "PF-12",
+      "sizeClass": "Giant",
+      "radius": 24,
+      "pattern": "marsh",
+      "imageUrl": "assets/planet-holograms/12-swamp-giant.svg",
+      "sha256": "aa3a7a13944fce4a1df62d48a4bbe15932ee8711f1011731ec0de997c90252f6",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative Giant-family hologram. Giant assignment requires exact base-to-Planet evidence — not this exact planet."
+    },
+    {
+      "key": "Lava:Standard",
+      "name": "Lava · Standard",
+      "biomeFamily": "Lava",
+      "familyCode": "PF-13",
+      "sizeClass": "Standard",
+      "radius": 10,
+      "pattern": "lava",
+      "imageUrl": "assets/planet-holograms/13-lava-standard.svg",
+      "sha256": "19088af811e41d74a73b231739469fd96d048396453aa63fdeefe3c4a126796c",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative planet-family hologram; size is not claimed from DiscoveryData — not this exact planet."
+    },
+    {
+      "key": "Lava:Giant",
+      "name": "Lava · Giant",
+      "biomeFamily": "Lava",
+      "familyCode": "PF-13",
+      "sizeClass": "Giant",
+      "radius": 24,
+      "pattern": "lava",
+      "imageUrl": "assets/planet-holograms/13-lava-giant.svg",
+      "sha256": "940345d6125a2dcafd7c7636832623a1e9debdeaa658087f8f893b27f26b58b6",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative Giant-family hologram. Giant assignment requires exact base-to-Planet evidence — not this exact planet."
+    },
+    {
+      "key": "Waterworld:Standard",
+      "name": "Waterworld · Standard",
+      "biomeFamily": "Waterworld",
+      "familyCode": "PF-14",
+      "sizeClass": "Standard",
+      "radius": 10,
+      "pattern": "waves",
+      "imageUrl": "assets/planet-holograms/14-waterworld-standard.svg",
+      "sha256": "2c472ddc42cbe3a431c4f2506a6acdb5741602ba1c204991c495a258cd21118e",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative planet-family hologram; size is not claimed from DiscoveryData — not this exact planet."
+    },
+    {
+      "key": "GasGiant:Gas Giant",
+      "name": "GasGiant · Gas Giant",
+      "biomeFamily": "GasGiant",
+      "familyCode": "PF-15",
+      "sizeClass": "Gas Giant",
+      "radius": 24,
+      "pattern": "bands",
+      "imageUrl": "assets/planet-holograms/15-gasgiant-gas-giant.svg",
+      "sha256": "04d562521823455ec287705392151c7e4d1d8dab7b43f6b360b1d2be54fe4cd8",
+      "confidence": "🟩 family and visual inputs confirmed; artwork representative",
+      "displayLabel": "Representative Gas Giant-family hologram — not this exact planet."
+    }
+  ],
+  "privateControlsOmitted": true
+}

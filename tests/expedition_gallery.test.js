@@ -15,19 +15,19 @@ const registry = JSON.parse(
   fs.readFileSync(path.join(root, 'assets/forge/forge-catalog.json'), 'utf8'),
 );
 
-assert.equal(registry.entries.length, 152);
+assert.equal(registry.entries.length, 173);
 assert.deepEqual(registry.category_counts, {
   fauna: 112,
   flora: 8,
   frigates: 5,
   minerals: 13,
   multitools: 6,
-  planets: 8,
+  planets: 29,
 });
-assert.equal(registry.entries.filter((entry) => entry.record_eligible).length, 130);
+assert.equal(registry.entries.filter((entry) => entry.record_eligible).length, 159);
 assert.equal(
   registry.entries.filter((entry) => entry.category_id === 'planets' && entry.record_eligible).length,
-  0,
+  29,
 );
 
 for (const entry of registry.entries) {
@@ -42,6 +42,7 @@ for (const entry of registry.entries) {
 assert.equal(categoryFor({discovery_type: 'Animal'}), 'fauna');
 assert.equal(categoryFor({discovery_type: 'Flora'}), 'flora');
 assert.equal(categoryFor({discovery_type: 'Mineral'}), 'minerals');
+assert.equal(categoryFor({discovery_type: 'Planet'}), 'planets');
 assert.equal(categoryFor({asset_type: 'Frigate'}), 'frigates');
 assert.equal(categoryFor({asset_type: 'Multitool'}), 'multitools');
 assert.equal(categoryFor({asset_type: 'Starship'}), '');
@@ -71,6 +72,20 @@ assert.equal(
   null,
 );
 assert.equal(resolveFromCatalog({asset_type: 'Planet', wc_id: 'WC-P-TEST'}, registry), null);
+const frozenPlanet = resolveFromCatalog({
+  discovery_type: 'Planet',
+  planet_family_id: 'FROZEN',
+  planet_size_class: 'Standard',
+  wc_id: 'WC-P-TEST',
+}, registry);
+assert.equal(frozenPlanet.category, 'planets');
+assert.equal(frozenPlanet.name, 'Frozen · Standard');
+assert.match(frozenPlanet.image_url, /04-frozen-standard\.svg$/);
+assert.equal(resolveFromCatalog({
+  discovery_type: 'Planet',
+  planet_family_id: 'FROZEN',
+  wc_id: 'WC-P-UNRESOLVED-SIZE',
+}, registry), null);
 assert.equal(resolveFromCatalog({asset_type: 'Starship', wc_id: 'WC-S-TEST'}, registry), null);
 assert.equal(resolveFromCatalog({asset_type: 'Multitool', wc_id: 'WC-MT-TEST'}, registry).category, 'multitools');
 

@@ -10,6 +10,7 @@ TYPE_PREFIX = {
     "Animal": "A",
     "Flora": "F",
     "Mineral": "M",
+    "Planet": "P",
 }
 
 # These records remain in the database and contribution pipeline but are not
@@ -39,6 +40,7 @@ def display_name(discovery: Discovery) -> str:
         "Animal": "Fauna discovery",
         "Flora": "Flora discovery",
         "Mineral": "Mineral discovery",
+        "Planet": "Planet discovery",
     }.get(discovery.discovery_type, f"{discovery.discovery_type or 'Wonder'} discovery")
     return f"{label} {wc_id(discovery)}"
 

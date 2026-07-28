@@ -117,6 +117,11 @@
       label: 'Unclassified mineral',
       alt: 'Neutral crystalline scan illustration for a mineral awaiting a specimen image',
     },
+    'planet.unknown': {
+      url: 'assets/archetypes/planet/unknown.svg',
+      label: 'Unclassified planet',
+      alt: 'Neutral planet hologram for a world whose family is not yet resolved',
+    },
     'asset.starship': {
       url: 'assets/archetypes/assets/starship.svg',
       label: 'Procedural starship',
@@ -149,6 +154,7 @@
     Fauna: 'fauna.unknown',
     Flora: 'flora.unknown',
     Mineral: 'mineral.unknown',
+    Planet: 'planet.unknown',
   });
 
   function defaultKey(record = {}) {

@@ -11,7 +11,7 @@
   const pluralAsset = (type) => ({Starship:'starships',Freighter:'freighters',Frigate:'frigates',Multitool:'multi-tools'})[type] || 'assets';
 
   function typeLabel(type) {
-    return ({Animal:'Fauna', Flora:'Flora', Mineral:'Mineral', Multitool:'Multi-tool'})[type] || type || 'Other';
+    return ({Animal:'Fauna', Flora:'Flora', Mineral:'Mineral', Planet:'Planet', Multitool:'Multi-tool'})[type] || type || 'Other';
   }
 
   function locationMarkup(item) {
@@ -36,6 +36,14 @@
 
   function wonderIdentityMarkup(item) {
     if (!item.wonder_family_label && !item.fauna_family_label) return '';
+    if (item.discovery_type === 'Planet') {
+      const exactSize = item.planet_size_status === 'exact_joined_giant_base'
+        || item.planet_size_status === 'confirmed_gas_giant_family';
+      const sizeEvidence = exactSize
+        ? item.planet_size_class === 'Giant' ? 'Exact player-base-to-Planet join' : 'Confirmed Gas Giant family'
+        : 'Family confirmed · standard size is representative';
+      return `<div class="fauna-identity card-identity ${exactSize ? 'exact' : 'inferred'}"><div class="fauna-identity-heading"><span class="fauna-family-badge">${escapeHtml(item.wonder_family_label)}</span><span class="fauna-behavior">${escapeHtml(item.planet_size_class || 'Standard')}</span></div><small>${escapeHtml(sizeEvidence)} · ${escapeHtml(item.planet_name_label || 'Name evidence under review')}</small></div>`;
+    }
     const exact = item.fauna_identity_source === 'exact_pet_match';
     const behavior = exact && item.fauna_behavior ? `Behavior: ${item.fauna_behavior}` : 'Behavior not inferred';
     const evidenceCount = Number(item.fauna_family_evidence_count || 0);
@@ -77,7 +85,7 @@
       ? `${item.forge_form_name || expedition?.name || item.fauna_family_label || 'Approved representative'} · ${forgeLabel}`
       : assetLabel;
     return `<div class="wonder-card-image ${isForge ? 'is-forge' : isRepresentative ? 'is-archetype' : 'is-approved'}">
-      <img src="${escapeHtml(approvedUrl || representativeUrl || archetype.url)}" alt="${escapeHtml(isRepresentative ? `${item.fauna_family_label || expedition?.category_label || representativeLabel} representative` : name)}" loading="lazy" data-archetype-fallback="${escapeHtml(archetype.url)}" data-archetype-alt="${escapeHtml(archetype.alt)}" data-archetype-label="${escapeHtml(assetLabel)}">
+      <img src="${escapeHtml(approvedUrl || representativeUrl || archetype.url)}" alt="${escapeHtml(isRepresentative ? `${item.planet_biome_family || item.fauna_family_label || expedition?.category_label || representativeLabel} representative` : name)}" loading="lazy" data-archetype-fallback="${escapeHtml(archetype.url)}" data-archetype-alt="${escapeHtml(archetype.alt)}" data-archetype-label="${escapeHtml(assetLabel)}">
       <div class="archetype-label"${isRepresentative ? '' : ' hidden'}><span>${escapeHtml(labelHeading)}</span><small>${escapeHtml(labelCopy)}</small></div>
     </div>`;
   }

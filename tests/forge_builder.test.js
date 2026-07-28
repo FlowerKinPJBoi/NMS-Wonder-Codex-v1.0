@@ -42,7 +42,13 @@ assert.equal(
     discoveryCategory: 'planets',
     discoveryFamily: '',
   })).length,
-  8,
+  29,
 );
+const frozenPlanets = representatives.filter((entry) => discoveryMatches(entry, {
+  discoveryCategory: 'planets',
+  discoveryFamily: 'FROZEN',
+}));
+assert.deepEqual(frozenPlanets.map((entry) => entry.size_class).sort(), ['Giant', 'Standard']);
+assert.ok(frozenPlanets.every((entry) => entry.display_label.includes('not this exact planet')));
 
 console.log('Wonder Forge component compatibility passed.');
