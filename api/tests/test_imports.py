@@ -233,6 +233,7 @@ def test_descriptor_profile_is_stable_and_does_not_claim_exact_imagery():
 def test_all_projector_capture_families_select_their_supported_archetypes():
     expected = {
         "ANTELOPE": "fauna.antelope",
+        "ARTHROPOD": "fauna.arthropod",
         "BIRD": "fauna.bird",
         "BLOB": "fauna.blob",
         "BONECOW": "fauna.bonecow",
@@ -251,6 +252,7 @@ def test_all_projector_capture_families_select_their_supported_archetypes():
         "SEAHORSE": "fauna.seahorse",
         "SHARK": "fauna.shark",
         "SIXLEGCOW": "fauna.sixlegcow",
+        "SMALLBIRD": "fauna.smallbird",
         "SPIDER": "fauna.spider",
         "STRIDER": "fauna.strider",
         "TREX": "fauna.trex",
@@ -307,7 +309,7 @@ def test_approved_cat_family_pool_is_attached_without_exact_claim():
 
 
 def test_record_eligible_forge_pool_is_quality_gated_and_ringless():
-    assert len(CATALOG_ENTRIES) == 187
+    assert len(CATALOG_ENTRIES) == 207
     assert all(entry["ringless"] is True for entry in CATALOG_ENTRIES)
     assert all(entry["exact_specimen"] is False for entry in CATALOG_ENTRIES)
     assert {entry["category_id"] for entry in CATALOG_ENTRIES} == {

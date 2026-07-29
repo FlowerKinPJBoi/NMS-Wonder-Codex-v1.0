@@ -1,5 +1,21 @@
 # Wonder Codex changelog
 
+## v1.23.0 — Fauna family assembly completion
+
+- Added 20 reviewed, ringless representative views for Cow, Six-Leg Cow,
+  Two-Leg Antelope, Arthropod, Robot Antelope, and Small Bird.
+- Expanded approved close-match coverage from 20 to 26 of 33 confirmed fauna
+  families, improving the representative image shown for another 1,336 mapped
+  records and reducing the unresolved mapped set from 2,035 to 699.
+- Published only the clean inspection angle for three Two-Leg Antelope forms
+  with reverse-view rear seams and Arthropod Form I with an opposite-view
+  detached fragment; those limitations remain explicit in the public research
+  fixture.
+- Rejected Arthropod Form IV because its oversized detached shell remained
+  visible in both inspection angles.
+- Kept exact screenshot precedence, confirmed-family matching, the visible
+  representative label, and all existing flora/mineral evidence boundaries.
+
 ## v1.22.0 — Fauna close-match gallery
 
 - Added 28 clean, ringless representative forms for Antelope, Bird, Flying

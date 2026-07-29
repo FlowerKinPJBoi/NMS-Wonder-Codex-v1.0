@@ -9,7 +9,7 @@ from typing import Any
 
 REPRESENTATIVE_IMAGE_LABEL = "Representative family image — not this exact specimen."
 PLANET_REPRESENTATIVE_LABEL = "Representative family hologram — not this exact planet."
-FORGE_CATALOG_VERSION = "wonder-forge-v0.1.23"
+FORGE_CATALOG_VERSION = "wonder-forge-v0.1.24"
 CATALOG_PATH = Path(__file__).resolve().parents[3] / "assets" / "forge" / "forge-catalog.json"
 
 PLANET_FAMILIES = {

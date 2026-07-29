@@ -39,13 +39,19 @@ assert.ok(faunaBlobs.every((entry) => entry.category_display === 'Fauna'));
 assert.ok(faunaBlobs.every((entry) => entry.family_display === 'Blob'));
 const closeMatchFamilies = new Set([
   'ANTELOPE',
+  'ARTHROPOD',
   'BIRD',
+  'COW',
   'FLYINGLIZARD',
   'GRUNT',
   'PROTOROLLER',
+  'ROBOTANTELOPE',
   'RODENT',
   'SEAHORSE',
   'SHARK',
+  'SIXLEGCOW',
+  'SMALLBIRD',
+  'TWOLEGANTELOPE',
   'WEIRDBUTTERFLY',
 ]);
 for (const family of closeMatchFamilies) {

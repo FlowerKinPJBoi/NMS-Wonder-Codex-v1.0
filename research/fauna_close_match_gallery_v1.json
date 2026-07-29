@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "release": "wonder-codex-v1.22.0",
-  "sourceExpedition": "WonderForgeExpedition-v0.1.23",
-  "reviewRecovery": "WonderForgeExpedition-v0.1.23.1",
+  "release": "wonder-codex-v1.23.0",
+  "sourceExpedition": "WonderForgeExpedition-v0.1.24",
+  "previousRelease": "wonder-codex-v1.22.0",
   "evidencePolicy": {
     "exactScreenshotsOverrideRepresentatives": true,
     "confirmedFamilyRequired": true,
@@ -11,14 +11,15 @@
     "ambiguousSceneLinksAreNotPublished": true
   },
   "summary": {
-    "approvedFamiliesAdded": 9,
-    "approvedFormsAdded": 28,
-    "mappedRecordsImproved": 3064,
-    "confirmedFamiliesCoveredBefore": 11,
-    "confirmedFamiliesCoveredAfter": 20,
+    "approvedFamiliesAdded": 6,
+    "approvedFormsAdded": 20,
+    "approvedFormsTotal": 48,
+    "mappedRecordsImproved": 1336,
+    "confirmedFamiliesCoveredBefore": 20,
+    "confirmedFamiliesCoveredAfter": 26,
     "confirmedFamiliesTotal": 33,
-    "mappedRecordsMissingBefore": 5099,
-    "mappedRecordsMissingAfter": 2035
+    "mappedRecordsMissingBefore": 2035,
+    "mappedRecordsMissingAfter": 699
   },
   "approvedForms": [
     {
@@ -188,6 +189,134 @@
       "familyDisplay": "Weird Butterfly",
       "formName": "Form II",
       "imageUrl": "assets/forge/catalog/fauna/weird-butterfly-form-ii.webp"
+    },
+    {
+      "familyId": "COW",
+      "familyDisplay": "Cow",
+      "formName": "Classic",
+      "imageUrl": "assets/forge/catalog/fauna/cow-classic.webp"
+    },
+    {
+      "familyId": "COW",
+      "familyDisplay": "Cow",
+      "formName": "Classic Horned",
+      "imageUrl": "assets/forge/catalog/fauna/cow-classic-horned.webp"
+    },
+    {
+      "familyId": "COW",
+      "familyDisplay": "Cow",
+      "formName": "Rock Loris",
+      "imageUrl": "assets/forge/catalog/fauna/cow-rock-loris.webp"
+    },
+    {
+      "familyId": "COW",
+      "familyDisplay": "Cow",
+      "formName": "Orb",
+      "imageUrl": "assets/forge/catalog/fauna/cow-orb.webp"
+    },
+    {
+      "familyId": "SIXLEGCOW",
+      "familyDisplay": "Six-Leg Cow",
+      "formName": "Classic",
+      "imageUrl": "assets/forge/catalog/fauna/six-leg-cow-classic.webp"
+    },
+    {
+      "familyId": "SIXLEGCOW",
+      "familyDisplay": "Six-Leg Cow",
+      "formName": "Rock Loris",
+      "imageUrl": "assets/forge/catalog/fauna/six-leg-cow-rock-loris.webp"
+    },
+    {
+      "familyId": "SIXLEGCOW",
+      "familyDisplay": "Six-Leg Cow",
+      "formName": "Skew Head",
+      "imageUrl": "assets/forge/catalog/fauna/six-leg-cow-skew-head.webp"
+    },
+    {
+      "familyId": "TWOLEGANTELOPE",
+      "familyDisplay": "Two-Leg Antelope",
+      "formName": "Deer",
+      "imageUrl": "assets/forge/catalog/fauna/two-leg-antelope-deer.webp",
+      "selectedView": "B",
+      "reviewNote": "The clean front-facing view is published; reverse inspection exposed an open rear seam."
+    },
+    {
+      "familyId": "TWOLEGANTELOPE",
+      "familyDisplay": "Two-Leg Antelope",
+      "formName": "Buff",
+      "imageUrl": "assets/forge/catalog/fauna/two-leg-antelope-buff.webp",
+      "selectedView": "B",
+      "reviewNote": "The clean front-facing view is published; reverse inspection exposed an open rear seam."
+    },
+    {
+      "familyId": "TWOLEGANTELOPE",
+      "familyDisplay": "Two-Leg Antelope",
+      "formName": "Anteater",
+      "imageUrl": "assets/forge/catalog/fauna/two-leg-antelope-anteater.webp",
+      "selectedView": "B",
+      "reviewNote": "The clean front-facing view is published; reverse inspection exposed an open rear seam."
+    },
+    {
+      "familyId": "ARTHROPOD",
+      "familyDisplay": "Arthropod",
+      "formName": "Form I",
+      "imageUrl": "assets/forge/catalog/fauna/arthropod-form-i.webp",
+      "selectedView": "A",
+      "reviewNote": "The clean view is published; the opposite inspection angle contains a detached fragment."
+    },
+    {
+      "familyId": "ARTHROPOD",
+      "familyDisplay": "Arthropod",
+      "formName": "Form II",
+      "imageUrl": "assets/forge/catalog/fauna/arthropod-form-ii.webp"
+    },
+    {
+      "familyId": "ARTHROPOD",
+      "familyDisplay": "Arthropod",
+      "formName": "Form III",
+      "imageUrl": "assets/forge/catalog/fauna/arthropod-form-iii.webp"
+    },
+    {
+      "familyId": "ARTHROPOD",
+      "familyDisplay": "Arthropod",
+      "formName": "Form V",
+      "imageUrl": "assets/forge/catalog/fauna/arthropod-form-v.webp"
+    },
+    {
+      "familyId": "ROBOTANTELOPE",
+      "familyDisplay": "Robot Antelope",
+      "formName": "Wedge",
+      "imageUrl": "assets/forge/catalog/fauna/robot-antelope-wedge.webp"
+    },
+    {
+      "familyId": "ROBOTANTELOPE",
+      "familyDisplay": "Robot Antelope",
+      "formName": "Disc",
+      "imageUrl": "assets/forge/catalog/fauna/robot-antelope-disc.webp"
+    },
+    {
+      "familyId": "ROBOTANTELOPE",
+      "familyDisplay": "Robot Antelope",
+      "formName": "Curve",
+      "imageUrl": "assets/forge/catalog/fauna/robot-antelope-curve.webp"
+    },
+    {
+      "familyId": "SMALLBIRD",
+      "familyDisplay": "Small Bird",
+      "formName": "Classic Wing I",
+      "imageUrl": "assets/forge/catalog/fauna/small-bird-classic-wing-i.webp"
+    },
+    {
+      "familyId": "SMALLBIRD",
+      "familyDisplay": "Small Bird",
+      "formName": "Classic Wing II",
+      "imageUrl": "assets/forge/catalog/fauna/small-bird-classic-wing-ii.webp"
+    },
+    {
+      "familyId": "SMALLBIRD",
+      "familyDisplay": "Small Bird",
+      "formName": "Bat Wing III",
+      "imageUrl": "assets/forge/catalog/fauna/small-bird-bat-wing-iii.webp"
     }
   ],
   "excludedFromPublication": [
@@ -210,17 +339,14 @@
       "familyId": "PROTODIGGER/PROTOFLYER",
       "finding": "Plow scene correlation",
       "reason": "The scene is ambiguous between two confirmed families."
+    },
+    {
+      "familyId": "ARTHROPOD",
+      "finding": "Form IV",
+      "reason": "The oversized detached shell remains visible in both inspection angles."
     }
   ],
   "nextFocusedExpedition": {
-    "completeAssemblyTargets": [
-      "COW",
-      "SIXLEGCOW",
-      "TWOLEGANTELOPE",
-      "ARTHROPOD",
-      "ROBOTANTELOPE",
-      "SMALLBIRD"
-    ],
     "directSceneSearchTargets": [
       "PLANTCAT",
       "SIXLEGCAT",
@@ -231,6 +357,15 @@
       "PROTODIGGER",
       "PROTOFLYER",
       "PURPLE_WEIRD"
+    ],
+    "remainingMappedRecordsByFamily": [
+      {"familyId": "PLANTCAT", "records": 156},
+      {"familyId": "SIXLEGCAT", "records": 131},
+      {"familyId": "PROTODIGGER", "records": 126},
+      {"familyId": "FLYINGSNAKE", "records": 100},
+      {"familyId": "PURPLE_WEIRD", "records": 68},
+      {"familyId": "STRIDERGLOW", "records": 61},
+      {"familyId": "PROTOFLYER", "records": 57}
     ]
   }
 }
