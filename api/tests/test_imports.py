@@ -233,17 +233,23 @@ def test_descriptor_profile_is_stable_and_does_not_claim_exact_imagery():
 def test_all_projector_capture_families_select_their_supported_archetypes():
     expected = {
         "ANTELOPE": "fauna.antelope",
+        "BIRD": "fauna.bird",
         "BLOB": "fauna.blob",
         "BONECOW": "fauna.bonecow",
         "CAT": "fauna.cat",
         "COW": "fauna.cow",
         "FLOATSPIDER": "fauna.floatspider",
         "FLYINGBEETLE": "fauna.flyingbeetle",
+        "FLYINGLIZARD": "fauna.flyinglizard",
         "GRUNT": "fauna.grunt",
         "HERMITCRAB": "fauna.hermitcrab",
         "LARGEBUTTERFLY": "fauna.largebutterfly",
+        "PROTOROLLER": "fauna.protoroller",
         "PROTOFLYER": "fauna.protoflyer",
         "ROBOTANTELOPE": "fauna.robotantelope",
+        "RODENT": "fauna.rodent",
+        "SEAHORSE": "fauna.seahorse",
+        "SHARK": "fauna.shark",
         "SIXLEGCOW": "fauna.sixlegcow",
         "SPIDER": "fauna.spider",
         "STRIDER": "fauna.strider",
@@ -251,6 +257,7 @@ def test_all_projector_capture_families_select_their_supported_archetypes():
         "TRICERATOPS": "fauna.triceratops",
         "TWOLEGANTELOPE": "fauna.twolegantelope",
         "WALKINGBUILDING": "fauna.walkingbuilding",
+        "WEIRDBUTTERFLY": "fauna.weirdbutterfly",
         "WEIRDFLOAT": "fauna.weirdfloat",
     }
     row = sample_discovery()
@@ -300,7 +307,7 @@ def test_approved_cat_family_pool_is_attached_without_exact_claim():
 
 
 def test_record_eligible_forge_pool_is_quality_gated_and_ringless():
-    assert len(CATALOG_ENTRIES) == 159
+    assert len(CATALOG_ENTRIES) == 187
     assert all(entry["ringless"] is True for entry in CATALOG_ENTRIES)
     assert all(entry["exact_specimen"] is False for entry in CATALOG_ENTRIES)
     assert {entry["category_id"] for entry in CATALOG_ENTRIES} == {

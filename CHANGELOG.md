@@ -1,5 +1,21 @@
 # Wonder Codex changelog
 
+## v1.22.0 — Fauna close-match gallery
+
+- Added 28 clean, ringless representative forms for Antelope, Bird, Flying
+  Lizard, Grunt, Proto-Roller, Rodent, Seahorse, Shark, and Weird Butterfly.
+- Expanded approved close-match coverage from 11 to 20 of 33 confirmed fauna
+  families, improving the representative image shown for 3,064 mapped records.
+- Kept every new form behind exact PetData or confirmed VP1 family evidence and
+  visibly labeled it “Representative family image — not this exact specimen.”
+- Excluded branch-only parts, ambiguous scene links, a detached-face Antelope
+  recipe, and a tangled Proto-Roller recipe from publication.
+- Recorded the next focused Expedition targets for complete Cow, Six-Leg Cow,
+  Two-Leg Antelope, Arthropod, Robot Antelope, and Small Bird assemblies, plus
+  direct-scene searches for Plant Cat, Six-Leg Cat, and Strider Glow.
+- Left flora and mineral imagery unchanged because their stable VP1 family
+  cohorts do not yet have decoded family names.
+
 ## v1.21.0 — Planet holograms and stellar census
 
 - Added 29 approved planet-family holograms across 16 VP1 families.

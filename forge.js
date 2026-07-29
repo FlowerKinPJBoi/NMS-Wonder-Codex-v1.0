@@ -291,7 +291,7 @@
   async function load() {
     try {
       const [catalogResponse, componentResponse] = await Promise.all([
-        fetch('assets/forge/forge-catalog.json?v=1.21.0'),
+        fetch('assets/forge/forge-catalog.json?v=1.22.0'),
         fetch('assets/forge/forge-components.json?v=1.20.1'),
       ]);
       const [catalog, components] = await Promise.all([
