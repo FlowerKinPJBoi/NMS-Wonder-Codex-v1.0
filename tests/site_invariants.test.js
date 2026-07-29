@@ -9,10 +9,10 @@ const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'u
 const catalog = JSON.parse(read('assets/forge/forge-catalog.json'));
 const components = JSON.parse(read('assets/forge/forge-components.json'));
 
-assert.equal(catalog.entry_count, 173);
+assert.equal(catalog.entry_count, 201);
 assert.equal(catalog.entries.length, catalog.entry_count);
 assert.deepEqual(catalog.category_counts, {
-  fauna: 112,
+  fauna: 140,
   flora: 8,
   frigates: 5,
   minerals: 13,
@@ -63,17 +63,17 @@ assert.match(index, /account\.html[^>]*class="nav-cta"[^>]*>Passport/i);
 assert.doesNotMatch(index.match(/<nav id="primaryNav"[\s\S]*?<\/nav>/i)[0], /Submit screenshot|decoder\.html/i);
 assert.match(database, /Representative family image — not this exact specimen\./);
 assert.match(record, /Representative family image — not this exact specimen\./);
-assert.match(databasePage, /expedition\.js\?v=1\.21\.0/);
-assert.match(recordPage, /expedition\.js\?v=1\.21\.0/);
-assert.match(assetPage, /expedition\.js\?v=1\.21\.0/);
-assert.match(expeditionScript, /assets\/forge\/forge-catalog\.json\?v=1\.21\.0/);
+assert.match(databasePage, /expedition\.js\?v=1\.22\.0/);
+assert.match(recordPage, /expedition\.js\?v=1\.22\.0/);
+assert.match(assetPage, /expedition\.js\?v=1\.22\.0/);
+assert.match(expeditionScript, /assets\/forge\/forge-catalog\.json\?v=1\.22\.0/);
 assert.match(expeditionScript, /record_eligible === true/);
 assert.match(forge, /Construction component library/);
 assert.match(forge, /id="decoder"[\s\S]*Wonder Projector Decoder[\s\S]*href="decoder\.html"/i);
 assert.match(forge, /id="forgeDiscoveryCategory"/);
 assert.match(forge, /id="forgeDiscoveryFamily"/);
 assert.match(forge, /id="forgeDiscoveryForm"/);
-assert.match(forge, /Planet families now use the approved Linker holograms/i);
+assert.match(forge, /Twenty confirmed fauna families now have approved close-match pools/i);
 assert.match(forge, /id="forgeBuilderFamily"/);
 assert.match(forge, /Blue Diplo · long tail · spiky horns · XL/);
 assert.match(forgeScript, /componentMatches/);
@@ -88,6 +88,7 @@ assert.match(contribute, /contribute\.html\?mode=image[^>]*>Submit a screenshot/
 
 const planetBridge = JSON.parse(read('research/planet_hologram_bridge_v1.json'));
 const starCensus = JSON.parse(read('research/star_system_census_v1.json'));
+const faunaGallery = JSON.parse(read('research/fauna_close_match_gallery_v1.json'));
 const starsPage = read('stars.html');
 assert.equal(planetBridge.summary.planetDiscoveryRecords, 621);
 assert.equal(planetBridge.assets.length, 29);
@@ -101,5 +102,11 @@ assert.equal(starCensus.colorFamilies.length, 5);
 assert.doesNotMatch(JSON.stringify(starCensus), /universalAddress|portalGlyphs|vp0|screenshotFile/i);
 assert.match(starsPage, /Fifty systems\. Five colors\./i);
 assert.match(index, /href="stars\.html"/);
+assert.equal(faunaGallery.summary.approvedFamiliesAdded, 9);
+assert.equal(faunaGallery.summary.approvedFormsAdded, 28);
+assert.equal(faunaGallery.summary.confirmedFamiliesCoveredAfter, 20);
+assert.equal(faunaGallery.approvedForms.length, 28);
+assert.equal(faunaGallery.evidencePolicy.branchOnlyFindsAreNotPublished, true);
+assert.equal(faunaGallery.evidencePolicy.ambiguousSceneLinksAreNotPublished, true);
 
-console.log('Wonder Codex v1.21.0 site invariants passed.');
+console.log('Wonder Codex v1.22.0 site invariants passed.');

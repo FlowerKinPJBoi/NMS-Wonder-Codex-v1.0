@@ -41,6 +41,8 @@ CATEGORY_LABELS = {
 }
 
 FAMILY_LABELS = {
+    "ANTELOPE": "Antelope",
+    "BIRD": "Bird",
     "BLOB": "Blob",
     "CAT": "Cat",
     "FLOATSPIDER": "Float Spider",
@@ -51,7 +53,14 @@ FAMILY_LABELS = {
     "WALKINGBUILDING": "Walking Building",
     "BONECOW": "Bone Cow",
     "FLYINGBEETLE": "Flying Beetle",
+    "FLYINGLIZARD": "Flying Lizard",
+    "GRUNT": "Grunt",
     "LARGEBUTTERFLY": "Large Butterfly",
+    "PROTOROLLER": "Proto-Roller",
+    "RODENT": "Rodent",
+    "SEAHORSE": "Seahorse",
+    "SHARK": "Shark",
+    "WEIRDBUTTERFLY": "Weird Butterfly",
     "ARTHROPODGRUB": "Arthropod Grub",
     "ASTEROIDJELLYFISH": "Asteroid Jellyfish",
     "BUGFIEND": "Bug Fiend",
@@ -424,9 +433,10 @@ def build_catalog(rows: list[dict[str, Any]], output: Path) -> dict[str, Any]:
         ))
 
         if category == "fauna" and family in {
-            "BLOB", "CAT", "FLOATSPIDER", "HERMITCRAB", "STRIDER", "TREX",
-            "TRICERATOPS", "WALKINGBUILDING", "BONECOW", "FLYINGBEETLE",
-            "LARGEBUTTERFLY",
+            "ANTELOPE", "BIRD", "BLOB", "CAT", "FLOATSPIDER", "FLYINGLIZARD",
+            "GRUNT", "HERMITCRAB", "PROTOROLLER", "RODENT", "SEAHORSE", "SHARK",
+            "STRIDER", "TREX", "TRICERATOPS", "WALKINGBUILDING", "BONECOW",
+            "FLYINGBEETLE", "LARGEBUTTERFLY", "WEIRDBUTTERFLY",
         }:
             match_scope = "confirmed_family"
         elif category in {"flora", "minerals"}:

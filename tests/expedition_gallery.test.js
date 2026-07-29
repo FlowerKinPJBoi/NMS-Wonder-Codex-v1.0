@@ -15,16 +15,16 @@ const registry = JSON.parse(
   fs.readFileSync(path.join(root, 'assets/forge/forge-catalog.json'), 'utf8'),
 );
 
-assert.equal(registry.entries.length, 173);
+assert.equal(registry.entries.length, 201);
 assert.deepEqual(registry.category_counts, {
-  fauna: 112,
+  fauna: 140,
   flora: 8,
   frigates: 5,
   minerals: 13,
   multitools: 6,
   planets: 29,
 });
-assert.equal(registry.entries.filter((entry) => entry.record_eligible).length, 159);
+assert.equal(registry.entries.filter((entry) => entry.record_eligible).length, 187);
 assert.equal(
   registry.entries.filter((entry) => entry.category_id === 'planets' && entry.record_eligible).length,
   29,
@@ -63,6 +63,25 @@ const blobRepresentative = resolveFromCatalog(blobRecord, registry);
 assert.equal(blobRepresentative.category, 'fauna');
 assert.equal(blobRepresentative.category_label, 'Fauna');
 assert.equal(blobRepresentative.public_label, 'Representative family image — not this exact specimen.');
+
+for (const family of [
+  'ANTELOPE',
+  'BIRD',
+  'FLYINGLIZARD',
+  'GRUNT',
+  'PROTOROLLER',
+  'RODENT',
+  'SEAHORSE',
+  'SHARK',
+  'WEIRDBUTTERFLY',
+]) {
+  const pool = eligiblePool({
+    ...blobRecord,
+    fauna_family_id: family,
+  }, registry);
+  assert.ok(pool.length > 0, `Missing close-match family pool: ${family}`);
+  assert.ok(pool.every((entry) => entry.match_scope === 'confirmed_family'));
+}
 
 assert.equal(
   resolveFromCatalog({

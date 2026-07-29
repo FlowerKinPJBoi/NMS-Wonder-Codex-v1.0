@@ -1,0 +1,236 @@
+{
+  "schemaVersion": 1,
+  "release": "wonder-codex-v1.22.0",
+  "sourceExpedition": "WonderForgeExpedition-v0.1.23",
+  "reviewRecovery": "WonderForgeExpedition-v0.1.23.1",
+  "evidencePolicy": {
+    "exactScreenshotsOverrideRepresentatives": true,
+    "confirmedFamilyRequired": true,
+    "representativeLabel": "Representative family image — not this exact specimen.",
+    "branchOnlyFindsAreNotPublished": true,
+    "ambiguousSceneLinksAreNotPublished": true
+  },
+  "summary": {
+    "approvedFamiliesAdded": 9,
+    "approvedFormsAdded": 28,
+    "mappedRecordsImproved": 3064,
+    "confirmedFamiliesCoveredBefore": 11,
+    "confirmedFamiliesCoveredAfter": 20,
+    "confirmedFamiliesTotal": 33,
+    "mappedRecordsMissingBefore": 5099,
+    "mappedRecordsMissingAfter": 2035
+  },
+  "approvedForms": [
+    {
+      "familyId": "ANTELOPE",
+      "familyDisplay": "Antelope",
+      "formName": "Lean Deer",
+      "imageUrl": "assets/forge/catalog/fauna/antelope-lean-deer.webp"
+    },
+    {
+      "familyId": "ANTELOPE",
+      "familyDisplay": "Antelope",
+      "formName": "Deer Great Dane",
+      "imageUrl": "assets/forge/catalog/fauna/antelope-deer-great-dane.webp"
+    },
+    {
+      "familyId": "BIRD",
+      "familyDisplay": "Bird",
+      "formName": "Classic Wing I",
+      "imageUrl": "assets/forge/catalog/fauna/bird-classic-wing-i.webp"
+    },
+    {
+      "familyId": "BIRD",
+      "familyDisplay": "Bird",
+      "formName": "Classic Wing II",
+      "imageUrl": "assets/forge/catalog/fauna/bird-classic-wing-ii.webp"
+    },
+    {
+      "familyId": "BIRD",
+      "familyDisplay": "Bird",
+      "formName": "Bat Wing III",
+      "imageUrl": "assets/forge/catalog/fauna/bird-bat-wing-iii.webp"
+    },
+    {
+      "familyId": "FLYINGLIZARD",
+      "familyDisplay": "Flying Lizard",
+      "formName": "Classic",
+      "imageUrl": "assets/forge/catalog/fauna/flying-lizard-classic.webp"
+    },
+    {
+      "familyId": "FLYINGLIZARD",
+      "familyDisplay": "Flying Lizard",
+      "formName": "Eagle",
+      "imageUrl": "assets/forge/catalog/fauna/flying-lizard-eagle.webp"
+    },
+    {
+      "familyId": "FLYINGLIZARD",
+      "familyDisplay": "Flying Lizard",
+      "formName": "Bird",
+      "imageUrl": "assets/forge/catalog/fauna/flying-lizard-bird.webp"
+    },
+    {
+      "familyId": "GRUNT",
+      "familyDisplay": "Grunt",
+      "formName": "Ground",
+      "imageUrl": "assets/forge/catalog/fauna/grunt-ground.webp"
+    },
+    {
+      "familyId": "GRUNT",
+      "familyDisplay": "Grunt",
+      "formName": "Turtle",
+      "imageUrl": "assets/forge/catalog/fauna/grunt-turtle.webp"
+    },
+    {
+      "familyId": "RODENT",
+      "familyDisplay": "Rodent",
+      "formName": "Lizard",
+      "imageUrl": "assets/forge/catalog/fauna/rodent-lizard.webp"
+    },
+    {
+      "familyId": "RODENT",
+      "familyDisplay": "Rodent",
+      "formName": "Sloth",
+      "imageUrl": "assets/forge/catalog/fauna/rodent-sloth.webp"
+    },
+    {
+      "familyId": "RODENT",
+      "familyDisplay": "Rodent",
+      "formName": "Classic",
+      "imageUrl": "assets/forge/catalog/fauna/rodent-classic.webp"
+    },
+    {
+      "familyId": "PROTOROLLER",
+      "familyDisplay": "Proto-Roller",
+      "formName": "Clock Ball",
+      "imageUrl": "assets/forge/catalog/fauna/proto-roller-clock-ball.webp"
+    },
+    {
+      "familyId": "PROTOROLLER",
+      "familyDisplay": "Proto-Roller",
+      "formName": "Energy Ball",
+      "imageUrl": "assets/forge/catalog/fauna/proto-roller-energy-ball.webp"
+    },
+    {
+      "familyId": "PROTOROLLER",
+      "familyDisplay": "Proto-Roller",
+      "formName": "Beetle",
+      "imageUrl": "assets/forge/catalog/fauna/proto-roller-beetle.webp"
+    },
+    {
+      "familyId": "PROTOROLLER",
+      "familyDisplay": "Proto-Roller",
+      "formName": "Wheel",
+      "imageUrl": "assets/forge/catalog/fauna/proto-roller-wheel.webp"
+    },
+    {
+      "familyId": "PROTOROLLER",
+      "familyDisplay": "Proto-Roller",
+      "formName": "Blob",
+      "imageUrl": "assets/forge/catalog/fauna/proto-roller-blob.webp"
+    },
+    {
+      "familyId": "PROTOROLLER",
+      "familyDisplay": "Proto-Roller",
+      "formName": "Bubble",
+      "imageUrl": "assets/forge/catalog/fauna/proto-roller-bubble.webp"
+    },
+    {
+      "familyId": "PROTOROLLER",
+      "familyDisplay": "Proto-Roller",
+      "formName": "Fat Bug",
+      "imageUrl": "assets/forge/catalog/fauna/proto-roller-fat-bug.webp"
+    },
+    {
+      "familyId": "SEAHORSE",
+      "familyDisplay": "Seahorse",
+      "formName": "Form I",
+      "imageUrl": "assets/forge/catalog/fauna/seahorse-form-i.webp"
+    },
+    {
+      "familyId": "SEAHORSE",
+      "familyDisplay": "Seahorse",
+      "formName": "Form II",
+      "imageUrl": "assets/forge/catalog/fauna/seahorse-form-ii.webp"
+    },
+    {
+      "familyId": "SHARK",
+      "familyDisplay": "Shark",
+      "formName": "Eel",
+      "imageUrl": "assets/forge/catalog/fauna/shark-eel.webp"
+    },
+    {
+      "familyId": "SHARK",
+      "familyDisplay": "Shark",
+      "formName": "Whale",
+      "imageUrl": "assets/forge/catalog/fauna/shark-whale.webp"
+    },
+    {
+      "familyId": "SHARK",
+      "familyDisplay": "Shark",
+      "formName": "Worm",
+      "imageUrl": "assets/forge/catalog/fauna/shark-worm.webp"
+    },
+    {
+      "familyId": "SHARK",
+      "familyDisplay": "Shark",
+      "formName": "Crocodile",
+      "imageUrl": "assets/forge/catalog/fauna/shark-crocodile.webp"
+    },
+    {
+      "familyId": "WEIRDBUTTERFLY",
+      "familyDisplay": "Weird Butterfly",
+      "formName": "Form I",
+      "imageUrl": "assets/forge/catalog/fauna/weird-butterfly-form-i.webp"
+    },
+    {
+      "familyId": "WEIRDBUTTERFLY",
+      "familyDisplay": "Weird Butterfly",
+      "formName": "Form II",
+      "imageUrl": "assets/forge/catalog/fauna/weird-butterfly-form-ii.webp"
+    }
+  ],
+  "excludedFromPublication": [
+    {
+      "familyId": "ANTELOPE",
+      "finding": "Heavy Long Head",
+      "reason": "Detached facial pieces in both review angles."
+    },
+    {
+      "familyId": "PROTOROLLER",
+      "finding": "Curl",
+      "reason": "Tangled assembly did not meet the clean representative threshold."
+    },
+    {
+      "familyId": "PURPLE_WEIRD",
+      "finding": "Weird-rig scene correlation",
+      "reason": "Scene-to-family link remains provisional."
+    },
+    {
+      "familyId": "PROTODIGGER/PROTOFLYER",
+      "finding": "Plow scene correlation",
+      "reason": "The scene is ambiguous between two confirmed families."
+    }
+  ],
+  "nextFocusedExpedition": {
+    "completeAssemblyTargets": [
+      "COW",
+      "SIXLEGCOW",
+      "TWOLEGANTELOPE",
+      "ARTHROPOD",
+      "ROBOTANTELOPE",
+      "SMALLBIRD"
+    ],
+    "directSceneSearchTargets": [
+      "PLANTCAT",
+      "SIXLEGCAT",
+      "STRIDERGLOW"
+    ],
+    "holdForBetterEvidence": [
+      "FLYINGSNAKE",
+      "PROTODIGGER",
+      "PROTOFLYER",
+      "PURPLE_WEIRD"
+    ]
+  }
+}

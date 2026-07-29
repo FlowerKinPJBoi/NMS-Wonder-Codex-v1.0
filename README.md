@@ -1,4 +1,4 @@
-# Wonder Codex v1.21.0
+# Wonder Codex v1.22.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -74,6 +74,19 @@ The public fixture deliberately omits raw UAs, VP controls, portal glyphs, and
 screenshot filenames. The latest Expedition did not add separately approved
 fauna, flora, or mineral forms, so their existing quality-gated imagery remains
 unchanged.
+
+v1.22.0 adds 28 clean, ringless close-match representatives for nine confirmed
+fauna families: Antelope, Bird, Flying Lizard, Grunt, Proto-Roller, Rodent,
+Seahorse, Shark, and Weird Butterfly. This expands approved family coverage
+from 11 to 20 of the 33 confirmed live family IDs and improves representative
+art for 3,064 mapped fauna records. The site still labels every image as a
+family representative rather than an exact specimen, and approved community
+screenshots continue to override it.
+
+Branch-only parts, ambiguous scene links, one Antelope assembly with detached
+facial pieces, and one tangled Proto-Roller form remain unpublished. Flora and
+mineral representatives remain unchanged because their stable VP1 cohorts do
+not yet have decoded family semantics.
 
 ## Repository boundary
 

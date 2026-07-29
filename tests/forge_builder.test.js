@@ -37,6 +37,25 @@ const faunaBlobs = representatives.filter((entry) => discoveryMatches(entry, {
 assert.ok(faunaBlobs.length > 0);
 assert.ok(faunaBlobs.every((entry) => entry.category_display === 'Fauna'));
 assert.ok(faunaBlobs.every((entry) => entry.family_display === 'Blob'));
+const closeMatchFamilies = new Set([
+  'ANTELOPE',
+  'BIRD',
+  'FLYINGLIZARD',
+  'GRUNT',
+  'PROTOROLLER',
+  'RODENT',
+  'SEAHORSE',
+  'SHARK',
+  'WEIRDBUTTERFLY',
+]);
+for (const family of closeMatchFamilies) {
+  const familyRows = representatives.filter((entry) => discoveryMatches(entry, {
+    discoveryCategory: 'fauna',
+    discoveryFamily: family,
+  }));
+  assert.ok(familyRows.length > 0, `Missing Forge family: ${family}`);
+  assert.ok(familyRows.every((entry) => entry.record_eligible === true));
+}
 assert.equal(
   representatives.filter((entry) => discoveryMatches(entry, {
     discoveryCategory: 'planets',
