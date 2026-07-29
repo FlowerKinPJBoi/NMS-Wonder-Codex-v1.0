@@ -1,4 +1,4 @@
-# Wonder Codex v1.22.0
+# Wonder Codex v1.23.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -87,6 +87,15 @@ Branch-only parts, ambiguous scene links, one Antelope assembly with detached
 facial pieces, and one tangled Proto-Roller form remain unpublished. Flora and
 mineral representatives remain unchanged because their stable VP1 cohorts do
 not yet have decoded family semantics.
+
+v1.23.0 adds 20 reviewed close-match views from the focused v0.1.24 assembly
+Expedition: Cow, Six-Leg Cow, Two-Leg Antelope, Arthropod, Robot Antelope, and
+Small Bird. Confirmed family coverage now reaches 26 of 33 families and improves
+representative art for another 1,336 mapped fauna records. The public research
+fixture records the chosen inspection angle wherever the opposite view exposed
+an assembly seam or detached fragment, and rejects Arthropod Form IV entirely.
+The seven families still awaiting evidence-safe imagery remain on the focused
+research list.
 
 ## Repository boundary
 

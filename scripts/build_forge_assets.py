@@ -42,9 +42,11 @@ CATEGORY_LABELS = {
 
 FAMILY_LABELS = {
     "ANTELOPE": "Antelope",
+    "ARTHROPOD": "Arthropod",
     "BIRD": "Bird",
     "BLOB": "Blob",
     "CAT": "Cat",
+    "COW": "Cow",
     "FLOATSPIDER": "Float Spider",
     "HERMITCRAB": "Hermit Crab",
     "STRIDER": "Strider",
@@ -57,9 +59,13 @@ FAMILY_LABELS = {
     "GRUNT": "Grunt",
     "LARGEBUTTERFLY": "Large Butterfly",
     "PROTOROLLER": "Proto-Roller",
+    "ROBOTANTELOPE": "Robot Antelope",
     "RODENT": "Rodent",
     "SEAHORSE": "Seahorse",
     "SHARK": "Shark",
+    "SIXLEGCOW": "Six-Leg Cow",
+    "SMALLBIRD": "Small Bird",
+    "TWOLEGANTELOPE": "Two-Leg Antelope",
     "WEIRDBUTTERFLY": "Weird Butterfly",
     "ARTHROPODGRUB": "Arthropod Grub",
     "ASTEROIDJELLYFISH": "Asteroid Jellyfish",
@@ -433,9 +439,10 @@ def build_catalog(rows: list[dict[str, Any]], output: Path) -> dict[str, Any]:
         ))
 
         if category == "fauna" and family in {
-            "ANTELOPE", "BIRD", "BLOB", "CAT", "FLOATSPIDER", "FLYINGLIZARD",
-            "GRUNT", "HERMITCRAB", "PROTOROLLER", "RODENT", "SEAHORSE", "SHARK",
-            "STRIDER", "TREX", "TRICERATOPS", "WALKINGBUILDING", "BONECOW",
+            "ANTELOPE", "ARTHROPOD", "BIRD", "BLOB", "CAT", "COW", "FLOATSPIDER",
+            "FLYINGLIZARD", "GRUNT", "HERMITCRAB", "PROTOROLLER", "ROBOTANTELOPE",
+            "RODENT", "SEAHORSE", "SHARK", "SIXLEGCOW", "SMALLBIRD", "STRIDER",
+            "TREX", "TRICERATOPS", "TWOLEGANTELOPE", "WALKINGBUILDING", "BONECOW",
             "FLYINGBEETLE", "LARGEBUTTERFLY", "WEIRDBUTTERFLY",
         }:
             match_scope = "confirmed_family"

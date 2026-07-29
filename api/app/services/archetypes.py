@@ -11,6 +11,7 @@ from .forge import forge_representative_metadata
 
 SUPPORTED_FAUNA_ARCHETYPES = {
     "ANTELOPE": ("fauna.antelope", "Slender grazer"),
+    "ARTHROPOD": ("fauna.arthropod", "Ground arthropod"),
     "BIRD": ("fauna.bird", "Flying bird"),
     "BLOB": ("fauna.blob", "Gelatinous blob"),
     "BONECOW": ("fauna.bonecow", "Skeletal grazer"),
@@ -29,6 +30,7 @@ SUPPORTED_FAUNA_ARCHETYPES = {
     "SEAHORSE": ("fauna.seahorse", "Seahorse-like aquatic fauna"),
     "SHARK": ("fauna.shark", "Large aquatic fauna"),
     "SIXLEGCOW": ("fauna.sixlegcow", "Six-legged grazer"),
+    "SMALLBIRD": ("fauna.smallbird", "Small flying bird"),
     "SPIDER": ("fauna.spider", "Ground arachnid"),
     "STRIDER": ("fauna.strider", "Tall strider"),
     "TREX": ("fauna.trex", "Large bipedal predator"),
@@ -41,6 +43,7 @@ SUPPORTED_FAUNA_ARCHETYPES = {
 
 FAUNA_FAMILY_LABELS = {
     "ANTELOPE": "Antelope",
+    "ARTHROPOD": "Arthropod",
     "BIRD": "Bird",
     "BLOB": "Blob",
     "BONECOW": "Bone Cow",
@@ -60,6 +63,7 @@ FAUNA_FAMILY_LABELS = {
     "SEAHORSE": "Seahorse",
     "SHARK": "Shark",
     "SIXLEGCOW": "Six-Leg Cow",
+    "SMALLBIRD": "Small Bird",
     "SPIDER": "Spider",
     "STRIDER": "Strider",
     "TREX": "T-Rex",

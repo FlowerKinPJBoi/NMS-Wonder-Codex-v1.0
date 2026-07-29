@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const CATALOG_URL = 'assets/forge/forge-catalog.json?v=1.22.0';
+  const CATALOG_URL = 'assets/forge/forge-catalog.json?v=1.23.0';
   const state = {catalog: null, loading: null};
 
   function categoryFor(record = {}) {
