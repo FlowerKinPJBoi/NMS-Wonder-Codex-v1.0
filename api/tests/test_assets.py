@@ -1,9 +1,11 @@
 from datetime import datetime, timezone
+from types import SimpleNamespace
 
 import pytest
 
 from app.models import AssetSpecimen
 from app.services.assets import AssetManifestError, asset_wc_id, normalize_manifest, serialize_asset
+from app.services.forge import forge_asset_representative_metadata
 
 
 def manifest(asset_type="Starship", **overrides):
@@ -95,3 +97,19 @@ def test_asset_wc_ids_and_public_serialization():
     assert payload["identity_fingerprint"] == "WCI-STARSHIP-0123456789ABCDEF0123"
     assert payload["appearance_seed_location_status"] == "not_a_location_claim"
     assert payload["primary_image_url"] == ""
+    assert payload["forge_category_id"] == "starships"
+    assert payload["forge_exact_specimen"] is False
+    assert payload["forge_display_label"] == "Representative family image — not this exact specimen."
+
+
+def test_complete_spacecraft_representatives_cover_starships_and_freighters():
+    starship = forge_asset_representative_metadata(SimpleNamespace(
+        id=1, asset_key="PGA-STARSHIP-1111111111111111", asset_type="Starship",
+    ))
+    freighter = forge_asset_representative_metadata(SimpleNamespace(
+        id=2, asset_key="PGA-FREIGHTER-2222222222222222", asset_type="Freighter",
+    ))
+    assert starship["forge_category_id"] == "starships"
+    assert freighter["forge_category_id"] == "freighters"
+    assert starship["forge_authenticity_status"] == "APPROVED_REPRESENTATIVE"
+    assert freighter["forge_authenticity_status"] == "APPROVED_REPRESENTATIVE"
