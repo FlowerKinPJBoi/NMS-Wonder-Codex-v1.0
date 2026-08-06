@@ -278,11 +278,14 @@ def archetype_metadata(
             else "Partial projector identity"
         ),
     }
-    metadata.update(descriptor_profile(family_id, pet_match if identity_source == "exact_pet_match" else None))
+    profile = descriptor_profile(family_id, pet_match if identity_source == "exact_pet_match" else None)
+    metadata.update(profile)
     metadata.update(forge_representative_metadata(
         discovery,
         family_id,
         identity_source,
         discovery_type,
+        visual_profile_fingerprint=profile["visual_profile_fingerprint"],
+        descriptor_evidence_status=profile["descriptor_evidence_status"],
     ))
     return metadata

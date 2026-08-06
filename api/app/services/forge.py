@@ -7,9 +7,8 @@ import re
 from typing import Any
 
 
-REPRESENTATIVE_IMAGE_LABEL = "Representative family image — not this exact specimen."
-PLANET_REPRESENTATIVE_LABEL = "Representative family hologram — not this exact planet."
-FORGE_CATALOG_VERSION = "wonder-forge-v0.1.32-spacecraft"
+MATCHED_IMAGE_LABEL = "Evidence-matched Forge reconstruction — verify color and lighting in game."
+FORGE_CATALOG_VERSION = "wonder-forge-v0.1.32-precision-binding"
 CATALOG_PATH = Path(__file__).resolve().parents[3] / "assets" / "forge" / "forge-catalog.json"
 
 PLANET_FAMILIES = {
@@ -66,35 +65,68 @@ def _forms(*, category: str, family_id: str = "", match_scope: str = "") -> tupl
     )
 
 
-def _stable_form_index(record: Any, form_count: int, namespace: str) -> int:
-    """Select stable representative art without claiming to decode an individual."""
-    signals = (
-        getattr(record, "vp1", ""),
-        getattr(record, "vp0", ""),
-        getattr(record, "record_hash", ""),
-        getattr(record, "asset_key", ""),
-        getattr(record, "message_id", ""),
-        getattr(record, "id", ""),
-    )
-    stable_signal = next((str(value).strip() for value in signals if str(value or "").strip()), "wonder")
-    digest = hashlib.blake2s(
-        f"wonder-forge:{namespace}:{stable_signal}".encode("utf-8"),
-        digest_size=8,
-    ).digest()
-    return int.from_bytes(digest, "big") % form_count
+SELECTOR_FIELDS = {
+    "forge_selector_fingerprints": ("forge_selector_fingerprint",),
+    "visual_profile_fingerprints": ("visual_profile_fingerprint",),
+    "identity_fingerprints": ("identity_fingerprint", "identityFingerprint"),
+    "record_hashes": ("record_hash",),
+    "message_ids": ("message_id",),
+    "wc_ids": ("wc_id",),
+}
+
+
+def _record_value(record: Any, aliases: tuple[str, ...]) -> str:
+    fields = getattr(record, "fields", None)
+    for alias in aliases:
+        if isinstance(record, dict) and record.get(alias) not in (None, ""):
+            return str(record[alias]).strip()
+        value = getattr(record, alias, None)
+        if value not in (None, ""):
+            return str(value).strip()
+        if isinstance(fields, dict) and fields.get(alias) not in (None, ""):
+            return str(fields[alias]).strip()
+    return ""
+
+
+def _selector_matches(entry: dict[str, Any], record: Any, extra: dict[str, Any] | None = None) -> bool:
+    selectors = entry.get("record_selectors")
+    if not isinstance(selectors, dict) or not selectors:
+        return False
+    extra = extra or {}
+    for selector_name, aliases in SELECTOR_FIELDS.items():
+        expected = selectors.get(selector_name)
+        if not isinstance(expected, list) or not expected:
+            continue
+        actual = str(extra.get(aliases[0], "") or _record_value(record, aliases)).strip().upper()
+        if actual and actual in {str(value).strip().upper() for value in expected}:
+            return True
+    return False
+
+
+def _selector_forms(
+    record: Any,
+    forms: tuple[dict[str, Any], ...],
+    extra: dict[str, Any] | None = None,
+) -> tuple[dict[str, Any], ...]:
+    return tuple(entry for entry in forms if _selector_matches(entry, record, extra))
 
 
 def _metadata(
-    record: Any,
     forms: tuple[dict[str, Any], ...],
     *,
-    namespace: str,
     match_basis: str,
     match_label: str,
 ) -> dict[str, Any]:
     if not forms:
         return {}
-    entry = forms[_stable_form_index(record, len(forms), namespace)]
+    highest_priority = max(int(entry.get("record_match_priority", 0)) for entry in forms)
+    winners = tuple(
+        entry for entry in forms
+        if int(entry.get("record_match_priority", 0)) == highest_priority
+    )
+    if len(winners) != 1:
+        return {}
+    entry = winners[0]
     return {
         "forge_catalog_version": FORGE_CATALOG_VERSION,
         "forge_image_url": f"/{entry['image_url'].lstrip('/')}",
@@ -103,14 +135,15 @@ def _metadata(
         "forge_family_id": entry["family_id"],
         "forge_family_display": entry["family_display"],
         "forge_category_id": entry["category_id"],
-        "forge_image_status": "representative_family",
+        "forge_image_status": "evidence_matched_reconstruction",
         "forge_match_basis": match_basis,
         "forge_match_label": match_label,
         "forge_catalog_class": entry["evidence_class"],
-        "forge_authenticity_status": "APPROVED_REPRESENTATIVE",
+        "forge_authenticity_status": "EVIDENCE_MATCHED_RECONSTRUCTION",
         "forge_exact_specimen": False,
-        "forge_display_label": entry["display_label"],
-        "forge_selection_basis": "deterministic_evidence_safe_pool",
+        "forge_display_label": entry.get("display_label", MATCHED_IMAGE_LABEL),
+        "forge_selection_basis": "explicit_catalog_record_selector",
+        "forge_match_precision": entry.get("match_precision", "visual_variant"),
         "forge_ringless": entry.get("ringless") is True,
     }
 
@@ -142,6 +175,18 @@ def _planet_identity_hash(discovery: Any) -> str:
     return hashlib.blake2s(identity.encode("utf-8"), digest_size=12).hexdigest()
 
 
+def discovery_selector_fingerprint(discovery: Any, discovery_type: str = "") -> str:
+    """Build a privacy-safe key for one complete DiscoveryData visual identity."""
+    values = tuple(
+        _canonical_hex(getattr(discovery, field, ""), prefer_hex=True)
+        for field in ("ua", "vp0", "vp1", "vp2", "vp3")
+    )
+    if not all(values[:3]):
+        return ""
+    identity = "|".join((str(discovery_type or "").strip().upper(), *values))
+    return f"WCF-{hashlib.sha256(identity.encode('utf-8')).hexdigest()[:24].upper()}"
+
+
 def _planet_metadata(discovery: Any) -> dict[str, Any]:
     try:
         vp1_low = _integer_value(getattr(discovery, "vp1", "")) & 0xFFFF
@@ -151,50 +196,26 @@ def _planet_metadata(discovery: Any) -> dict[str, Any]:
     if not family:
         return {}
 
-    family_name, file_stem = family
+    family_name, _ = family
     exact_giant = _planet_identity_hash(discovery) in EXACT_GIANT_PLANET_HASHES
     if vp1_low == 15:
         size_class = "Gas Giant"
-        file_name = f"{file_stem}-gas-giant.svg"
         size_status = "confirmed_gas_giant_family"
-        match_basis = "confirmed_vp1_gas_giant_family"
         radius = 24
     elif exact_giant:
         size_class = "Giant"
-        file_name = f"{file_stem}-giant.svg"
         size_status = "exact_joined_giant_base"
-        match_basis = "exact_giant_base_planet_join"
         radius = 24
     else:
         size_class = "Standard"
-        file_name = f"{file_stem}-standard.svg"
         size_status = "representative_size_unknown_in_discovery_data"
-        match_basis = "confirmed_vp1_planet_family"
         radius = 10
 
     family_id = re.sub(r"[^A-Z0-9]+", "_", family_name.upper()).strip("_")
     captured_name = str(getattr(discovery, "display_name", "") or "").strip()
     return {
-        "forge_catalog_version": FORGE_CATALOG_VERSION,
-        "forge_image_url": f"/assets/planet-holograms/{file_name}",
-        "forge_form_id": f"planet-hologram-{vp1_low:02d}-{size_class.lower().replace(' ', '-')}",
-        "forge_form_name": f"{family_name} · {size_class}",
-        "forge_family_id": family_id,
-        "forge_family_display": family_name,
-        "forge_category_id": "planets",
-        "forge_image_status": "representative_family",
-        "forge_match_basis": match_basis,
-        "forge_match_label": (
-            "Exact Giant base-to-Planet join"
-            if exact_giant
-            else "Confirmed VP1 planet family"
-        ),
-        "forge_catalog_class": "approved_representative_hologram",
-        "forge_authenticity_status": "APPROVED_REPRESENTATIVE",
-        "forge_exact_specimen": False,
-        "forge_display_label": PLANET_REPRESENTATIVE_LABEL,
-        "forge_selection_basis": size_status,
-        "forge_ringless": True,
+        "forge_selector_fingerprint": discovery_selector_fingerprint(discovery, "Planet"),
+        "forge_match_status": "awaiting_exact_visual_binding",
         "planet_family_id": family_id,
         "planet_biome_family": family_name,
         "planet_size_class": size_class,
@@ -222,42 +243,64 @@ def forge_representative_metadata(
     family_id: str,
     identity_source: str,
     discovery_type: str,
+    *,
+    visual_profile_fingerprint: str = "",
+    descriptor_evidence_status: str = "",
 ) -> dict[str, Any]:
-    """Return evidence-safe representative art for a discovery."""
+    """Return only visual art explicitly bound to this record's evidence."""
+    selector_fingerprint = discovery_selector_fingerprint(discovery, discovery_type)
+    selector_metadata = {
+        "forge_selector_fingerprint": selector_fingerprint,
+        "forge_match_status": "awaiting_exact_visual_binding",
+    }
     if discovery_type == "Planet":
-        return _planet_metadata(discovery)
+        metadata = _planet_metadata(discovery)
+        forms = _forms(category="planets")
+        matched = _selector_forms(discovery, forms, selector_metadata)
+        metadata.update(_metadata(
+            matched,
+            match_basis="exact_discovery_selector",
+            match_label="Exact DiscoveryData visual identity",
+        ))
+        if "forge_image_url" in metadata:
+            metadata["forge_match_status"] = "matched"
+        return metadata
 
     if discovery_type == "Animal":
         if identity_source not in {"exact_pet_match", "confirmed_vp1_mapping"}:
-            return {}
+            return selector_metadata
         forms = _forms(
             category="fauna",
             family_id=str(family_id or "").upper(),
-            match_scope="confirmed_family",
         )
-        return _metadata(
-            discovery,
-            forms,
-            namespace=f"fauna:{family_id}",
-            match_basis=identity_source,
-            match_label=(
-                "Exact PetData family match"
-                if identity_source == "exact_pet_match"
-                else "Confirmed VP1 family mapping"
-            ),
+        extra = dict(selector_metadata)
+        if descriptor_evidence_status == "observed_save_tokens":
+            extra["visual_profile_fingerprint"] = visual_profile_fingerprint
+        matched = _selector_forms(discovery, forms, extra)
+        metadata = _metadata(
+            matched,
+            match_basis="descriptor_or_exact_discovery_selector",
+            match_label="Descriptor-bound visual variant",
         )
+        selector_metadata.update(metadata)
+        if metadata:
+            selector_metadata["forge_match_status"] = "matched"
+        return selector_metadata
 
     category = {"Flora": "flora", "Mineral": "minerals"}.get(discovery_type)
     if not category:
-        return {}
-    forms = _forms(category=category, match_scope="stable_category_family_signal")
-    return _metadata(
-        discovery,
-        forms,
-        namespace=f"{category}:vp1-family",
-        match_basis="vp1_family_signal",
-        match_label=f"Stable {discovery_type.lower()} family signal",
+        return selector_metadata
+    forms = _forms(category=category)
+    matched = _selector_forms(discovery, forms, selector_metadata)
+    metadata = _metadata(
+        matched,
+        match_basis="exact_discovery_selector",
+        match_label=f"Exact {discovery_type} DiscoveryData visual identity",
     )
+    selector_metadata.update(metadata)
+    if metadata:
+        selector_metadata["forge_match_status"] = "matched"
+    return selector_metadata
 
 
 def forge_asset_representative_metadata(asset: Any) -> dict[str, Any]:
@@ -271,11 +314,10 @@ def forge_asset_representative_metadata(asset: Any) -> dict[str, Any]:
     )
     if not category:
         return {}
-    forms = _forms(category=category, match_scope="stable_asset_type")
+    forms = _forms(category=category)
+    matched = _selector_forms(asset, forms)
     return _metadata(
-        asset,
-        forms,
-        namespace=f"asset:{category}",
-        match_basis="procedural_asset_identity",
-        match_label=f"Stable {str(getattr(asset, 'asset_type', '')).lower()} identity",
+        matched,
+        match_basis="exact_asset_identity_selector",
+        match_label=f"Exact {str(getattr(asset, 'asset_type', '')).lower()} visual identity",
     )

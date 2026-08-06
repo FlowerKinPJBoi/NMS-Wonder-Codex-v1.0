@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const CATALOG_URL = 'assets/forge/forge-catalog.json?v=1.24.0';
+  const CATALOG_URL = 'assets/forge/forge-catalog.json?v=1.25.0';
   const state = {catalog: null, loading: null};
 
   function categoryFor(record = {}) {
@@ -26,16 +26,30 @@
     return (hash >>> 0) % count;
   }
 
-  function identitySignal(record = {}) {
-    return record.vp0
-      || record.seed
-      || record.resource_filename
-      || record.identity_fingerprint
-      || record.record_hash
-      || record.message_id
-      || record.wc_id
-      || record.id
-      || 'wonder-codex';
+  const SELECTOR_FIELDS = Object.freeze({
+    forge_selector_fingerprints: ['forge_selector_fingerprint'],
+    visual_profile_fingerprints: ['visual_profile_fingerprint'],
+    identity_fingerprints: ['identity_fingerprint'],
+    record_hashes: ['record_hash'],
+    message_ids: ['message_id'],
+    wc_ids: ['wc_id'],
+  });
+
+  function selectorMatches(entry = {}, record = {}) {
+    const selectors = entry.record_selectors;
+    if (!selectors || typeof selectors !== 'object') return false;
+    return Object.entries(SELECTOR_FIELDS).some(([selectorName, recordFields]) => {
+      const expected = selectors[selectorName];
+      if (!Array.isArray(expected) || !expected.length) return false;
+      if (
+        selectorName === 'visual_profile_fingerprints'
+        && record.descriptor_evidence_status !== 'observed_save_tokens'
+      ) return false;
+      const actual = recordFields
+        .map((field) => String(record[field] || '').trim().toUpperCase())
+        .find(Boolean);
+      return Boolean(actual && expected.some((value) => String(value || '').trim().toUpperCase() === actual));
+    });
   }
 
   function eligiblePool(record = {}, catalog = state.catalog) {
@@ -45,19 +59,11 @@
       entry.record_eligible === true
       && entry.exact_specimen === false
       && entry.category_id === category
+      && selectorMatches(entry, record)
     ));
     if (category === 'fauna') {
       const family = String(record.fauna_family_id || '').toUpperCase();
       if (!family) return [];
-      const identitySource = String(
-        record.fauna_identity_source
-        || record.wonder_family_source
-        || '',
-      );
-      if (
-        identitySource
-        && !['exact_pet_match', 'confirmed_vp1_mapping'].includes(identitySource)
-      ) return [];
       entries = entries.filter((entry) => entry.family_id === family);
     }
     if (category === 'planets') {
@@ -74,16 +80,18 @@
 
   function resolveFromCatalog(record = {}, catalog = state.catalog) {
     const pool = eligiblePool(record, catalog);
-    const index = stableIndex(identitySignal(record), pool.length);
-    if (index < 0) return null;
-    const entry = pool[index];
+    if (!pool.length) return null;
+    const highestPriority = Math.max(...pool.map((entry) => Number(entry.record_match_priority || 0)));
+    const winners = pool.filter((entry) => Number(entry.record_match_priority || 0) === highestPriority);
+    if (winners.length !== 1) return null;
+    const entry = winners[0];
     return Object.freeze({
       ...entry,
       category: entry.category_id,
       category_label: entry.category_display,
       name: entry.form_name,
       public_label: entry.display_label,
-      selection_basis: 'deterministic_category_or_confirmed_family_pool',
+      selection_basis: 'explicit_catalog_record_selector',
     });
   }
 
@@ -123,6 +131,7 @@
     eligiblePool,
     catalog,
     categoryFor,
+    selectorMatches,
     stableIndex,
   });
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

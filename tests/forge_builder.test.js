@@ -60,7 +60,7 @@ for (const family of closeMatchFamilies) {
     discoveryFamily: family,
   }));
   assert.ok(familyRows.length > 0, `Missing Forge family: ${family}`);
-  assert.ok(familyRows.every((entry) => entry.record_eligible === true));
+  assert.ok(familyRows.every((entry) => entry.record_eligible === false));
 }
 assert.equal(
   representatives.filter((entry) => discoveryMatches(entry, {

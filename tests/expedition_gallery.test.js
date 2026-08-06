@@ -7,6 +7,7 @@ const {
   categoryFor,
   eligiblePool,
   resolveFromCatalog,
+  selectorMatches,
   stableIndex,
 } = require('../expedition.js');
 
@@ -26,10 +27,10 @@ assert.deepEqual(registry.category_counts, {
   planets: 29,
   starships: 8,
 });
-assert.equal(registry.entries.filter((entry) => entry.record_eligible).length, 220);
+assert.equal(registry.entries.filter((entry) => entry.record_eligible).length, 0);
 assert.equal(
   registry.entries.filter((entry) => entry.category_id === 'planets' && entry.record_eligible).length,
-  29,
+  0,
 );
 
 for (const entry of registry.entries) {
@@ -59,12 +60,8 @@ const blobRecord = {
   wc_id: 'WC-A-TEST',
 };
 const blobPool = eligiblePool(blobRecord, registry);
-assert.ok(blobPool.length > 0);
-assert.ok(blobPool.every((entry) => entry.record_eligible && entry.family_id === 'BLOB'));
-const blobRepresentative = resolveFromCatalog(blobRecord, registry);
-assert.equal(blobRepresentative.category, 'fauna');
-assert.equal(blobRepresentative.category_label, 'Fauna');
-assert.equal(blobRepresentative.public_label, 'Representative family image — not this exact specimen.');
+assert.deepEqual(blobPool, []);
+assert.equal(resolveFromCatalog(blobRecord, registry), null);
 
 for (const family of [
   'ANTELOPE',
@@ -83,13 +80,41 @@ for (const family of [
   'TWOLEGANTELOPE',
   'WEIRDBUTTERFLY',
 ]) {
-  const pool = eligiblePool({
-    ...blobRecord,
-    fauna_family_id: family,
-  }, registry);
-  assert.ok(pool.length > 0, `Missing close-match family pool: ${family}`);
-  assert.ok(pool.every((entry) => entry.match_scope === 'confirmed_family'));
+  const galleryForms = registry.entries.filter((entry) => entry.family_id === family);
+  assert.ok(galleryForms.length > 0, `Missing Forge gallery family: ${family}`);
+  assert.ok(galleryForms.every((entry) => entry.record_eligible === false));
 }
+
+const boundBlobEntry = {
+  ...registry.entries.find((entry) => entry.category_id === 'fauna' && entry.family_id === 'BLOB'),
+  record_eligible: true,
+  record_selectors: {forge_selector_fingerprints: ['WCF-BLOB-EXACT-VARIANT']},
+  match_precision: 'visual_variant',
+};
+const boundCatalog = {entries: [boundBlobEntry]};
+const boundBlobRecord = {
+  ...blobRecord,
+  forge_selector_fingerprint: 'WCF-BLOB-EXACT-VARIANT',
+};
+assert.equal(selectorMatches(boundBlobEntry, boundBlobRecord), true);
+const blobMatch = resolveFromCatalog(boundBlobRecord, boundCatalog);
+assert.equal(blobMatch.category, 'fauna');
+assert.equal(blobMatch.category_label, 'Fauna');
+assert.equal(blobMatch.selection_basis, 'explicit_catalog_record_selector');
+assert.equal(resolveFromCatalog({...boundBlobRecord, forge_selector_fingerprint: 'WCF-OTHER'}, boundCatalog), null);
+
+const descriptorEntry = {
+  ...boundBlobEntry,
+  record_selectors: {visual_profile_fingerprints: ['WCV-OBSERVED']},
+};
+assert.equal(selectorMatches(descriptorEntry, {
+  visual_profile_fingerprint: 'WCV-OBSERVED',
+  descriptor_evidence_status: 'no_descriptor_tokens_observed',
+}), false);
+assert.equal(selectorMatches(descriptorEntry, {
+  visual_profile_fingerprint: 'WCV-OBSERVED',
+  descriptor_evidence_status: 'observed_save_tokens',
+}), true);
 
 assert.equal(
   resolveFromCatalog({
@@ -99,22 +124,19 @@ assert.equal(
   null,
 );
 assert.equal(resolveFromCatalog({asset_type: 'Planet', wc_id: 'WC-P-TEST'}, registry), null);
-const frozenPlanet = resolveFromCatalog({
+assert.equal(resolveFromCatalog({
   discovery_type: 'Planet',
   planet_family_id: 'FROZEN',
   planet_size_class: 'Standard',
   wc_id: 'WC-P-TEST',
-}, registry);
-assert.equal(frozenPlanet.category, 'planets');
-assert.equal(frozenPlanet.name, 'Frozen · Standard');
-assert.match(frozenPlanet.image_url, /04-frozen-standard\.svg$/);
+}, registry), null);
 assert.equal(resolveFromCatalog({
   discovery_type: 'Planet',
   planet_family_id: 'FROZEN',
   wc_id: 'WC-P-UNRESOLVED-SIZE',
 }, registry), null);
-assert.equal(resolveFromCatalog({asset_type: 'Starship', wc_id: 'WC-S-TEST'}, registry).category, 'starships');
-assert.equal(resolveFromCatalog({asset_type: 'Freighter', wc_id: 'WC-FR-TEST'}, registry).category, 'freighters');
-assert.equal(resolveFromCatalog({asset_type: 'Multitool', wc_id: 'WC-MT-TEST'}, registry).category, 'multitools');
+assert.equal(resolveFromCatalog({asset_type: 'Starship', wc_id: 'WC-S-TEST'}, registry), null);
+assert.equal(resolveFromCatalog({asset_type: 'Freighter', wc_id: 'WC-FR-TEST'}, registry), null);
+assert.equal(resolveFromCatalog({asset_type: 'Multitool', wc_id: 'WC-MT-TEST'}, registry), null);
 
 console.log('Wonder Forge ringless Database bridge passed.');
