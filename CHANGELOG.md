@@ -1,5 +1,21 @@
 # Wonder Codex changelog
 
+## v1.24.0 — Complete spacecraft representatives
+
+- Added thirteen approved front-three-quarter complete-form representatives:
+  eight Starship families and five Freighter families from Expedition Reviews
+  31 and 32.
+- Enabled deterministic representative fallback for previous and future
+  Starship and Freighter records that do not yet have an approved screenshot.
+- Kept the fragmented Exotic candidate, detached geometry, unresolved
+  optional-branch assemblies, effect planes, shield geometry, and secondary
+  LODs out of the public catalog.
+- Preserved the separate 329-part Component Vault; isolated construction parts
+  are still never presented as complete discoveries.
+- Kept exact screenshot precedence, visible representative labels, unchanged
+  image-evidence status, permanent Preserve language, and the public museum
+  mission.
+
 ## v1.23.0 — Fauna family assembly completion
 
 - Added 20 reviewed, ringless representative views for Cow, Six-Leg Cow,

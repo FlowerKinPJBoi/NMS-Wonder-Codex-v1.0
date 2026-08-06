@@ -9,7 +9,7 @@ from typing import Any
 
 REPRESENTATIVE_IMAGE_LABEL = "Representative family image — not this exact specimen."
 PLANET_REPRESENTATIVE_LABEL = "Representative family hologram — not this exact planet."
-FORGE_CATALOG_VERSION = "wonder-forge-v0.1.24"
+FORGE_CATALOG_VERSION = "wonder-forge-v0.1.32-spacecraft"
 CATALOG_PATH = Path(__file__).resolve().parents[3] / "assets" / "forge" / "forge-catalog.json"
 
 PLANET_FAMILIES = {
@@ -261,7 +261,12 @@ def forge_representative_metadata(
 
 
 def forge_asset_representative_metadata(asset: Any) -> dict[str, Any]:
-    category = {"Frigate": "frigates", "Multitool": "multitools"}.get(
+    category = {
+        "Starship": "starships",
+        "Freighter": "freighters",
+        "Frigate": "frigates",
+        "Multitool": "multitools",
+    }.get(
         str(getattr(asset, "asset_type", "") or "")
     )
     if not category:

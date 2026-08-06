@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const CATALOG_URL = 'assets/forge/forge-catalog.json?v=1.23.0';
+  const CATALOG_URL = 'assets/forge/forge-catalog.json?v=1.24.0';
   const state = {catalog: null, loading: null};
 
   function categoryFor(record = {}) {
@@ -9,6 +9,8 @@
     if (record.discovery_type === 'Flora') return 'flora';
     if (record.discovery_type === 'Mineral') return 'minerals';
     if (record.discovery_type === 'Planet') return 'planets';
+    if (record.asset_type === 'Starship') return 'starships';
+    if (record.asset_type === 'Freighter') return 'freighters';
     if (record.asset_type === 'Frigate') return 'frigates';
     if (record.asset_type === 'Multitool') return 'multitools';
     return '';

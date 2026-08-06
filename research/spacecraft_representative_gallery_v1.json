@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "release": "wonder-forge-v0.1.32-spacecraft",
+  "sourceReviews": [
+    "Wonder Forge Expedition Review 31",
+    "Wonder Forge Expedition Review 32"
+  ],
+  "summary": {
+    "approvedStarshipFamilies": 8,
+    "approvedFreighterFamilies": 5,
+    "approvedRepresentatives": 13,
+    "inspectionView": "front_three_quarter",
+    "exactSpecimens": 0
+  },
+  "evidencePolicy": {
+    "exactScreenshotsOverrideRepresentatives": true,
+    "representativesDoNotChangeImageStatus": true,
+    "completeFormsStaySeparateFromComponents": true,
+    "automaticRawRenderPromotion": false,
+    "fragmentedOrDetachedGeometryExcluded": true,
+    "effectPlanesAndShieldGeometryExcluded": true,
+    "nonPrimaryLodGeometryExcluded": true,
+    "publicLabel": "Representative family image — not this exact specimen."
+  },
+  "approvedForms": [
+    {
+      "category": "starships",
+      "familyId": "FIGHTER",
+      "familyDisplay": "Fighter",
+      "candidateId": "fighter-01",
+      "review": 31,
+      "imageUrl": "assets/forge/catalog/starships/fighter-coherent-representative.webp"
+    },
+    {
+      "category": "starships",
+      "familyId": "HAULER",
+      "familyDisplay": "Hauler",
+      "candidateId": "hauler-01",
+      "review": 31,
+      "imageUrl": "assets/forge/catalog/starships/hauler-coherent-representative.webp"
+    },
+    {
+      "category": "starships",
+      "familyId": "EXPLORER",
+      "familyDisplay": "Explorer",
+      "candidateId": "explorer-01",
+      "review": 31,
+      "imageUrl": "assets/forge/catalog/starships/explorer-coherent-representative.webp"
+    },
+    {
+      "category": "starships",
+      "familyId": "SHUTTLE",
+      "familyDisplay": "Shuttle",
+      "candidateId": "shuttle-01",
+      "review": 31,
+      "imageUrl": "assets/forge/catalog/starships/shuttle-coherent-representative.webp"
+    },
+    {
+      "category": "starships",
+      "familyId": "SOLAR",
+      "familyDisplay": "Solar",
+      "candidateId": "solar-01",
+      "review": 31,
+      "imageUrl": "assets/forge/catalog/starships/solar-coherent-representative.webp"
+    },
+    {
+      "category": "starships",
+      "familyId": "LIVING_SHIP",
+      "familyDisplay": "Living Ship",
+      "candidateId": "living-ship-01",
+      "review": 31,
+      "imageUrl": "assets/forge/catalog/starships/living-ship-coherent-representative.webp"
+    },
+    {
+      "category": "starships",
+      "familyId": "SENTINEL_INTERCEPTOR",
+      "familyDisplay": "Sentinel Interceptor",
+      "candidateId": "sentinel-interceptor-01",
+      "review": 31,
+      "imageUrl": "assets/forge/catalog/starships/sentinel-interceptor-coherent-representative.webp"
+    },
+    {
+      "category": "starships",
+      "familyId": "EXOTIC",
+      "familyDisplay": "Exotic",
+      "candidateId": "exotic-01",
+      "review": 31,
+      "imageUrl": "assets/forge/catalog/starships/exotic-coherent-representative.webp"
+    },
+    {
+      "category": "freighters",
+      "familyId": "CAPITAL_FREIGHTER",
+      "familyDisplay": "Capital Freighter",
+      "candidateId": "capital-freighter-01",
+      "review": 31,
+      "imageUrl": "assets/forge/catalog/freighters/capital-freighter-coherent-representative.webp"
+    },
+    {
+      "category": "freighters",
+      "familyId": "PIRATE_FREIGHTER",
+      "familyDisplay": "Pirate Freighter",
+      "candidateId": "pirate-freighter-01",
+      "review": 31,
+      "imageUrl": "assets/forge/catalog/freighters/pirate-freighter-coherent-representative.webp"
+    },
+    {
+      "category": "freighters",
+      "familyId": "SYSTEM_FREIGHTER",
+      "familyDisplay": "System Freighter",
+      "candidateId": "system-freighter-01",
+      "review": 32,
+      "imageUrl": "assets/forge/catalog/freighters/system-freighter-coherent-representative.webp"
+    },
+    {
+      "category": "freighters",
+      "familyId": "SMALL_FREIGHTER",
+      "familyDisplay": "Small Freighter",
+      "candidateId": "small-freighter-01",
+      "review": 32,
+      "imageUrl": "assets/forge/catalog/freighters/small-freighter-coherent-representative.webp"
+    },
+    {
+      "category": "freighters",
+      "familyId": "TINY_FREIGHTER",
+      "familyDisplay": "Tiny Freighter",
+      "candidateId": "tiny-freighter-01",
+      "review": 32,
+      "imageUrl": "assets/forge/catalog/freighters/tiny-freighter-coherent-representative.webp"
+    }
+  ],
+  "excludedEvidence": [
+    "Fragmented Exotic candidate 02",
+    "Capital Freighter candidate 03 with detached geometry",
+    "System Freighter candidate 04 with unresolved optional-branch warning",
+    "Any contact-sheet view containing detached fragments or effect-plane remnants"
+  ]
+}

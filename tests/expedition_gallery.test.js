@@ -15,16 +15,18 @@ const registry = JSON.parse(
   fs.readFileSync(path.join(root, 'assets/forge/forge-catalog.json'), 'utf8'),
 );
 
-assert.equal(registry.entries.length, 221);
+assert.equal(registry.entries.length, 234);
 assert.deepEqual(registry.category_counts, {
   fauna: 160,
   flora: 8,
+  freighters: 5,
   frigates: 5,
   minerals: 13,
   multitools: 6,
   planets: 29,
+  starships: 8,
 });
-assert.equal(registry.entries.filter((entry) => entry.record_eligible).length, 207);
+assert.equal(registry.entries.filter((entry) => entry.record_eligible).length, 220);
 assert.equal(
   registry.entries.filter((entry) => entry.category_id === 'planets' && entry.record_eligible).length,
   29,
@@ -43,10 +45,10 @@ assert.equal(categoryFor({discovery_type: 'Animal'}), 'fauna');
 assert.equal(categoryFor({discovery_type: 'Flora'}), 'flora');
 assert.equal(categoryFor({discovery_type: 'Mineral'}), 'minerals');
 assert.equal(categoryFor({discovery_type: 'Planet'}), 'planets');
+assert.equal(categoryFor({asset_type: 'Starship'}), 'starships');
+assert.equal(categoryFor({asset_type: 'Freighter'}), 'freighters');
 assert.equal(categoryFor({asset_type: 'Frigate'}), 'frigates');
 assert.equal(categoryFor({asset_type: 'Multitool'}), 'multitools');
-assert.equal(categoryFor({asset_type: 'Starship'}), '');
-assert.equal(categoryFor({asset_type: 'Freighter'}), '');
 assert.equal(categoryFor({asset_type: 'Planet'}), '');
 assert.equal(stableIndex('same identity', 16), stableIndex('same identity', 16));
 
@@ -111,7 +113,8 @@ assert.equal(resolveFromCatalog({
   planet_family_id: 'FROZEN',
   wc_id: 'WC-P-UNRESOLVED-SIZE',
 }, registry), null);
-assert.equal(resolveFromCatalog({asset_type: 'Starship', wc_id: 'WC-S-TEST'}, registry), null);
+assert.equal(resolveFromCatalog({asset_type: 'Starship', wc_id: 'WC-S-TEST'}, registry).category, 'starships');
+assert.equal(resolveFromCatalog({asset_type: 'Freighter', wc_id: 'WC-FR-TEST'}, registry).category, 'freighters');
 assert.equal(resolveFromCatalog({asset_type: 'Multitool', wc_id: 'WC-MT-TEST'}, registry).category, 'multitools');
 
 console.log('Wonder Forge ringless Database bridge passed.');

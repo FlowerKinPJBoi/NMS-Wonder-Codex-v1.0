@@ -1,4 +1,4 @@
-# Wonder Codex v1.23.0
+# Wonder Codex v1.24.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -96,6 +96,16 @@ fixture records the chosen inspection angle wherever the opposite view exposed
 an assembly seam or detached fragment, and rejects Arthropod Form IV entirely.
 The seven families still awaiting evidence-safe imagery remain on the focused
 research list.
+
+v1.24.0 adds thirteen complete spacecraft representatives from Expedition
+Reviews 31 and 32: Fighter, Hauler, Explorer, Shuttle, Solar, Living Ship,
+Sentinel Interceptor, Exotic, Capital Freighter, System Freighter, Small
+Freighter, Tiny Freighter, and Pirate Freighter. Previous and future Starship
+and Freighter records without approved screenshots now receive a deterministic
+representative from the appropriate asset catalog. Fragmented candidates,
+detached geometry, effect planes, non-primary LODs, and unresolved optional
+branches remain excluded. Exact specimen screenshots still take precedence and
+representative art never changes `image_status`.
 
 ## Repository boundary
 
