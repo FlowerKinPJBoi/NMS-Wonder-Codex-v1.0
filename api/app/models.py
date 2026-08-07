@@ -348,6 +348,47 @@ class DaedalusTrainingSubmission(Base):
     design_intent: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
 
 
+class DaedalusCorpusState(Base):
+    """Version pointer for the active, production Daedalus lesson corpus."""
+
+    __tablename__ = "daedalus_corpus_state"
+
+    name: Mapped[str] = mapped_column(String(40), primary_key=True)
+    version: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+
+class DaedalusCorpusEntry(Base):
+    """A compact, retrievable lesson published from one released submission."""
+
+    __tablename__ = "daedalus_corpus_entries"
+    __table_args__ = (UniqueConstraint("submission_id", name="uq_daedalus_corpus_submission"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    submission_id: Mapped[str] = mapped_column(
+        ForeignKey("daedalus_training_submissions.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+    disabled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(30), default="active", nullable=False, index=True)
+    published_version: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    last_changed_version: Mapped[int] = mapped_column(Integer, nullable=False, index=True)
+    domain: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    recognized_category: Mapped[str] = mapped_column(String(120), default="", nullable=False, index=True)
+    trust_collection: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    source_sha256: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    semantic_text: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    structural_fingerprint: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    lesson: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    provenance: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    disabled_reason: Mapped[str] = mapped_column(Text, default="", nullable=False)
+
+
 class AssetSpecimen(Base):
     """A normalized procedural asset, independent of where it was acquired."""
 
