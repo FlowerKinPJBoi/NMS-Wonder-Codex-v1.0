@@ -1,5 +1,14 @@
 # Wonder Codex changelog
 
+## v1.28.0 — Human-made field guide and Discord home
+
+- Combined the explorer field-guide typography and rhythm with restrained galactic-museum framing across every public page.
+- Replaced the familiar amber/gold museum accent with a Wonder Codex-specific moonstone palette of cyan, sea-glass blue, amethyst, ivory, and a small rose accent.
+- Replaced Inter and Space Grotesk with Bitter, Source Sans 3, and Barlow Condensed for a warmer, more authored visual voice.
+- Reduced glassmorphism, large rounded corners, gradient headline text, and uniform card repetition without changing page structure or behavior.
+- Added a consistent top-navigation Discord button for the Wonder Codex server, opening the permanent invite in a separate protected tab.
+- Kept permanent Preserve language, the interactive user-contributed museum mission, exact-screenshot precedence, and representative-image evidence labels unchanged.
+
 ## v1.27.0 — Guided Daedalus workshop
 
 - Replaced the analyzer-first landing experience with a plain-language guided
