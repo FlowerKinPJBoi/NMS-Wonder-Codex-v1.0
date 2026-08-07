@@ -1,0 +1,9 @@
+DAEDALUS INTERACTIVE INSPECTOR
+==============================
+
+The bundled inspector uses Three.js 0.185.1, GLTFLoader, and OrbitControls.
+The compiled inspector bundle is generated from inspector-entry.js.
+
+Three.js is licensed under the MIT License.
+The complete license is included in THREE-LICENSE.txt.
+

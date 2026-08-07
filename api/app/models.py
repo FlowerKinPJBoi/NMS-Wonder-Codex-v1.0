@@ -316,6 +316,38 @@ class CaptureSubmission(Base):
     user_agent: Mapped[str] = mapped_column(Text, default="", nullable=False)
 
 
+class DaedalusTrainingSubmission(Base):
+    """A reviewed learning package; only released rows may train production Daedalus."""
+
+    __tablename__ = "daedalus_training_submissions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    released_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(30), default="pending_review", nullable=False, index=True)
+    contributor: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    contributor_note: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    reviewer: Mapped[str] = mapped_column(String(120), default="", nullable=False)
+    reviewer_note: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    object_key: Mapped[str] = mapped_column(Text, nullable=False)
+    size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    sha256: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
+    schema_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    record_id: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    domain: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    build_name: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    ground_truth_format: Mapped[str] = mapped_column(String(30), nullable=False)
+    object_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    distinct_object_ids: Mapped[int] = mapped_column(Integer, nullable=False)
+    ground_truth_status: Mapped[str] = mapped_column(String(40), nullable=False)
+    attempt_status: Mapped[str] = mapped_column(String(40), nullable=False)
+    trust_collection: Mapped[str] = mapped_column(String(100), nullable=False)
+    server_validation: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    design_intent: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+
+
 class AssetSpecimen(Base):
     """A normalized procedural asset, independent of where it was acquired."""
 

@@ -102,7 +102,7 @@ def test_storage_status_failure_does_not_lock_operator_out(monkeypatch):
     )
 
     assert response["operator"] == "PJ"
-    assert response["permissions"] == {"download": True, "upload": True, "transit": True}
+    assert response["permissions"] == {"download": True, "upload": True, "transit": True, "daedalus": False}
     assert len(response["items"]) == 3
     assert all(item["release"] is None for item in response["items"])
     assert response["storage_warning"] == "Could not inspect private application storage."
@@ -115,7 +115,7 @@ def test_restricted_tester_can_open_vault_without_upload_authority(monkeypatch):
     )
 
     assert response["operator"] == "Menomoo"
-    assert response["permissions"] == {"download": True, "upload": False, "transit": True}
+    assert response["permissions"] == {"download": True, "upload": False, "transit": True, "daedalus": False}
 
 def test_jadexp_and_krosskelt_have_independent_restricted_tester_keys():
     settings = Settings(

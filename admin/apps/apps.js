@@ -2,7 +2,7 @@
   'use strict';
 
   const API = '/api';
-  const state = {key:'', actor:'PJ', apps:[], maxUploadBytes:0, permissions:{download:false,upload:false,transit:false}};
+  const state = {key:'', actor:'PJ', apps:[], maxUploadBytes:0, permissions:{download:false,upload:false,transit:false,daedalus:false}};
   const APP_UI = {
     'importer-beta': {symbol:'◇', executable:'WonderCodexImporter.exe', report:'WonderCodex-Importer-Beta-Test-Report.txt'},
     'capture-companion': {symbol:'◎', executable:'WonderCodexCaptureCompanion.exe', report:'WonderCodex-Capture-Companion-Test-Report.txt', restricted:true},
@@ -219,7 +219,7 @@
     sessionStorage.removeItem('wc_admin_actor');
     state.key = '';
     state.apps = [];
-    state.permissions = {download:false,upload:false,transit:false};
+    state.permissions = {download:false,upload:false,transit:false,daedalus:false};
     $('#dashboard').hidden = true;
     $('#loginPanel').hidden = false;
     $('#lockButton').hidden = true;
@@ -255,6 +255,7 @@
     state.permissions = data.permissions || {download:false,upload:false,transit:false};
     state.maxUploadBytes = Number(data.max_upload_bytes || 0);
     $('#reviewConsoleLink').hidden = !state.permissions.upload;
+    $('#daedalusWorkspace').hidden = !state.permissions.daedalus;
     const storageWarning = String(data.storage_warning || '').trim();
     const storageOnline = Boolean(data.storage_ready) && !storageWarning;
     $('#storageBadge').textContent = storageOnline ? 'Private storage online' : (data.storage_ready ? 'Storage check needs attention' : 'Storage setup required');

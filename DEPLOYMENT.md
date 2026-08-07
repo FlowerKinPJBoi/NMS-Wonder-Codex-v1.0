@@ -29,8 +29,15 @@ variables. Never commit real values. The service currently recognizes:
 - `ADMIN_API_KEYS` as an optional JSON-object alternative
 - `TESTER_API_KEY_MENOMOO`, `TESTER_API_KEY_FLOPPYDONKEY`,
   `TESTER_API_KEY_DARKBELLATOR`, `TESTER_API_KEY_OLGRAVYLEG`,
-  `TESTER_API_KEY_MONKETSU`, `TESTER_API_KEY_READYFIREAIM`, and
-  `TESTER_API_KEY_VISCERAL`, and `TESTER_API_KEY_EKIMO`
+  `TESTER_API_KEY_MONKETSU`, `TESTER_API_KEY_READYFIREAIM`,
+  `TESTER_API_KEY_VISCERAL`, `TESTER_API_KEY_EKIMO`,
+  `TESTER_API_KEY_JADEXP`, and `TESTER_API_KEY_KROSSKELT`
+- `DAEDALUS_TRAINER_ACTORS` as a comma-separated named-operator allowlist
+  (default `PJ,Boots,Krosskelt`)
+- `DAEDALUS_REVIEWER_ACTORS` as a comma-separated review/release allowlist
+  (default `PJ,Boots`)
+- `MAX_DAEDALUS_PACKAGE_MB` and `DAEDALUS_DOWNLOAD_SECONDS` when the 40 MB /
+  15 minute defaults need adjustment
 - `SPACES_ACCESS_KEY`, `SPACES_SECRET_KEY`, `SPACES_REGION`,
   `SPACES_BUCKET`, `SPACES_ENDPOINT`, and `SPACES_CDN_URL`
 - `AUTH_SUPABASE_URL` and the public `AUTH_SUPABASE_ANON_KEY`
@@ -49,7 +56,7 @@ Use independent random administrator keys. Keep the legacy `ADMIN_API_KEY`
 only while migrating an older client, then remove it from the service
 environment.
 
-Restricted testers do not belong in `ADMIN_API_KEYS`. Add the eight scalar
+Restricted testers do not belong in `ADMIN_API_KEYS`. Add the scalar
 variables listed above as separate encrypted Runtime values on the API Web
 Service. Use a different long random value for each person. Do not add the old
 `TESTER_API_KEYS` JSON variable; DigitalOcean's editor may reject its braces.
@@ -59,6 +66,14 @@ and submit locally confirmed Capture Companion pairs for owner review. They
 cannot open the review console, approve catalog data, upload replacement builds,
 or use other administrator routes. PJ and Boots remain in `ADMIN_API_KEYS` with
 full administrator scope.
+
+Daedalus access is an additional allowlist, not a new administrator role. An
+operator must still have an independent named admin/tester key. Trainers can
+open the shared workspace, submit server-validated learning ZIPs, inspect the
+queue, and download review packages. Reviewers can mark packages approved,
+needs correction, or rejected. Only reviewers on the release allowlist can
+perform the separate **release** transition that makes a record eligible for
+production learning.
 
 ## Deployment checks
 
@@ -73,28 +88,34 @@ After both components are healthy:
    console or replacement-build controls, and can authorize Pegasus Transit.
 7. Confirm `/admin/apps/` reports private storage online before uploading a
    reviewed inner application ZIP.
-8. Browse two or three public pages, then confirm PJ can open
+8. Open `/admin/apps/daedalus/` as Krosskelt (or another configured trainer),
+   submit a clearly labeled learning ZIP, and confirm it enters
+   `pending_review` without becoming production-training eligible.
+9. As PJ or Boots, mark the test package approved and confirm it is still not
+   training eligible. Release it separately only if it is a genuine retained
+   training record; otherwise reject it after the workflow test.
+10. Browse two or three public pages, then confirm PJ can open
    `https://wondercodex.com/admin/analytics/` with the existing named PJ admin
    credential. Confirm a Boots or tester credential is refused there.
-9. Open `https://wondercodex.com/feedback.html`, move through all four steps,
+11. Open `https://wondercodex.com/feedback.html`, move through all four steps,
    and submit one clearly labeled test response. Confirm the success panel appears.
-10. Open `https://wondercodex.com/admin/feedback/` with PJ's named credential,
+12. Open `https://wondercodex.com/admin/feedback/` with PJ's named credential,
     confirm the test response and pricing summary appear, then download the CSV.
-11. Authorize Capture Companion with a named tester credential, submit one
+13. Authorize Capture Companion with a named tester credential, submit one
     clearly labeled confirmed test pair, then confirm it appears only in the
     **Capture pairs** lane of the owner review console.
-12. Reject that test pair and confirm neither its discovery nor image appears in
+14. Reject that test pair and confirm neither its discovery nor image appears in
     the public catalog.
-13. Open `/account.html`, test Discord and email magic-link sign-in, save a
+15. Open `/account.html`, test Discord and email magic-link sign-in, save a
     contributor profile, and confirm `/contribute.html?mode=image` fills that
     contributor name and attribution preference.
-14. In the admin console's **Users** lane, change the test account from Regular
+16. In the admin console's **Users** lane, change the test account from Regular
     to Tester, refresh the account page, and confirm its tier updates. Return the
     test account to Regular afterward.
-15. Open `/contribute.html?mode=image`, keep **New discovery** selected, submit
+17. Open `/contribute.html?mode=image`, keep **New discovery** selected, submit
     a clearly labeled console screenshot without choosing a catalog record, and
     confirm a `NEW-XXXXXXXX` reference appears.
-16. Approve it from the admin console's **New screenshots** lane, confirm a WC
+18. Approve it from the admin console's **New screenshots** lane, confirm a WC
     record and primary image are created together, then remove the test record
     through the normal review process if it should not remain public.
 
@@ -106,3 +127,6 @@ use the existing named tester/admin credentials and private object storage.
 The account foundation adds migration `0009_user_accounts`. Existing named
 administrator and tester keys remain active during the account migration.
 Migration `0010_new_discovery_screenshots` adds the private non-PC intake queue.
+Migration `0011_daedalus_training_queue` adds the guarded Daedalus learning
+queue. It reuses private Spaces storage and never treats client-side trust as a
+production release decision.

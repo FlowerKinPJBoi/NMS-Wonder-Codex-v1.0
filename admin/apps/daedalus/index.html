@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07131f">
+  <title>Daedalus Builder · Reverse Blueprint Analyzer</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="shared.css">
+</head>
+<body>
+  <div class="space-backdrop" aria-hidden="true"></div>
+
+  <header class="app-header">
+    <div class="brand-lockup">
+      <div class="brand-mark" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+      <div>
+        <p class="eyebrow">Wonder Codex Workshop</p>
+        <h1>Daedalus Builder</h1>
+        <p class="subtitle">Builder core <span class="version">v0.9.1</span> · Shared trainer <span class="version">v1.25.0</span></p>
+      </div>
+    </div>
+    <div class="hosted-actions"><a href="/admin/apps/">← Admin apps</a><div class="safety-pill"><span></span> Local analysis · shared review</div></div>
+  </header>
+
+  <main>
+    <section class="shared-hub panel" id="sharedHub">
+      <div class="shared-heading">
+        <div><p class="eyebrow accent">Wonder Codex · Shared trainer</p><h2>Build together. Release deliberately.</h2><p>Analysis stays in this browser. Exported learning ZIPs enter a shared queue, but cannot teach production Daedalus until an authorized reviewer approves and separately releases them.</p></div>
+        <div class="shared-identity"><span id="sharedStatus">Connecting…</span><strong id="sharedOperator">Named operator</strong><button class="text-button" id="sharedRefresh" type="button">Refresh queue</button></div>
+      </div>
+      <div class="shared-metrics">
+        <div><span>Pending</span><strong id="queuePending">—</strong></div><div><span>Needs correction</span><strong id="queueCorrection">—</strong></div><div><span>Approved</span><strong id="queueApproved">—</strong></div><div><span>Released</span><strong id="queueReleased">—</strong></div>
+      </div>
+      <div class="shared-grid">
+        <form class="shared-upload" id="sharedUploadForm">
+          <div><p class="eyebrow">Submit a learning package</p><h3>Send your exported ZIP to review</h3><p>Server validation repeats the 3,000-part, Object ID, protected-anchor, uniform-scale, source-hash, and read-only checks.</p></div>
+          <label>Daedalus learning ZIP<input id="sharedArchive" type="file" accept=".zip,application/zip" required></label>
+          <label>Trainer note<textarea id="sharedNote" rows="3" maxlength="4000" placeholder="What should PJ and Boots inspect?"></textarea></label>
+          <div class="compat-fields" aria-label="Optional compatibility versions">
+            <label>BBA version<input id="sharedBbaVersion" type="text" maxlength="60" placeholder="e.g. 6.5.2"></label>
+            <label>Blender version<input id="sharedBlenderVersion" type="text" maxlength="60" placeholder="e.g. 4.x or not used"></label>
+            <label>Python version<input id="sharedPythonVersion" type="text" maxlength="60" placeholder="e.g. 3.x or not used"></label>
+          </div>
+          <button class="primary-button small" id="sharedSubmit" type="submit">Submit to shared review</button>
+          <small id="sharedUploadHelp">Export a Learning ZIP below, then select it here. Production learning remains locked.</small>
+        </form>
+        <div class="requirements-card">
+          <p class="eyebrow">Required apps & compatibility</p><h3>Browser-first setup</h3>
+          <ul><li><strong>Required:</strong> a current Chrome, Edge, Firefox, or Safari browser. No Python is required for the hosted trainer.</li><li><strong>For BBA inspection:</strong> <a href="https://github.com/djmonkeyuk/nms-base-builder/releases/latest" target="_blank" rel="noopener">latest NMS Base Builder release</a>.</li><li><strong>Optional asset analysis:</strong> <a href="https://www.blender.org/download/" target="_blank" rel="noopener">latest Blender</a> and <a href="https://www.python.org/downloads/" target="_blank" rel="noopener">latest Python</a>.</li></ul>
+          <p class="compat-note">“Latest” is linked for easy setup, but compatibility is tested as a version range—not promised for every historical or future version. Add the versions actually used when submitting so regressions stay visible in the queue.</p>
+        </div>
+      </div>
+      <div class="queue-heading"><div><p class="eyebrow">Shared review queue</p><h3>Candidate learning records</h3></div><label>Show<select id="queueFilter"><option value="">All states</option><option value="pending_review">Pending review</option><option value="needs_correction">Needs correction</option><option value="approved">Approved</option><option value="released">Released</option><option value="rejected">Rejected</option></select></label></div>
+      <div class="queue-list" id="sharedQueue"><div class="queue-empty">Loading shared records…</div></div>
+    </section>
+    <section class="hero panel">
+      <div>
+        <p class="eyebrow accent">Screenshot → construction recipe</p>
+        <h2>Understand how a build was made.</h2>
+        <p>
+          Pair reference images with an exported Corvette, base, or prefab. Daedalus identifies
+          the parts, colors, grids, repeated motifs, and safety-sensitive data behind the build.
+        </p>
+      </div>
+      <div class="release-note">
+        <strong>What this release does</strong>
+          <p>Loads native Base Builder prefab definitions and generates review-ready, ObjectID-only sign prefabs from verified construction evidence.</p>
+      </div>
+    </section>
+
+    <nav class="stepper" aria-label="Workflow">
+      <div class="step active"><span>1</span><strong>Choose build</strong></div>
+      <div class="step"><span>2</span><strong>Add references</strong></div>
+      <div class="step"><span>3</span><strong>Analyze</strong></div>
+      <div class="step"><span>4</span><strong>Export blueprint</strong></div>
+    </nav>
+
+    <section class="workspace-grid">
+      <div class="panel setup-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Step 1</p>
+            <h2>What are you building?</h2>
+          </div>
+          <button class="icon-button" id="helpButton" type="button" aria-label="Open help">?</button>
+        </div>
+
+        <div class="mode-picker" role="radiogroup" aria-label="Build type">
+          <button class="mode-card selected" type="button" data-mode="corvette" role="radio" aria-checked="true">
+            <span class="mode-icon corvette-icon" aria-hidden="true"></span>
+            <span>
+              <strong>Build Corvette</strong>
+              <small>Analyze an <code>.nmsship</code> and preserve ship identity data.</small>
+            </span>
+            <span class="checkmark">✓</span>
+          </button>
+          <button class="mode-card" type="button" data-mode="base" role="radio" aria-checked="false">
+            <span class="mode-icon base-icon" aria-hidden="true"></span>
+            <span>
+              <strong>Build Base / Prefab</strong>
+              <small>Analyze <code>.NMSBASE</code>, base JSON, or a reusable <code>.nmsprefab</code>.</small>
+            </span>
+            <span class="checkmark">✓</span>
+          </button>
+        </div>
+
+        <div class="intent-card">
+          <label class="learning-field" for="buildBrief">
+            <span>Describe the build</span>
+            <textarea id="buildBrief" rows="3" placeholder="Create a base sign saying Cavern Below! with a black backdrop and red pill-light lettering."></textarea>
+          </label>
+          <div class="intent-summary">
+            <span class="intent-badge" id="recognizedIntent">Corvette · Other</span>
+            <label>
+              <span>Recognized type / style</span>
+              <select id="buildCategory"></select>
+            </label>
+          </div>
+          <p class="button-guidance">Daedalus recognizes words such as sign, statue, building, sailing ship, saucer, and sci-fi. You can always correct the result.</p>
+        </div>
+
+        <div class="sign-studio" id="signStudio" hidden>
+          <div class="source-title">
+            <div>
+              <p class="eyebrow accent">Base Sign Studio</p>
+              <h3>ObjectID-only sign recipe</h3>
+            </div>
+            <span class="recommended">Base prefab</span>
+          </div>
+          <div class="sign-grid">
+            <label class="learning-field sign-text-field">
+              <span>Sign text</span>
+              <input id="signText" type="text" value="Cavern Below!">
+            </label>
+            <label class="learning-field">
+              <span>Construction font</span>
+              <select id="signFont">
+                <option value="pill-light-rounded">Rounded pill lights</option>
+                <option value="flat-panel-block">Flat-panel block</option>
+                <option value="segment-tech">Segmented tech</option>
+                <option value="mixed-custom">Mixed / custom</option>
+              </select>
+            </label>
+            <label class="learning-field">
+              <span>Backdrop</span>
+              <select id="signBackdropColor"><option value="black">Black</option></select>
+            </label>
+            <label class="learning-field">
+              <span>Lettering</span>
+              <select id="signLetterColor"><option value="red">Red</option></select>
+            </label>
+          </div>
+          <div class="objectid-rule"><span>✓</span><strong>Only records with an ObjectID may become build geometry.</strong></div>
+          <div class="sign-generation-actions">
+            <button class="primary-button small" id="generateSignButton" type="button">Generate .nmsprefab</button>
+          </div>
+          <p class="prefab-status ready" id="signReadiness">Verified FFC calibration loaded · generated geometry will be labeled for in-game review.</p>
+        </div>
+
+        <div class="source-block">
+          <div class="source-title">
+            <div>
+              <p class="eyebrow">Step 2A</p>
+              <h3>Reference images</h3>
+            </div>
+            <span class="optional">1–12 recommended</span>
+          </div>
+          <label class="drop-zone" id="imageDropZone" for="imageInput">
+            <input id="imageInput" type="file" multiple accept=".png,.jpg,.jpeg,.webp,.jxr,image/png,image/jpeg,image/webp">
+            <span class="upload-icon" aria-hidden="true">＋</span>
+            <strong>Choose screenshots</strong>
+            <span>or drag PNG, JPG, WEBP, or JXR files here</span>
+          </label>
+          <div class="file-gallery" id="imageGallery" aria-live="polite"></div>
+        </div>
+
+        <div class="source-block">
+          <div class="source-title">
+            <div>
+              <p class="eyebrow">Step 2B</p>
+              <h3>Known build file</h3>
+            </div>
+            <span class="recommended">Ground truth</span>
+          </div>
+          <label class="drop-zone compact" id="blueprintDropZone" for="blueprintInput">
+            <input id="blueprintInput" type="file" accept=".nmsship,.nmsprefab,.nmsbase,.json,application/json">
+            <span class="package-icon" aria-hidden="true"></span>
+            <span>
+              <strong>Choose .nmsship, .nmsprefab, .NMSBASE, or JSON</strong>
+              <span id="packageHint">The original file is read in memory and left untouched.</span>
+            </span>
+          </label>
+          <div class="selected-package" id="selectedPackage" hidden></div>
+          <div class="prefab-resolver" id="prefabResolver" hidden>
+            <div>
+              <strong>Referenced prefab definition required</strong>
+              <p id="prefabResolverMessage">This base places a reusable prefab by name. Add its <code>.nmsprefab</code> file so Daedalus can learn the individual ObjectIDs.</p>
+            </div>
+            <label class="secondary-button file-button" for="prefabDefinitionInput">
+              Add prefab definition(s)
+              <input id="prefabDefinitionInput" type="file" multiple accept=".nmsprefab,.json,application/json">
+            </label>
+            <div class="prefab-resolution-list" id="prefabResolutionList"></div>
+          </div>
+        </div>
+
+        <div class="sample-callout">
+          <span aria-hidden="true">★</span>
+          <div>
+            <strong>First time?</strong>
+            <p>Use the files in <code>samples\Stars-and-Stripes</code> for the guided practice run.</p>
+          </div>
+        </div>
+
+        <button class="primary-button" id="analyzeButton" type="button" disabled>
+          <span>Analyze Reverse Blueprint</span>
+          <span aria-hidden="true">→</span>
+        </button>
+        <p class="button-guidance" id="buttonGuidance">Add an exported build file to begin.</p>
+      </div>
+
+      <aside class="panel preview-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Reference board</p>
+            <h2>Build preview</h2>
+          </div>
+          <span class="image-counter" id="imageCounter">0 images</span>
+        </div>
+        <div class="preview-stage empty" id="previewStage">
+          <div class="empty-preview">
+            <span class="frame-corners" aria-hidden="true"></span>
+            <strong>Your primary reference appears here</strong>
+            <p>Top, front, side, and rear views improve a future reconstruction.</p>
+          </div>
+          <img id="primaryPreview" alt="Primary build reference" hidden>
+        </div>
+        <div class="palette-section" id="paletteSection" hidden>
+          <div class="source-title">
+            <h3>Observed image palette</h3>
+            <button class="text-button" id="paletteCropButton" type="button">Set palette area</button>
+          </div>
+          <div class="palette-row" id="paletteRow"></div>
+        </div>
+        <div class="tip-card">
+          <span aria-hidden="true">◎</span>
+          <div>
+            <strong>Best reference set</strong>
+            <p>Use a clear top view plus front, side, and rear angles. Keep the whole build visible when possible.</p>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="results panel" id="results" hidden>
+      <div class="results-header">
+        <div>
+          <p class="eyebrow accent">Analysis complete</p>
+          <h2 id="resultTitle">Reverse Blueprint</h2>
+          <p id="resultSubtitle"></p>
+        </div>
+        <div class="result-actions">
+          <button class="secondary-button" id="copySummaryButton" type="button">Copy summary</button>
+          <button class="secondary-button" id="exportButton" type="button">Export blueprint JSON</button>
+          <button class="primary-button small" id="bridgeJobButton" type="button">Export Blender job</button>
+        </div>
+      </div>
+
+      <div class="metric-grid">
+        <article class="metric-card">
+          <span>Placed objects</span>
+          <strong id="objectMetric">—</strong>
+          <small>Valid construction records</small>
+        </article>
+        <article class="metric-card">
+          <span>Part types</span>
+          <strong id="partMetric">—</strong>
+          <small>Distinct Object IDs</small>
+        </article>
+        <article class="metric-card">
+          <span>Repeated motifs</span>
+          <strong id="motifMetric">—</strong>
+          <small>Procedural opportunities</small>
+        </article>
+        <article class="metric-card">
+          <span>Safety checks</span>
+          <strong id="checkMetric">—</strong>
+          <small>Passed validations</small>
+        </article>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Analysis results">
+        <button class="tab active" type="button" data-tab="overview" role="tab" aria-selected="true">Overview</button>
+        <button class="tab" type="button" data-tab="recipe" role="tab" aria-selected="false">Construction recipe</button>
+        <button class="tab" type="button" data-tab="parts" role="tab" aria-selected="false">Parts inventory</button>
+        <button class="tab" type="button" data-tab="checks" role="tab" aria-selected="false">Safety checks</button>
+      </div>
+
+      <div class="tab-panel active" id="tab-overview" role="tabpanel">
+        <div class="analysis-grid">
+          <div>
+            <h3>What Daedalus recognized</h3>
+            <div class="insight-list" id="insightList"></div>
+          </div>
+          <div>
+            <h3>Build envelope</h3>
+            <div class="envelope-card" id="envelopeCard"></div>
+            <h3 class="spaced-heading">Dominant construction parts</h3>
+            <div class="mini-parts" id="miniParts"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-recipe" role="tabpanel" hidden>
+        <div class="recipe-heading">
+          <div>
+            <h3>Plain-language build sequence</h3>
+            <p>Start broad, repeat patterns, then add unique details.</p>
+          </div>
+          <span class="beta-badge">Inferred from transforms</span>
+        </div>
+        <ol class="recipe-list" id="recipeList"></ol>
+      </div>
+
+      <div class="tab-panel" id="tab-parts" role="tabpanel" hidden>
+        <div class="table-tools">
+          <div>
+            <h3>Exact parts inventory</h3>
+            <p>Use this list to locate pieces in Blender or the Base Builder App.</p>
+          </div>
+          <label class="search-field">
+            <span class="sr-only">Search Object IDs</span>
+            <input id="partSearch" type="search" placeholder="Search Object ID…">
+          </label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Object ID</th>
+                <th>Quantity</th>
+                <th>UserData / colors</th>
+                <th>Detected role</th>
+              </tr>
+            </thead>
+            <tbody id="partsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-checks" role="tabpanel" hidden>
+        <div class="checks-heading">
+          <div>
+            <h3>Read-only validation</h3>
+            <p>These checks identify risky or incomplete build packages before assembly or Objects export.</p>
+          </div>
+          <div class="safety-pill"><span></span> No save accessed</div>
+        </div>
+        <div class="check-list" id="checkList"></div>
+      </div>
+
+      <section class="learning-lab" id="learningLab">
+        <div class="learning-heading">
+          <div>
+            <p class="eyebrow accent">Phase 08 · Daedalus Intelligence</p>
+            <h3>Teach Daedalus what makes a great build</h3>
+            <p>Pair an attempted reconstruction with its verified build, discuss revisions, then approve only trustworthy examples for future training.</p>
+          </div>
+          <div class="learning-status-group">
+            <span class="learning-status candidate" id="groundTruthStatus">Ground truth · unverified</span>
+            <span class="learning-status candidate" id="attemptStatus">Attempt · not reviewed</span>
+          </div>
+        </div>
+
+        <div class="learning-metrics">
+          <article>
+            <span>Local training memory</span>
+            <strong id="learningMemoryMetric">0 verified</strong>
+            <small>Stored only in this browser</small>
+          </article>
+          <article>
+            <span>Ground truth</span>
+            <strong id="learningTruthMetric">Ready</strong>
+            <small>Current analyzed build</small>
+          </article>
+          <article>
+            <span>Reference evidence</span>
+            <strong id="learningReferenceMetric">0 views</strong>
+            <small>Screenshots paired to this build</small>
+          </article>
+          <article>
+            <span>Attempt comparison</span>
+            <strong id="learningComparisonMetric">Optional</strong>
+            <small>Measures Daedalus against truth</small>
+          </article>
+        </div>
+
+        <div class="learning-card inspector-card">
+          <div class="inspector-heading">
+            <div>
+              <p class="eyebrow">Interactive Blender inspection</p>
+              <h4>Rotate, zoom, and identify the generated parts</h4>
+              <p>Load the <code>*-inspection.glb</code> created by the Blender run. Drag to rotate, use the wheel to zoom, right-drag to pan, and click a mesh to inspect its part name and Object ID.</p>
+            </div>
+            <span class="inspector-status" id="inspectorStatus">No 3D model loaded</span>
+          </div>
+
+          <div class="inspector-upload-row">
+            <label class="drop-zone compact inspector-drop-zone" id="inspectionDropZone" for="inspectionInput">
+              <input id="inspectionInput" type="file" accept=".glb,model/gltf-binary">
+              <span class="package-icon" aria-hidden="true"></span>
+              <span>
+                <strong>Choose Blender inspection GLB</strong>
+                <span>Look for <code>real-model-inspection.glb</code> or <code>sailing-corvette-guide-inspection.glb</code> in the Daedalus output.</span>
+              </span>
+            </label>
+            <div class="inspector-toolbar">
+              <button class="secondary-button inspector-view-button" type="button" data-inspector-view="three-quarter">3/4</button>
+              <button class="secondary-button inspector-view-button" type="button" data-inspector-view="front">Front</button>
+              <button class="secondary-button inspector-view-button" type="button" data-inspector-view="side">Side</button>
+              <button class="secondary-button inspector-view-button" type="button" data-inspector-view="top">Top</button>
+              <button class="secondary-button" id="inspectorResetButton" type="button">Reset</button>
+              <button class="secondary-button" id="inspectorWireframeButton" type="button" aria-pressed="false">Wireframe</button>
+              <button class="secondary-button" id="inspectorCaptureButton" type="button">Capture PNG</button>
+            </div>
+          </div>
+
+          <div class="inspector-layout">
+            <div class="inspector-stage" id="inspectorStage">
+              <canvas id="inspectorCanvas" aria-label="Interactive three-dimensional Blender model inspector"></canvas>
+              <div class="inspector-empty" id="inspectorEmpty">
+                <span aria-hidden="true">◇</span>
+                <strong>Your Blender creation will appear here</strong>
+                <p>The v0.8.1 Blender runners now create a self-contained inspection GLB automatically.</p>
+              </div>
+              <div class="inspector-help">Left drag: rotate · Wheel/pinch: zoom · Right drag: pan · Click: identify part</div>
+            </div>
+
+            <aside class="selected-part-panel">
+              <p class="eyebrow">Selected mesh</p>
+              <h4 id="selectedPartName">Click a part to inspect it</h4>
+              <dl id="selectedPartDetails">
+                <div><dt>Object ID</dt><dd>—</dd></div>
+                <div><dt>Role</dt><dd>—</dd></div>
+                <div><dt>Geometry</dt><dd>—</dd></div>
+                <div><dt>Source index</dt><dd>—</dd></div>
+              </dl>
+              <label class="learning-field">
+                <span>Part-specific feedback</span>
+                <input id="selectedPartFeedback" type="text" placeholder="Why this part is correct or incorrect">
+              </label>
+              <div class="selected-part-actions">
+                <button class="secondary-button" id="selectedPartCorrectButton" type="button" disabled>Mark correct</button>
+                <button class="secondary-button" id="selectedPartWrongButton" type="button" disabled>Mark wrong</button>
+                <button class="primary-button small" id="reviseSelectedPartButton" type="button" disabled>Request change</button>
+              </div>
+              <p class="learning-note">Part selections and feedback are saved into the exported learning record.</p>
+            </aside>
+          </div>
+        </div>
+
+        <div class="learning-grid">
+          <div class="learning-column">
+            <div class="learning-card">
+              <div class="source-title">
+                <div>
+                  <p class="eyebrow">Design intent</p>
+                  <h4>What was Daedalus asked to build?</h4>
+                </div>
+                <span class="recommended">Training context</span>
+              </div>
+              <label class="learning-field">
+                <span>Original request</span>
+                <textarea id="learningPrompt" rows="4" placeholder="Build a dark-red sailing Corvette with three mast stations, a long open deck, and a raised stern…"></textarea>
+              </label>
+              <label class="learning-field">
+                <span>Style tags</span>
+                <input id="learningTags" type="text" placeholder="sailing ship, Victorian, dark red, three masts">
+              </label>
+            </div>
+
+            <div class="learning-card">
+              <div class="source-title">
+                <div>
+                  <p class="eyebrow">Optional comparison</p>
+                  <h4>Add Daedalus’s attempted build</h4>
+                </div>
+                <span class="optional">Recommended</span>
+              </div>
+              <label class="drop-zone compact learning-attempt-zone" id="attemptDropZone" for="attemptInput">
+                <input id="attemptInput" type="file" accept=".nmsship,.nmsprefab,.nmsbase,.json,application/json">
+                <span class="package-icon" aria-hidden="true"></span>
+                <span>
+                  <strong>Choose attempted .nmsship, .nmsprefab, .NMSBASE, or JSON</strong>
+                  <span>The comparison is read-only and never changes either file.</span>
+                </span>
+              </label>
+              <div class="selected-package" id="selectedAttempt" hidden></div>
+              <div class="comparison-grid" id="comparisonGrid" hidden></div>
+            </div>
+          </div>
+
+          <div class="learning-column">
+            <div class="learning-card conversation-card">
+              <div class="source-title">
+                <div>
+                  <p class="eyebrow">Conversational revisions</p>
+                  <h4>Continue building with Daedalus</h4>
+                </div>
+                <span class="beta-badge">Learning capture</span>
+              </div>
+              <div class="conversation-log" id="conversationLog" aria-live="polite"></div>
+              <label class="learning-field revision-field">
+                <span>Your requested change</span>
+                <textarea id="revisionInput" rows="4" placeholder="I like the sailing Corvette, but make the forward mast taller and replace the rear sail with two smaller sails. Preserve the hull and deck."></textarea>
+              </label>
+              <button class="primary-button small" id="recordRevisionButton" type="button">Record revision</button>
+              <p class="learning-note">This release captures a structured revision plan for the next build pass. It does not silently alter the ship or pretend a change has already been applied.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="learning-approval">
+          <div>
+            <strong>Human approval gate</strong>
+            <p>These are separate decisions. Verify the genuine source build independently, then label the generated attempt as correct or needing correction.</p>
+          </div>
+          <label class="learning-field correction-field">
+            <span>Teacher note</span>
+            <textarea id="teacherNote" rows="3" placeholder="What Daedalus got right or wrong"></textarea>
+          </label>
+          <div class="learning-actions">
+            <button class="secondary-button" id="attemptCorrectButton" type="button">Attempt looks correct</button>
+            <button class="secondary-button" id="needsCorrectionButton" type="button">Attempt needs correction</button>
+            <button class="secondary-button" id="exportLearningButton" type="button">Export learning package</button>
+            <button class="primary-button small" id="approveLearningButton" type="button">Verify ground truth</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="bridge-panel">
+        <div class="bridge-heading">
+          <div>
+            <p class="eyebrow accent">Phase 06 · Guarded Corvette Working Copy</p>
+            <h3>Build, edit, compare, and package safely</h3>
+            <p>Assemble a local Blender draft, make optional edits, export verified records, then create a new editor-test Corvette package.</p>
+          </div>
+          <span class="bridge-ready"><span></span> Ready after analysis</span>
+        </div>
+        <div class="bridge-flow">
+          <div><span>1</span><strong>Export job</strong><small>Packages the source, report, and references.</small></div>
+          <div><span>2</span><strong>Assemble</strong><small>Build the round-trip-ready local Blender draft.</small></div>
+          <div><span>3</span><strong>Review or edit</strong><small>Move normal parts; never edit the protected anchor.</small></div>
+          <div><span>4</span><strong>Export Objects</strong><small>Snap float noise and create verified placed-object records.</small></div>
+          <div><span>5</span><strong>Build Working Copy</strong><small>Replace only objects.json in a new .nmsship package.</small></div>
+        </div>
+        <div class="bridge-note">
+          <strong>New working copy—never the original or a save</strong>
+          <p>v0.6 refuses mismatched source ships or unsafe exports, preserves every non-Objects package entry, and creates a newly named <code>.nmsship</code>. <code>^U_PARAGON</code> must exactly match its embedded original record.</p>
+        </div>
+      </section>
+
+      <section class="bridge-panel">
+        <div class="bridge-heading">
+          <div>
+            <p class="eyebrow accent">Phase 07 · Image-Only Corvette Draft</p>
+            <h3>Turn screenshots into a guarded planning scaffold</h3>
+            <p>Use the separate Windows launcher to search real local Corvette and base parts, render sailing-specific candidate cards, and build non-exportable guide geometry from the 11-view study.</p>
+          </div>
+          <span class="bridge-ready"><span></span> Available now</span>
+        </div>
+        <div class="bridge-flow">
+          <div><span>1</span><strong>Index catalogues</strong><small>Reads local Corvette and ordinary base-part FBX metadata.</small></div>
+          <div><span>2</span><strong>Render candidates</strong><small>Creates front, side, top, and three-quarter cards.</small></div>
+          <div><span>3</span><strong>Build guides</strong><small>Creates hull, deck, mast, sail, and stern planning forms.</small></div>
+          <div><span>4</span><strong>Compare</strong><small>Return the report and renders to Nova for part matching.</small></div>
+          <div><span>5</span><strong>Human approval</strong><small>No NMS records are produced before review.</small></div>
+        </div>
+        <div class="bridge-note">
+          <strong>Double-click Run-Sailing-Corvette-v0.7.1.bat</strong>
+          <p>The unchanged catalogue search remains v0.7.1, while v0.8.1 also creates <code>sailing-corvette-guide-inspection.glb</code> for the interactive viewer. See <code>START-HERE-v0.8.1.txt</code>.</p>
+        </div>
+      </section>
+    </section>
+
+    <section class="roadmap panel">
+      <div>
+        <p class="eyebrow">Daedalus flight plan</p>
+        <h2>From understanding to assisted construction</h2>
+      </div>
+      <div class="roadmap-steps">
+        <div class="roadmap-step completed"><span>01</span><strong>Reverse Blueprint</strong><small>Validated</small></div>
+        <div class="roadmap-step completed"><span>02</span><strong>Real Models</strong><small>Validated</small></div>
+        <div class="roadmap-step completed"><span>03</span><strong>Objects Export</strong><small>Validated</small></div>
+        <div class="roadmap-step completed"><span>04</span><strong>Ship Working Copy</strong><small>Validated</small></div>
+        <div class="roadmap-step completed"><span>05</span><strong>Screenshot Draft</strong><small>Available now</small></div>
+        <div class="roadmap-step current"><span>06</span><strong>Learning Loop</strong><small>Foundation active</small></div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="helpDialog">
+    <form method="dialog">
+      <button class="dialog-close" aria-label="Close help">×</button>
+      <p class="eyebrow accent">Beginner guide</p>
+      <h2>What should I upload?</h2>
+      <ol>
+        <li><strong>Reference screenshots:</strong> images showing what the finished build looks like.</li>
+        <li><strong>Known build file:</strong> an exported <code>.nmsship</code>, <code>.nmsprefab</code>, <code>.NMSBASE</code>, or objects JSON—not your complete save.</li>
+        <li><strong>Prefab references:</strong> if an <code>.NMSBASE</code> places a named prefab, add the matching <code>.nmsprefab</code> definition when prompted.</li>
+        <li><strong>Analyze:</strong> Daedalus reads the records locally and explains the construction.</li>
+        <li><strong>Export:</strong> save a blueprint report or a self-contained Blender Bridge job.</li>
+      </ol>
+      <div class="dialog-note">
+        <strong>v0.9.1 keeps image studies, prefab definitions, generated sign attempts, inspection models, learning records, and source packages outside the game-save write path.</strong>
+        <p>The image-only path creates guide geometry with export disabled. Learning packages remain local until you export them, and the ground-truth path retains the source-hash, package-entry, and protected-anchor checks.</p>
+      </div>
+      <button class="primary-button" value="close">Got it</button>
+    </form>
+  </dialog>
+
+  <dialog id="paletteDialog" class="palette-dialog">
+    <form method="dialog">
+      <button class="dialog-close" value="cancel" aria-label="Close palette selector">×</button>
+      <p class="eyebrow accent">Palette focus</p>
+      <h2>Select only the build</h2>
+      <p class="dialog-description">Drag a rectangle around the ship or structure. Daedalus will ignore the surrounding planet, sky, and space when estimating colors.</p>
+      <canvas id="paletteCanvas" width="900" height="520"></canvas>
+      <div class="palette-dialog-actions">
+        <button class="secondary-button" id="fullImagePaletteButton" type="button">Use full image</button>
+        <button class="primary-button" id="savePaletteCropButton" type="button">Use selected area</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="vendor/jszip.min.js"></script>
+  <script src="vendor/daedalus-inspector.bundle.js"></script>
+  <script src="base-workflow.js"></script>
+  <script src="sign-generator.js"></script>
+  <script src="app.js"></script>
+  <script src="learning.js"></script>
+  <script src="shared.js"></script>
+</body>
+</html>
