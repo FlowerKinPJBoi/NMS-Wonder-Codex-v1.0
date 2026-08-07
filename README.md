@@ -1,4 +1,4 @@
-# Wonder Codex v1.25.0
+# Wonder Codex v1.24.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -106,15 +106,6 @@ representative from the appropriate asset catalog. Fragmented candidates,
 detached geometry, effect planes, non-primary LODs, and unresolved optional
 branches remain excluded. Exact specimen screenshots still take precedence and
 representative art never changes `image_status`.
-
-v1.25.0 replaces broad representative assignment with precision binding. Forge
-forms now appear on Database cards and record pages only when the catalog
-explicitly binds the form to the same privacy-safe DiscoveryData identity,
-observed descriptor profile, or procedural asset identity. Family-only,
-category-only, planet-biome, and asset-type matches remain searchable in the
-Forge gallery but no longer stand in for a particular record. Records awaiting
-that binding show an honest image-needed panel so visually distinct variants—
-including multiple Striders in one location—cannot be confused.
 
 ## Repository boundary
 
