@@ -564,15 +564,15 @@ function comparisonCard(label, value, detail, status = "") {
   `;
 }
 
-function recordRevision() {
+function recordRevision(providedInstruction = null) {
   if (!state.report) {
     showToast("Analyze a build before recording revisions.");
-    return;
+    return null;
   }
-  const instruction = learningEls.revisionInput.value.trim();
+  const instruction = String(providedInstruction ?? learningEls.revisionInput.value).trim();
   if (!instruction) {
     showToast("Tell Daedalus what you would like to change.");
-    return;
+    return null;
   }
 
   const plan = buildRevisionPlan(instruction);
@@ -583,6 +583,7 @@ function recordRevision() {
   saveSessionDraft();
   renderLearningState();
   showToast("Revision recorded for the next build pass.");
+  return plan;
 }
 
 function buildRevisionPlan(instruction) {
@@ -689,7 +690,7 @@ function approveGroundTruth() {
     learningState.teacherNote = learningEls.teacherNote.value.trim() || failures.join(" ");
     renderLearningState();
     showToast(failures[0]);
-    return;
+    return false;
   }
 
   learningState.groundTruthStatus = "verified";
@@ -702,12 +703,13 @@ function approveGroundTruth() {
   );
   renderLearningState();
   showToast("Genuine ground truth verified.");
+  return true;
 }
 
 function markAttemptCorrect() {
   if (!state.report) {
     showToast("Analyze a build before reviewing the generated attempt.");
-    return;
+    return false;
   }
   learningState.attemptStatus = "correct";
   learningState.attemptReviewedAt = new Date().toISOString();
@@ -720,12 +722,13 @@ function markAttemptCorrect() {
   );
   renderLearningState();
   showToast("Generated attempt marked correct.");
+  return true;
 }
 
 function markNeedsCorrection() {
   if (!state.report) {
     showToast("Analyze a build before recording feedback.");
-    return;
+    return false;
   }
   learningState.attemptStatus = "needs_correction";
   learningState.attemptReviewedAt = new Date().toISOString();
@@ -738,6 +741,7 @@ function markNeedsCorrection() {
   );
   renderLearningState();
   showToast("Generated attempt marked Needs correction.");
+  return true;
 }
 
 function validateLearningGroundTruth() {
@@ -1034,11 +1038,11 @@ async function exportLearningPackage() {
 async function submitLearningForReview() {
   if (learningState.groundTruthStatus !== "verified") {
     showToast("Verify the ground truth first, then save the session for independent admin review.");
-    return;
+    return null;
   }
   if (!window.DaedalusShared?.submitLearningBlob) {
     showToast("The shared review queue is not connected. Export the learning ZIP as a fallback.");
-    return;
+    return null;
   }
 
   const priorText = learningEls.submitReviewButton.textContent;
@@ -1049,9 +1053,10 @@ async function submitLearningForReview() {
     const note = learningEls.teacherNote.value.trim()
       || learningState.teacherNote
       || "Submitted directly from a verified Daedalus learning session.";
-    await window.DaedalusShared.submitLearningBlob(packageData.blob, packageData.fileName, note);
+    const response = await window.DaedalusShared.submitLearningBlob(packageData.blob, packageData.fileName, note);
     saveMemorySummary();
     showToast("Learning session saved for admin review. It cannot teach Daedalus until it is approved and released.");
+    return response;
   } catch (error) {
     showToast(error.message || "The learning session could not be submitted for review.");
   } finally {
@@ -1220,7 +1225,26 @@ window.DaedalusLearning = {
   comparePlacedObjects,
   classifyRevision,
   buildRevisionPlan,
-  deriveTrainingTrust
+  deriveTrainingTrust,
+  addRevision: recordRevision,
+  approveGroundTruth,
+  loadAttempt,
+  markAttemptCorrect,
+  markNeedsCorrection,
+  submitForReview: submitLearningForReview,
+  setTeacherNote(note) {
+    learningEls.teacherNote.value = String(note || "");
+    learningState.teacherNote = learningEls.teacherNote.value.trim();
+  },
+  getSnapshot() {
+    return {
+      recordId: learningState.recordId,
+      groundTruthStatus: learningState.groundTruthStatus,
+      attemptStatus: learningState.attemptStatus,
+      revisions: [...learningState.revisions],
+      attemptFile: learningState.attemptFile
+    };
+  }
 };
 
 initLearningLab();

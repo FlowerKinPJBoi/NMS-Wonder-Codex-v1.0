@@ -1,5 +1,21 @@
 # Wonder Codex changelog
 
+## v1.27.0 — Guided Daedalus workshop
+
+- Replaced the analyzer-first landing experience with a plain-language guided
+  workspace for build upload, references, chat revisions, preview, returned-file
+  download, result labeling, and direct learning-review submission.
+- Moved exact Object IDs, safety checks, Blender tools, corpus controls, and
+  technical exports into a preserved **Advanced Analyzer & Trainer** panel.
+- Connected guided requests to the existing local analyzer, scoped revision
+  capture, and released-lesson retrieval while preserving the source file.
+- Kept the 3,000-part cap, Object-ID-only geometry, protected anchors, uniform
+  scale, and preserve-unmentioned-geometry rules in every generated build plan.
+- Added an explicit capability boundary: plans remain `PLANNED_NOT_APPLIED`
+  until a real model file-writer returns an NMSBASE, prefab, Corvette, or JSON.
+- Added a one-screen human verification and review handoff; approval and release
+  remain separate administrative decisions.
+
 ## v1.26.0 — Versioned Daedalus corpus consumer
 
 - Made **Release to learning** publish a compact lesson from the exact reviewed

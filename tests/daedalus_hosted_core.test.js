@@ -106,11 +106,12 @@ assert.equal(learning.deriveTrainingTrust({
 }).eligibleForTraining, false);
 
 const page = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
-for (const script of ['base-workflow.js', 'sign-generator.js', 'app.js', 'learning.js', 'shared.js']) {
-  assert.ok(page.includes(`src="${script}"`), `${script} must be loaded by the hosted page.`);
+for (const script of ['base-workflow.js', 'sign-generator.js', 'app.js', 'learning.js', 'shared.js', 'guided.js']) {
+  assert.ok(page.includes(`src="${script}`), `${script} must be loaded by the hosted page.`);
 }
-assert.ok(page.indexOf('src="base-workflow.js"') < page.indexOf('src="app.js"'));
-assert.ok(page.indexOf('src="sign-generator.js"') < page.indexOf('src="app.js"'));
-assert.ok(page.indexOf('src="learning.js"') < page.indexOf('src="shared.js"'));
+assert.ok(page.indexOf('src="base-workflow.js') < page.indexOf('src="app.js'));
+assert.ok(page.indexOf('src="sign-generator.js') < page.indexOf('src="app.js'));
+assert.ok(page.indexOf('src="learning.js') < page.indexOf('src="shared.js'));
+assert.ok(page.indexOf('src="shared.js') < page.indexOf('src="guided.js'));
 
 console.log('Hosted Daedalus core contracts passed.');
