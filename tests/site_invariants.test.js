@@ -28,9 +28,6 @@ assert.equal(
 assert.equal(catalog.record_image_policy.exact_screenshots_override_representatives, true);
 assert.equal(catalog.record_image_policy.raw_evidence_unchanged, true);
 assert.equal(catalog.record_image_policy.ringless_presentation, true);
-assert.equal(catalog.record_image_policy.exact_or_descriptor_selector_required, true);
-assert.equal(catalog.record_image_policy.unbound_forms_are_gallery_only, true);
-assert.equal(catalog.entries.filter((entry) => entry.record_eligible).length, 0);
 
 for (const entry of catalog.entries) {
   assert.equal(entry.exact_specimen, false);
@@ -66,14 +63,13 @@ assert.match(index, /interactive, user-contributed museum of the galaxies/i);
 assert.match(index, /Preserve the procedural universe/i);
 assert.match(index, /account\.html[^>]*class="nav-cta"[^>]*>Passport/i);
 assert.doesNotMatch(index.match(/<nav id="primaryNav"[\s\S]*?<\/nav>/i)[0], /Submit screenshot|decoder\.html/i);
-assert.match(database, /No exact screenshot or evidence-matched Forge reconstruction/);
-assert.match(record, /No broad family or category image is substituted/);
-assert.match(databasePage, /expedition\.js\?v=1\.25\.0/);
-assert.match(recordPage, /expedition\.js\?v=1\.25\.0/);
-assert.match(assetPage, /expedition\.js\?v=1\.25\.0/);
-assert.match(expeditionScript, /assets\/forge\/forge-catalog\.json\?v=1\.25\.0/);
+assert.match(database, /Representative family image — not this exact specimen\./);
+assert.match(record, /Representative family image — not this exact specimen\./);
+assert.match(databasePage, /expedition\.js\?v=1\.24\.0/);
+assert.match(recordPage, /expedition\.js\?v=1\.24\.0/);
+assert.match(assetPage, /expedition\.js\?v=1\.24\.0/);
+assert.match(expeditionScript, /assets\/forge\/forge-catalog\.json\?v=1\.24\.0/);
 assert.match(expeditionScript, /record_eligible === true/);
-assert.match(expeditionScript, /selectorMatches/);
 assert.match(forge, /Construction component library/);
 assert.match(forge, /id="decoder"[\s\S]*Wonder Projector Decoder[\s\S]*href="decoder\.html"/i);
 assert.match(forge, /id="forgeDiscoveryCategory"/);
@@ -122,4 +118,4 @@ assert.equal(spacecraftGallery.summary.approvedRepresentatives, 13);
 assert.equal(spacecraftGallery.evidencePolicy.exactScreenshotsOverrideRepresentatives, true);
 assert.equal(spacecraftGallery.evidencePolicy.fragmentedOrDetachedGeometryExcluded, true);
 
-console.log('Wonder Codex v1.25.0 site invariants passed.');
+console.log('Wonder Codex v1.24.0 site invariants passed.');

@@ -5,7 +5,6 @@ import pytest
 
 from app.models import AssetSpecimen
 from app.services.assets import AssetManifestError, asset_wc_id, normalize_manifest, serialize_asset
-from app.services import forge as forge_service
 from app.services.forge import forge_asset_representative_metadata
 
 
@@ -98,43 +97,19 @@ def test_asset_wc_ids_and_public_serialization():
     assert payload["identity_fingerprint"] == "WCI-STARSHIP-0123456789ABCDEF0123"
     assert payload["appearance_seed_location_status"] == "not_a_location_claim"
     assert payload["primary_image_url"] == ""
-    assert "forge_image_url" not in payload
+    assert payload["forge_category_id"] == "starships"
+    assert payload["forge_exact_specimen"] is False
+    assert payload["forge_display_label"] == "Representative family image — not this exact specimen."
 
 
-def test_unbound_spacecraft_forms_are_not_assigned_by_asset_type():
+def test_complete_spacecraft_representatives_cover_starships_and_freighters():
     starship = forge_asset_representative_metadata(SimpleNamespace(
         id=1, asset_key="PGA-STARSHIP-1111111111111111", asset_type="Starship",
     ))
     freighter = forge_asset_representative_metadata(SimpleNamespace(
         id=2, asset_key="PGA-FREIGHTER-2222222222222222", asset_type="Freighter",
     ))
-    assert starship == {}
-    assert freighter == {}
-
-
-def test_spacecraft_form_requires_exact_identity_selector(monkeypatch):
-    entry = {
-        "id": "matched-fighter",
-        "category_id": "starships",
-        "family_id": "FIGHTER",
-        "family_display": "Fighter",
-        "form_name": "Matched fighter",
-        "image_url": "assets/forge/catalog/starships/matched-fighter.webp",
-        "record_eligible": True,
-        "exact_specimen": False,
-        "evidence_class": "identity_matched_reconstruction",
-        "display_label": forge_service.MATCHED_IMAGE_LABEL,
-        "ringless": True,
-        "record_selectors": {
-            "identity_fingerprints": ["WCI-STARSHIP-0123456789ABCDEF0123"],
-        },
-    }
-    monkeypatch.setattr(forge_service, "CATALOG_ENTRIES", (entry,))
-    metadata = forge_asset_representative_metadata(SimpleNamespace(
-        id=1,
-        asset_key="PGA-STARSHIP-1111111111111111",
-        asset_type="Starship",
-        fields={"identityFingerprint": "WCI-STARSHIP-0123456789ABCDEF0123"},
-    ))
-    assert metadata["forge_image_url"].endswith("matched-fighter.webp")
-    assert metadata["forge_selection_basis"] == "explicit_catalog_record_selector"
+    assert starship["forge_category_id"] == "starships"
+    assert freighter["forge_category_id"] == "freighters"
+    assert starship["forge_authenticity_status"] == "APPROVED_REPRESENTATIVE"
+    assert freighter["forge_authenticity_status"] == "APPROVED_REPRESENTATIVE"

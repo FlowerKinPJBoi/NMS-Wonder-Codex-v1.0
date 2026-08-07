@@ -47,14 +47,6 @@
 .wonder-card-image.is-forge img,.record-primary-image.is-forge img{position:relative;z-index:1;object-fit:contain;filter:drop-shadow(0 20px 28px rgba(0,0,0,.34)) drop-shadow(0 0 18px rgba(109,231,255,.13))}
 .wonder-card-image.is-forge img{padding:4px}
 .wonder-card-image.is-forge .archetype-label,.record-primary-image.is-forge .record-image-caption{position:relative;z-index:2}
-.wonder-card-image.is-missing,.record-primary-image.is-missing{position:relative;display:grid;place-items:center;min-height:180px;background:radial-gradient(circle at 50% 35%,rgba(109,231,255,.09),transparent 32%),linear-gradient(145deg,#06101f,#090d1d 58%,#11102a)}
-.wonder-card-image.is-missing::before,.record-primary-image.is-missing::before{content:"";position:absolute;inset:14px;border:1px dashed rgba(109,231,255,.24);border-radius:12px;background:linear-gradient(90deg,transparent 49.7%,rgba(109,231,255,.06) 50%,transparent 50.3%),linear-gradient(transparent 49.7%,rgba(109,231,255,.06) 50%,transparent 50.3%);pointer-events:none}
-.wonder-card-image.is-missing .image-needed-panel{position:relative;right:auto;bottom:auto;left:auto;z-index:1;width:min(88%,360px);text-align:center;background:rgba(5,9,20,.7)}
-.record-image-placeholder{position:relative;z-index:1;display:grid;gap:7px;justify-items:center;max-width:520px;padding:48px 24px;text-align:center}
-.record-image-placeholder span{color:var(--cyan);font:800 .65rem/1.2 "Space Grotesk",sans-serif;letter-spacing:.12em;text-transform:uppercase}
-.record-image-placeholder strong{color:#eef5ff;font:700 clamp(1.1rem,3vw,1.65rem)/1.2 "Space Grotesk",sans-serif}
-.record-image-placeholder small{max-width:470px;color:#aab8d4;line-height:1.5}
-.record-primary-image.is-missing .record-image-caption{position:relative;z-index:1;width:100%;border-top:1px solid rgba(109,231,255,.12);background:rgba(5,9,20,.55);text-align:center}
 .status-chip.forge{color:#aeeeff;border-color:rgba(109,231,255,.38);background:linear-gradient(110deg,rgba(109,231,255,.1),rgba(157,140,255,.08))}
 .honeypot{position:absolute!important;left:-10000px!important;top:auto!important;width:1px!important;height:1px!important;overflow:hidden!important;opacity:0!important;pointer-events:none!important}
 .selection-confirmation{margin:0 0 9px!important;color:var(--green)!important;font-size:.7rem!important;font-weight:800;text-transform:uppercase;letter-spacing:.07em}
