@@ -285,6 +285,9 @@ function addImages(files) {
   analyzePrimaryPalette();
   setStepper(state.packageData ? 3 : 2);
   window.DaedalusLearning?.onEvidenceChanged?.();
+  window.dispatchEvent(new CustomEvent("daedalus:references-changed", {
+    detail: { count: state.images.length }
+  }));
 }
 
 function removeImage(index) {
@@ -575,24 +578,42 @@ async function loadPackage(file) {
     const packageData = await parseBuildFile(file);
     state.packageFile = file;
     state.packageData = packageData;
+    state.report = null;
+    els.results.hidden = true;
     state.prefabDefinitions = [];
     state.prefabDefinitionFiles = [];
-    if (packageData.prefabInstances?.length) setMode("base");
+    const sourceIds = new Set(packageData.objects.map((object) => object?.ObjectID).filter(Boolean));
+    if (packageData.format === "nmsship" || sourceIds.has("^U_PARAGON")) setMode("corvette");
+    else if (["nmsbase", "nmsprefab"].includes(packageData.format) || packageData.prefabInstances?.length || sourceIds.has("^BASE_FLAG")) setMode("base");
     renderSelectedPackage();
     renderPrefabResolver();
     updateReadyState();
     setStepper(3);
     window.DaedalusLearning?.onSourceChanged?.();
     syncDesignIntentToLearning();
+    window.dispatchEvent(new CustomEvent("daedalus:source-ready", {
+      detail: {
+        fileName: packageData.sourceName,
+        format: packageData.format,
+        objectCount: packageData.objects.length,
+        sourceKind: packageData.sourceKind
+      }
+    }));
+    return packageData;
   } catch (error) {
     state.packageFile = null;
     state.packageData = null;
+    state.report = null;
     state.prefabDefinitions = [];
     state.prefabDefinitionFiles = [];
     els.selectedPackage.hidden = true;
     els.prefabResolver.hidden = true;
     els.buttonGuidance.textContent = "The build file could not be read.";
     showToast(error.message || "Daedalus could not read that package.");
+    window.dispatchEvent(new CustomEvent("daedalus:source-error", {
+      detail: { message: error.message || "Daedalus could not read that package." }
+    }));
+    return null;
   }
 }
 
@@ -792,25 +813,37 @@ function updateReadyState() {
 }
 
 function runAnalysis() {
-  if (!state.packageData) return;
+  if (!state.packageData) return Promise.resolve(null);
   els.analyzeButton.disabled = true;
   els.analyzeButton.querySelector("span:first-child").textContent = "Analyzing transforms…";
 
-  window.setTimeout(() => {
+  return new Promise((resolve) => window.setTimeout(() => {
     try {
       state.report = buildReport();
       renderReport();
       els.results.hidden = false;
       setStepper(4);
       selectTab("overview");
-      els.results.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (document.querySelector("#advancedWorkspace")?.open) {
+        els.results.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      window.dispatchEvent(new CustomEvent("daedalus:analysis-ready", {
+        detail: {
+          buildName: state.report.build.name,
+          objectCount: state.report.build.objectCount,
+          distinctObjectIds: state.report.build.distinctObjectIds,
+          mode: state.report.mode
+        }
+      }));
+      resolve(state.report);
     } catch (error) {
       showToast(error.message || "Analysis failed.");
+      resolve(null);
     } finally {
       els.analyzeButton.disabled = false;
       els.analyzeButton.querySelector("span:first-child").textContent = "Analyze Reverse Blueprint";
     }
-  }, 80);
+  }, 80));
 }
 
 function buildReport() {
@@ -1612,5 +1645,26 @@ function showToast(message) {
   els.toast.classList.add("show");
   toastTimer = window.setTimeout(() => els.toast.classList.remove("show"), 2600);
 }
+
+window.DaedalusApp = {
+  addReferenceImages: addImages,
+  analyze: runAnalysis,
+  getSnapshot() {
+    return {
+      mode: state.mode,
+      category: state.buildCategory,
+      sourceFile: state.packageFile,
+      source: state.packageData,
+      report: state.report,
+      images: [...state.images]
+    };
+  },
+  isBuildFile,
+  loadBuildFile: loadPackage,
+  setBrief(value) {
+    els.buildBrief.value = String(value || "");
+    handleBuildBrief();
+  }
+};
 
 init();

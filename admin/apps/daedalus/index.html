@@ -4,10 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07131f">
-  <title>Daedalus Builder · Reverse Blueprint Analyzer</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>Daedalus Builder · Guided Workshop</title>
+  <link rel="stylesheet" href="styles.css?v=1.27.0">
   <link rel="stylesheet" href="shared.css">
-  <link rel="stylesheet" href="corpus.css?v=1.26.0">
+  <link rel="stylesheet" href="corpus.css?v=1.27.0">
+  <link rel="stylesheet" href="guided.css?v=1.27.0">
 </head>
 <body>
   <div class="space-backdrop" aria-hidden="true"></div>
@@ -20,13 +21,92 @@
       <div>
         <p class="eyebrow">Wonder Codex Workshop</p>
         <h1>Daedalus Builder</h1>
-        <p class="subtitle">Builder core <span class="version">v0.9.1</span> · Corpus consumer <span class="version">v1.26.0</span></p>
+        <p class="subtitle">Builder core <span class="version">v0.9.1</span> · Guided workspace <span class="version">v1.27.0</span></p>
       </div>
     </div>
     <div class="hosted-actions"><a href="/admin/apps/">← Admin apps</a><div class="safety-pill"><span></span> Local analysis · shared review</div></div>
   </header>
 
   <main>
+    <section class="guided-workspace panel" id="guidedWorkspace">
+      <div class="guided-heading">
+        <div>
+          <p class="eyebrow accent">Build with Daedalus</p>
+          <h2>Bring a build. Talk through the changes. Take the result with you.</h2>
+          <p>Add an NMSBASE, prefab, Corvette, or JSON file and tell Daedalus what you want to create, repair, or decorate.</p>
+        </div>
+        <span class="guided-status" id="guidedStatus"><span></span>Add a build to begin</span>
+      </div>
+
+      <div class="guided-layout">
+        <section class="guided-chat" aria-labelledby="guidedChatTitle">
+          <div class="guided-card-heading">
+            <div><p class="eyebrow">Your workshop</p><h3 id="guidedChatTitle">Chat with Daedalus</h3></div>
+            <span class="guided-session-step" id="guidedSessionStep">Step 1 of 4</span>
+          </div>
+          <div class="guided-conversation" id="guidedConversation" aria-live="polite">
+            <article class="guided-message assistant"><span>Daedalus</span><p>Hi! Add the build you want to work on. Reference pictures are optional, but they help me understand the look you want.</p></article>
+          </div>
+          <form class="guided-composer" id="guidedComposer">
+            <label for="guidedPrompt">What would you like Daedalus to do?</label>
+            <textarea id="guidedPrompt" rows="4" placeholder="Decorate the NMS 10 base. Keep the stairs clear, leave seats at normal size, and place furnishings along the room edges."></textarea>
+            <div class="guided-composer-actions">
+              <small>Press Ctrl/⌘ + Enter to send</small>
+              <button class="primary-button small" id="guidedSend" type="submit" disabled>Send to Daedalus</button>
+            </div>
+          </form>
+          <div class="guided-plan" id="guidedPlan" hidden>
+            <div><strong>Next build pass is planned</strong><span id="guidedPlanSummary"></span></div>
+            <button class="secondary-button" id="guidedDownloadPlan" type="button">Download build plan</button>
+          </div>
+        </section>
+
+        <section class="guided-side">
+          <div class="guided-preview-card">
+            <div class="guided-card-heading">
+              <div><p class="eyebrow">Preview</p><h3>Your build at a glance</h3></div>
+              <span id="guidedPreviewBadge">Waiting for a file</span>
+            </div>
+            <div class="guided-preview-stage" id="guidedPreviewStage">
+              <img id="guidedPreviewImage" alt="Selected Daedalus reference" hidden>
+              <div id="guidedPreviewEmpty"><span aria-hidden="true">◇</span><strong>Preview appears here</strong><p>Add screenshots or a Blender inspection model when you have one.</p></div>
+            </div>
+            <div class="guided-build-facts" id="guidedBuildFacts"><span>Parts <strong>—</strong></span><span>Object IDs <strong>—</strong></span><span>Limit <strong>3,000</strong></span></div>
+          </div>
+
+          <div class="guided-file-grid">
+            <article class="guided-file-card source">
+              <div><p class="eyebrow">Start here</p><h3>Add your build</h3><p>The original stays untouched in your browser.</p></div>
+              <label class="guided-file-button" for="guidedBuildInput">Choose NMSBASE, prefab, Corvette, or JSON<input id="guidedBuildInput" type="file" accept=".nmsship,.nmsprefab,.nmsbase,.json,application/json"></label>
+              <div class="guided-file-name" id="guidedBuildName">No build added</div>
+              <label class="guided-file-button secondary" for="guidedReferenceInput">Add reference pictures<input id="guidedReferenceInput" type="file" multiple accept=".png,.jpg,.jpeg,.webp,.jxr,image/png,image/jpeg,image/webp"></label>
+              <div class="guided-reference-list" id="guidedReferenceList"></div>
+            </article>
+
+            <article class="guided-file-card output">
+              <div><p class="eyebrow">Latest result</p><h3>Daedalus build file</h3><p id="guidedOutputHelp">No result file yet. Daedalus can prepare the next build here; automatic NMSBASE or prefab creation is not connected yet.</p></div>
+              <label class="guided-file-button secondary" for="guidedOutputInput">Add Daedalus's returned file<input id="guidedOutputInput" type="file" accept=".nmsship,.nmsprefab,.nmsbase,.json,application/json"></label>
+              <div class="guided-file-name" id="guidedOutputName">No returned build attached</div>
+              <div class="guided-output-actions">
+                <button class="secondary-button" id="guidedDownloadOutput" type="button" disabled>Download latest build</button>
+                <button class="secondary-button" id="guidedAttemptGood" type="button" disabled>Looks good</button>
+                <button class="secondary-button" id="guidedAttemptFix" type="button" disabled>Needs changes</button>
+              </div>
+            </article>
+          </div>
+
+          <div class="guided-finish-card">
+            <div><p class="eyebrow">When you are finished</p><h3>Help Daedalus learn from this session</h3><p>Your session goes to the human review queue first. It cannot influence future builds until an admin approves and releases it.</p></div>
+            <label class="guided-confirm"><input id="guidedTruthConfirm" type="checkbox"><span>I inspected this source and confirm it is accurate ground truth.</span></label>
+            <button class="primary-button" id="guidedSubmitLearning" type="button" disabled>Finish &amp; submit for learning review</button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <details class="advanced-workspace" id="advancedWorkspace">
+      <summary><span><strong>Advanced Analyzer &amp; Trainer</strong><small>Open exact Object IDs, safety checks, Blender tools, corpus review, and technical exports</small></span><span aria-hidden="true">⌄</span></summary>
+      <div class="advanced-workspace-body">
     <section class="shared-hub panel" id="sharedHub">
       <div class="shared-heading">
         <div><p class="eyebrow accent">Wonder Codex · Shared trainer</p><h2>Build together. Release deliberately.</h2><p>Analysis stays in this browser. Verified sessions enter review first. An authorized release now publishes a compact, versioned lesson to Daedalus retrieval; the original evidence ZIP remains private and immutable.</p></div>
@@ -602,6 +682,8 @@
         <div class="roadmap-step current"><span>06</span><strong>Learning Loop</strong><small>Foundation active</small></div>
       </div>
     </section>
+      </div>
+    </details>
   </main>
 
   <dialog id="helpDialog">
@@ -644,8 +726,9 @@
   <script src="vendor/daedalus-inspector.bundle.js"></script>
   <script src="base-workflow.js"></script>
   <script src="sign-generator.js"></script>
-  <script src="app.js"></script>
-  <script src="learning.js"></script>
-  <script src="shared.js"></script>
+  <script src="app.js?v=1.27.0"></script>
+  <script src="learning.js?v=1.27.0"></script>
+  <script src="shared.js?v=1.27.0"></script>
+  <script src="guided.js?v=1.27.0"></script>
 </body>
 </html>

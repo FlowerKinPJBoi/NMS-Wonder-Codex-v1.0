@@ -1,4 +1,4 @@
-# Wonder Codex v1.26.0
+# Wonder Codex v1.27.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -19,8 +19,17 @@ Descriptor Atlas evidence layer. It also includes a private receiver and owner
 review lane for locally confirmed Capture Companion discovery/screenshot pairs;
 nothing from that lane becomes public without an administrator decision.
 
-v1.26.0 hosts Daedalus Builder inside `/admin/apps/` for named trainers. Build
-analysis remains browser-local; exported learning packages are validated again
+v1.27.0 makes Daedalus Builder's primary experience a guided workshop for named
+trainers: add a build and references, analyze automatically, discuss iterative
+changes in plain language, retrieve approved lessons, attach and download a
+returned build, and submit the finished session directly to human review. The
+exact Object IDs, safety checks, Blender tools, queue, and corpus controls remain
+available under Advanced Analyzer & Trainer. The guided workspace labels a
+retrieval-grounded plan as planned—not applied—and never presents a modified
+NMSBASE or prefab unless a real returned file is attached; connecting a model
+file-writer remains a separate deployment integration.
+
+Build analysis remains browser-local; exported learning packages are validated again
 by the API and stored in a shared private review queue. A verified session can
 also be packaged and submitted directly from the Learning Lab without a manual
 download/re-upload step. Approval and release are deliberately separate. A
