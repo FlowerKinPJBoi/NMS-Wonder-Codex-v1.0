@@ -1,5 +1,22 @@
 # Wonder Codex changelog
 
+## v1.25.0 — Precision-bound Expedition imagery
+
+- Removed deterministic hashing across same-family fauna forms and broad
+  flora, mineral, planet, Starship, Freighter, Frigate, and Multi-tool pools.
+- Required every record-assigned Forge image to carry an explicit privacy-safe
+  DiscoveryData/asset selector or an observed descriptor-profile selector.
+- Added a stable `WCF-` discovery selector fingerprint so future Expedition
+  exports can bind a reconstruction without publishing raw VP or save data.
+- Replaced misleading broad placeholders with a neutral image-needed state on
+  Database cards, discovery pages, and asset pages.
+- Kept all clean front-facing forms searchable in the Forge gallery while they
+  await exact variant bindings; exact approved screenshots remain highest
+  priority.
+- Added regression coverage for same-family variant ambiguity, descriptor
+  evidence gates, category-wide flora/mineral assignment, and asset-type-only
+  spacecraft assignment.
+
 ## v1.24.0 — Complete spacecraft representatives
 
 - Added thirteen approved front-three-quarter complete-form representatives:

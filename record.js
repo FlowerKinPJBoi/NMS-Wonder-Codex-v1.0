@@ -103,41 +103,34 @@
   }
 
 
-  function showArchetype(data, note = '') {
-    const archetype = WCArchetypes.resolve(data);
+  function showImageNeededOrMatch(data, note = '', forceMissing = false) {
     const forgeUrl = String(data.forge_image_url || '').trim();
     const expedition = forgeUrl ? null : window.WCExpedition?.resolve(data);
-    const representativeUrl = forgeUrl || String(expedition?.image_url || '');
+    const representativeUrl = forceMissing ? '' : forgeUrl || String(expedition?.image_url || '');
     const gallery = $('#recordGallery');
     const frame = gallery.querySelector('.record-primary-image');
     const primary = $('#recordPrimaryImage');
-    frame.classList.add('is-archetype');
-    frame.classList.toggle('is-forge', Boolean(representativeUrl));
-    const showStaticArchetype = () => {
-      frame.classList.remove('is-forge');
-      primary.onerror = () => {
-        primary.onerror = null;
-        primary.removeAttribute('src');
-        $('#recordImageCaption').textContent = 'The representative archetype could not be loaded. Please report this record ID to an administrator.';
-      };
-      primary.src = archetype.url;
-      primary.alt = archetype.alt;
-      $('#recordImageCaption').textContent = `${data.archetype_label || archetype.label} • Representative archetype — not this exact specimen${note ? ` • ${note}` : ''}`;
-    };
-    primary.onerror = () => {
-      if (representativeUrl) {
-        showStaticArchetype();
-        return;
-      }
+    frame.querySelector('.record-image-placeholder')?.remove();
+    frame.classList.remove('is-archetype', 'is-forge', 'is-missing');
+    if (representativeUrl) {
+      frame.classList.add('is-forge');
+      primary.hidden = false;
+      primary.onerror = () => showImageNeededOrMatch(data, 'matched Forge image temporarily unavailable', true);
+      primary.src = representativeUrl;
+      primary.alt = `${data.display_name} evidence-matched Forge reconstruction`;
+      $('#recordImageCaption').textContent = `${data.forge_form_name || expedition?.name || 'Matched visual form'} • ${data.forge_display_label || expedition?.public_label || 'Evidence-matched Forge reconstruction — verify color and lighting in game.'}${note ? ` • ${note}` : ''}`;
+    } else {
+      frame.classList.add('is-missing');
       primary.onerror = null;
       primary.removeAttribute('src');
-      $('#recordImageCaption').textContent = 'The representative archetype could not be loaded. Please report this record ID to an administrator.';
-    };
-    primary.src = representativeUrl || archetype.url;
-    primary.alt = representativeUrl ? `${data.planet_biome_family || data.fauna_family_label || expedition?.category_label || 'Wonder'} representative from Wonder Forge` : archetype.alt;
-    $('#recordImageCaption').textContent = representativeUrl
-      ? `${data.forge_form_name || expedition?.name || data.planet_biome_family || data.fauna_family_label || 'Approved representative'} • Wonder Forge ${forgeUrl ? 'verified natural form' : 'Expedition representative'} • ${data.forge_display_label || expedition?.public_label || 'Representative family image — not this exact specimen.'}${note ? ` • ${note}` : ''}`
-      : `${data.archetype_label || archetype.label} • Representative archetype — not this exact specimen${note ? ` • ${note}` : ''}`;
+      primary.hidden = true;
+      const placeholder = document.createElement('div');
+      placeholder.className = 'record-image-placeholder';
+      placeholder.innerHTML = '<span>Image needed</span><strong>Exact visual not yet matched</strong><small></small>';
+      placeholder.querySelector('small').textContent = 'This record needs an exact screenshot or an Expedition reconstruction bound to the same visual variant.';
+      frame.insertBefore(placeholder, $('#recordImageCaption'));
+      $('#recordImageCaption').textContent = `No broad family or category image is substituted${note ? ` • ${note}` : ''}`;
+    }
     $('#recordThumbnails').innerHTML = '';
     $('#recordThumbnails').hidden = true;
     gallery.hidden = false;
@@ -146,14 +139,16 @@
   function renderImages(images, data) {
     const approved = Array.isArray(images) ? images.filter((image) => image.url) : [];
     const gallery = $('#recordGallery');
-    if (!approved.length) { showArchetype(data); return; }
+    if (!approved.length) { showImageNeededOrMatch(data); return; }
     let active = approved.find((image) => image.is_primary) || approved[0];
     const show = (image) => {
       active = image;
       const primary = $('#recordPrimaryImage');
-      gallery.querySelector('.record-primary-image').classList.remove('is-archetype', 'is-forge');
+      gallery.querySelector('.record-primary-image').classList.remove('is-archetype', 'is-forge', 'is-missing');
+      gallery.querySelector('.record-image-placeholder')?.remove();
+      primary.hidden = false;
       primary.onerror = () => {
-        showArchetype(data, 'approved image temporarily unavailable');
+        showImageNeededOrMatch(data, 'approved image temporarily unavailable');
       };
       const deliveryUrl = `${image.url}${image.url.includes('?') ? '&' : '?'}display=140`;
       primary.src = deliveryUrl;
@@ -172,7 +167,7 @@
     data = WCLocation.enrich(data);
     record = data;
     const expedition = data.forge_image_url ? null : window.WCExpedition?.resolve(data);
-    const hasForgeRepresentative = Boolean(data.forge_image_url || expedition);
+    const hasForgeMatch = Boolean(data.forge_image_url || expedition);
     document.title = `${data.wc_id} — ${data.display_name} | Wonder Codex`;
     $('#recordHero').innerHTML = `${escapeHtml(data.wc_id)} <span>published record.</span>`;
     $('#recordIntro').textContent = 'Projector data, attribution, verification status, and travel information for this Wonder Codex discovery.';
@@ -182,7 +177,7 @@
     $('#recordAttribution').textContent = `Contributed by ${data.contributor || data.owner || 'Unknown explorer'}${data.save_name ? ` • ${data.save_name}` : ''}`;
     renderWonderIdentity(data);
     $('#recordBadges').innerHTML = badge('Location', data.travel_status) + badge('Projector', data.projector_status) + badge('Image', data.image_status)
-      + (hasForgeRepresentative && data.image_status !== 'available' ? '<span class="status-chip forge">Forge family representative</span>' : '');
+      + (hasForgeMatch && data.image_status !== 'available' ? '<span class="status-chip forge">Forge visual match</span>' : '');
     renderImages(data.images || [], data);
     $('#messageId').textContent = data.message_id || 'No Wonder Projector Message ID available';
     $('#copyMessage').hidden = !data.message_id;
@@ -196,8 +191,8 @@
       item('Visual family', data.wonder_family_label, false),
       item('Individual identity', data.wonder_individual_name || data.wonder_individual_reference || 'Encoded', false),
       item('Identity evidence', data.wonder_projector_fingerprint_label, false),
-      ...(hasForgeRepresentative ? [
-        item('Forge image basis', `${data.forge_match_label || expedition?.selection_basis || 'Stable catalog identity'} · representative only`, false),
+      ...(hasForgeMatch ? [
+        item('Forge image basis', `${data.forge_match_label || expedition?.selection_basis || 'Exact catalog selector'} · evidence-matched reconstruction`, false),
       ] : []),
       ...(data.descriptor_token_count ? [
         item('Appearance signals', `${data.descriptor_token_count} observed`, false),

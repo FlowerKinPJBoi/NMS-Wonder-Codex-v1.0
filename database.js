@@ -65,32 +65,26 @@
   }
 
   function imageMarkup(item, name) {
-    const archetype = WCArchetypes.resolve(item);
-    const representativeLabel = item.archetype_label || archetype.label;
     const approvedUrl = String(item.primary_image_url || '').trim();
     const forgeUrl = approvedUrl ? '' : String(item.forge_image_url || '').trim();
     const expedition = approvedUrl || forgeUrl ? null : window.WCExpedition?.resolve(item);
     const expeditionUrl = String(expedition?.image_url || '');
-    const representativeUrl = forgeUrl || expeditionUrl;
-    const isRepresentative = !approvedUrl;
-    const isForge = Boolean(representativeUrl);
-    const assetLabel = item.asset_type ? 'Illustrative reconstruction — not an image of this exact specimen.' : `${representativeLabel} · Representative archetype — not this exact specimen.`;
-    const forgeLabel = item.forge_display_label || 'Representative family image — not this exact specimen.';
-    const labelHeading = forgeUrl
-      ? 'Wonder Forge · family representative'
-      : expedition
-        ? `Wonder Forge · ${expedition.category_label} representative`
-        : item.asset_type ? 'Illustrative archetype' : 'Representative archetype';
-    const labelCopy = isForge
-      ? `${item.forge_form_name || expedition?.name || item.fauna_family_label || 'Approved representative'} · ${forgeLabel}`
-      : assetLabel;
-    return `<div class="wonder-card-image ${isForge ? 'is-forge' : isRepresentative ? 'is-archetype' : 'is-approved'}">
-      <img src="${escapeHtml(approvedUrl || representativeUrl || archetype.url)}" alt="${escapeHtml(isRepresentative ? `${item.planet_biome_family || item.fauna_family_label || expedition?.category_label || representativeLabel} representative` : name)}" loading="lazy" data-archetype-fallback="${escapeHtml(archetype.url)}" data-archetype-alt="${escapeHtml(archetype.alt)}" data-archetype-label="${escapeHtml(assetLabel)}">
-      <div class="archetype-label"${isRepresentative ? '' : ' hidden'}><span>${escapeHtml(labelHeading)}</span><small>${escapeHtml(labelCopy)}</small></div>
+    const matchedUrl = forgeUrl || expeditionUrl;
+    const missingCopy = 'No exact screenshot or evidence-matched Forge reconstruction is available for this visual variant yet.';
+    if (!approvedUrl && !matchedUrl) {
+      return `<div class="wonder-card-image is-missing" role="img" aria-label="Image needed for ${escapeHtml(name)}"><div class="archetype-label image-needed-panel"><span>Image needed</span><small>${escapeHtml(missingCopy)}</small></div></div>`;
+    }
+    const isForge = Boolean(matchedUrl);
+    const forgeLabel = item.forge_display_label || expedition?.public_label
+      || 'Evidence-matched Forge reconstruction — verify color and lighting in game.';
+    const labelCopy = `${item.forge_form_name || expedition?.name || item.fauna_family_label || 'Matched visual form'} · ${forgeLabel}`;
+    return `<div class="wonder-card-image ${isForge ? 'is-forge' : 'is-approved'}">
+      <img src="${escapeHtml(approvedUrl || matchedUrl)}" alt="${escapeHtml(isForge ? `${name} evidence-matched Forge reconstruction` : name)}" loading="lazy" data-missing-copy="${escapeHtml(missingCopy)}">
+      <div class="archetype-label"${isForge ? '' : ' hidden'}><span>Wonder Forge · evidence match</span><small>${escapeHtml(labelCopy)}</small></div>
     </div>`;
   }
 
-  function hasForgeRepresentative(item) {
+  function hasForgeMatch(item) {
     if (String(item.primary_image_url || '').trim()) return false;
     return Boolean(
       String(item.forge_image_url || '').trim()
@@ -99,18 +93,18 @@
   }
 
   function bindImageFallbacks() {
-    document.querySelectorAll('#catalogGrid .wonder-card-image img[data-archetype-fallback]').forEach((image) => {
-      image.addEventListener('error', function useArchetypeFallback() {
-        image.removeEventListener('error', useArchetypeFallback);
-        image.src = image.dataset.archetypeFallback;
-        image.alt = image.dataset.archetypeAlt;
+    document.querySelectorAll('#catalogGrid .wonder-card-image img[data-missing-copy]').forEach((image) => {
+      image.addEventListener('error', function showMissingState() {
+        image.removeEventListener('error', showMissingState);
+        image.hidden = true;
         const frame = image.closest('.wonder-card-image');
-        frame?.classList.remove('is-approved', 'is-forge'); frame?.classList.add('is-archetype');
+        frame?.classList.remove('is-approved', 'is-forge'); frame?.classList.add('is-missing');
         const label = frame?.querySelector('.archetype-label');
         if (label) {
           label.hidden = false;
-          label.querySelector('span').textContent = 'Representative archetype';
-          label.querySelector('small').textContent = image.dataset.archetypeLabel;
+          label.classList.add('image-needed-panel');
+          label.querySelector('span').textContent = 'Image needed';
+          label.querySelector('small').textContent = image.dataset.missingCopy;
         }
       });
     });
@@ -118,12 +112,12 @@
 
   function wonderCard(item) {
     item = WCLocation.enrich(item);
-    const forgeRepresentative = hasForgeRepresentative(item);
+    const forgeRepresentative = hasForgeMatch(item);
     return `<article class="wonder-card">${imageMarkup(item, item.display_name)}
       <div class="wonder-card-top"><span class="wc-id">${escapeHtml(item.wc_id)}</span><span class="type-chip">${escapeHtml(typeLabel(item.discovery_type))}</span></div>
       <h2>${escapeHtml(item.display_name)}</h2><p>Contributed by ${escapeHtml(item.contributor || item.owner || 'Unknown explorer')}</p>
       ${wonderIdentityMarkup(item)}
-      <div class="card-badges"><span class="status-chip ${escapeHtml(item.travel_status)}">Location ${escapeHtml(item.travel_status)}</span><span class="status-chip ${item.image_status === 'available' ? 'verified' : 'needed'}">Image ${escapeHtml(item.image_status)}</span>${forgeRepresentative && item.image_status !== 'available' ? '<span class="status-chip forge">Forge representative</span>' : ''}<span class="status-chip ${item.projector_status === 'verified' ? 'verified' : ''}">Projector ${escapeHtml(item.projector_status.replaceAll('_',' '))}</span></div>
+      <div class="card-badges"><span class="status-chip ${escapeHtml(item.travel_status)}">Location ${escapeHtml(item.travel_status)}</span><span class="status-chip ${item.image_status === 'available' ? 'verified' : 'needed'}">Image ${escapeHtml(item.image_status)}</span>${forgeRepresentative && item.image_status !== 'available' ? '<span class="status-chip forge">Forge visual match</span>' : ''}<span class="status-chip ${item.projector_status === 'verified' ? 'verified' : ''}">Projector ${escapeHtml(item.projector_status.replaceAll('_',' '))}</span></div>
       ${locationMarkup(item)}
       <div class="wonder-card-actions"><a class="mini-link primary" href="record.html?id=${item.id}">View record</a><a class="mini-link" href="contribute.html?mode=image&record=${item.id}">Add image</a><a class="mini-link" href="contribute.html?mode=verify&record=${item.id}">Verify</a></div>
     </article>`;
@@ -137,12 +131,12 @@
   }
 
   function assetCard(item) {
-    const forgeRepresentative = hasForgeRepresentative(item);
+    const forgeRepresentative = hasForgeMatch(item);
     return `<article class="wonder-card asset-card">${imageMarkup(item, item.display_name)}
       <div class="wonder-card-top"><span class="wc-id">${escapeHtml(item.wc_id)}</span><span class="type-chip">${escapeHtml(typeLabel(item.asset_type))}</span></div>
       <h2>${escapeHtml(item.display_name)}</h2><p>Contributed by ${escapeHtml(item.contributor || 'Anonymous explorer')}</p>
       ${assetIdentityMarkup(item)}
-      <div class="card-badges"><span class="status-chip ${item.location_status === 'verified' ? 'verified' : 'unverified'}">Acquisition ${escapeHtml(item.location_status)}</span><span class="status-chip ${item.image_status === 'available' ? 'verified' : 'needed'}">Image ${escapeHtml(item.image_status)}</span>${forgeRepresentative && item.image_status !== 'available' ? '<span class="status-chip forge">Forge representative</span>' : ''}${item.modified_or_special_signal ? '<span class="status-chip pending">Special signal · review</span>' : ''}</div>
+      <div class="card-badges"><span class="status-chip ${item.location_status === 'verified' ? 'verified' : 'unverified'}">Acquisition ${escapeHtml(item.location_status)}</span><span class="status-chip ${item.image_status === 'available' ? 'verified' : 'needed'}">Image ${escapeHtml(item.image_status)}</span>${forgeRepresentative && item.image_status !== 'available' ? '<span class="status-chip forge">Forge visual match</span>' : ''}${item.modified_or_special_signal ? '<span class="status-chip pending">Special signal · review</span>' : ''}</div>
       ${assetLocationMarkup(item)}
       <div class="wonder-card-actions"><a class="mini-link primary" href="asset.html?id=${item.id}">View specimen</a></div>
     </article>`;

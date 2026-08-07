@@ -35,18 +35,21 @@ These rules are release blockers, not optional copy suggestions.
 12. **Expedition components stay components.** Starship, freighter, and
     multi-tool part previews may appear in the Forge Component Vault but may not
     become a complete catalog specimen image.
-13. **Representative assignment stays bounded.** Expedition representatives
-    may be selected only from a confirmed fauna-family pool or the record's
-    broad catalog category. Planet globes and uncertain fauna remain
-    gallery-only. Starship and Freighter records may use only the complete,
-    front-three-quarter forms in the public spacecraft certification; isolated
-    components, fragmented assemblies, and effect-bearing candidates remain
-    ineligible.
+13. **Record imagery must identify the visual variant.** A Forge image may be
+    assigned only through an explicit privacy-safe discovery/asset identity
+    selector or an observed descriptor-profile selector. Category, asset type,
+    fauna family, VP1 cohort, and deterministic hashing are insufficient.
+    Unbound forms—including clean front-facing forms—remain gallery-only until
+    the Expedition records the selector that produced them.
 14. **The museum mission stays visible.** Public mission language continues to
     describe Wonder Codex as “an interactive, user-contributed museum of the
     galaxies.”
-15. **Representative delivery survives API rollout gaps.** Database, discovery,
-    and asset pages load the public ringless Forge manifest as a client-side
-    fallback when the API does not return representative metadata. The fallback
-    must enforce the same record-eligibility boundaries and exact-image
-    precedence as the API.
+15. **Precision matching survives API rollout gaps.** Database, discovery, and
+    asset pages load the public ringless Forge manifest as a client-side fallback
+    when the API does not return matched-image metadata. The fallback must
+    enforce the same explicit-selector requirement and exact-image precedence as
+    the API; otherwise it must show the neutral image-needed state.
+16. **Missing is safer than misleading.** A record without an exact screenshot
+    or evidence-matched Forge reconstruction must not display a broad family,
+    category, biome, or asset-type placeholder as though it helps identify the
+    in-game find.

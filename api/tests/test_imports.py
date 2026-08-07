@@ -280,44 +280,62 @@ def test_unambiguous_vp1_mapping_labels_related_discoveries_without_copying_beha
     assert metadata["fauna_family_label"] == "T-Rex"
     assert metadata["fauna_behavior"] == ""
     assert metadata["fauna_identity_source"] == "confirmed_vp1_mapping"
-    assert metadata["forge_image_url"].startswith("/assets/forge/catalog/fauna/")
-    assert metadata["forge_match_basis"] == "confirmed_vp1_mapping"
-    assert metadata["forge_exact_specimen"] is False
-    assert metadata["forge_display_label"] == "Representative family image — not this exact specimen."
+    assert "forge_image_url" not in metadata
+    assert metadata["forge_match_status"] == "awaiting_exact_visual_binding"
+    assert metadata["forge_selector_fingerprint"].startswith("WCF-")
 
 
-def test_forge_family_representative_is_stable_and_never_exact():
+def test_unbound_forge_family_form_is_never_assigned_by_hash():
     row = sample_discovery()
     match = sample_pet_match(row, "TRICERATOPS", "Prey")
     first = archetype_metadata(row, match)
     second = archetype_metadata(row, match)
-    assert first["forge_image_url"] == second["forge_image_url"]
-    assert first["forge_form_id"] == second["forge_form_id"]
-    assert first["forge_match_basis"] == "exact_pet_match"
-    assert first["forge_selection_basis"] == "deterministic_evidence_safe_pool"
-    assert first["forge_authenticity_status"] == "APPROVED_REPRESENTATIVE"
-    assert first["forge_exact_specimen"] is False
-    assert first["forge_ringless"] is True
+    assert first["forge_selector_fingerprint"] == second["forge_selector_fingerprint"]
+    assert "forge_image_url" not in first
+    assert first["forge_match_status"] == "awaiting_exact_visual_binding"
 
 
-def test_approved_cat_family_pool_is_attached_without_exact_claim():
+def test_cat_family_pool_is_not_attached_without_visual_variant_selector():
     row = sample_discovery()
     metadata = archetype_metadata(row, sample_pet_match(row, "CAT"))
     assert metadata["fauna_family_id"] == "CAT"
-    assert metadata["forge_image_url"].startswith("/assets/forge/catalog/fauna/")
-    assert metadata["forge_exact_specimen"] is False
+    assert "forge_image_url" not in metadata
+
+
+def test_descriptor_bound_form_is_attached_with_explicit_precision(monkeypatch):
+    row = sample_discovery()
+    match = sample_pet_match(row, "CAT", descriptors=["HEAD_HORN", "TAIL_RING"])
+    profile = descriptor_profile("CAT", match)
+    entry = {
+        "id": "matched-cat",
+        "category_id": "fauna",
+        "family_id": "CAT",
+        "family_display": "Cat",
+        "form_name": "Horned ring-tail cat",
+        "image_url": "assets/forge/catalog/fauna/cat-horned-ring-tail.webp",
+        "record_eligible": True,
+        "exact_specimen": False,
+        "evidence_class": "descriptor_matched_reconstruction",
+        "display_label": forge_service.MATCHED_IMAGE_LABEL,
+        "ringless": True,
+        "match_precision": "visual_variant",
+        "record_selectors": {
+            "visual_profile_fingerprints": [profile["visual_profile_fingerprint"]],
+        },
+    }
+    monkeypatch.setattr(forge_service, "CATALOG_ENTRIES", (entry,))
+    metadata = archetype_metadata(row, match)
+    assert metadata["forge_image_url"].endswith("cat-horned-ring-tail.webp")
+    assert metadata["forge_selection_basis"] == "explicit_catalog_record_selector"
+    assert metadata["forge_match_precision"] == "visual_variant"
+    assert metadata["forge_authenticity_status"] == "EVIDENCE_MATCHED_RECONSTRUCTION"
 
 
 def test_record_eligible_forge_pool_is_quality_gated_and_ringless():
-    assert len(CATALOG_ENTRIES) == 207
-    assert all(entry["ringless"] is True for entry in CATALOG_ENTRIES)
-    assert all(entry["exact_specimen"] is False for entry in CATALOG_ENTRIES)
-    assert {entry["category_id"] for entry in CATALOG_ENTRIES} == {
-        "fauna", "flora", "frigates", "minerals", "multitools", "planets",
-    }
+    assert len(CATALOG_ENTRIES) == 0
 
 
-def test_planet_vp1_selects_family_hologram_without_claiming_exact_specimen():
+def test_planet_vp1_enriches_identity_without_substituting_family_hologram():
     row = sample_discovery()
     row.discovery_type = "Planet"
     row.vp1 = "0x4"
@@ -325,9 +343,8 @@ def test_planet_vp1_selects_family_hologram_without_claiming_exact_specimen():
     assert metadata["planet_biome_family"] == "Frozen"
     assert metadata["planet_size_class"] == "Standard"
     assert metadata["planet_size_status"] == "representative_size_unknown_in_discovery_data"
-    assert metadata["forge_image_url"] == "/assets/planet-holograms/04-frozen-standard.svg"
-    assert metadata["forge_exact_specimen"] is False
-    assert metadata["forge_display_label"] == "Representative family hologram — not this exact planet."
+    assert "forge_image_url" not in metadata
+    assert metadata["forge_match_status"] == "awaiting_exact_visual_binding"
 
 
 def test_gas_giant_vp1_selects_dedicated_hologram():
@@ -337,7 +354,7 @@ def test_gas_giant_vp1_selects_dedicated_hologram():
     metadata = archetype_metadata(row)
     assert metadata["planet_biome_family"] == "Gas Giant"
     assert metadata["planet_size_class"] == "Gas Giant"
-    assert metadata["forge_image_url"].endswith("/15-gasgiant-gas-giant.svg")
+    assert "forge_image_url" not in metadata
 
 
 def test_giant_hologram_requires_exact_privacy_safe_join(monkeypatch):
@@ -349,7 +366,7 @@ def test_giant_hologram_requires_exact_privacy_safe_join(monkeypatch):
     metadata = archetype_metadata(row)
     assert metadata["planet_size_class"] == "Giant"
     assert metadata["planet_size_status"] == "exact_joined_giant_base"
-    assert metadata["forge_image_url"].endswith("/00-lush-giant.svg")
+    assert "forge_image_url" not in metadata
 
 
 def test_planet_identity_hash_normalizes_prefixed_and_unprefixed_hex():

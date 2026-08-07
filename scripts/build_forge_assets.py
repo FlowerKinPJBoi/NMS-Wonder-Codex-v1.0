@@ -453,6 +453,11 @@ def build_catalog(rows: list[dict[str, Any]], output: Path) -> dict[str, Any]:
         else:
             match_scope = "gallery_only"
 
+        record_selectors = row.get("recordSelectors", {})
+        selector_bound = isinstance(record_selectors, dict) and any(
+            isinstance(values, list) and values
+            for values in record_selectors.values()
+        )
         public_rows.append({
             "id": f"representative-{category}-{len(public_rows) + 1:03d}",
             "category_id": category,
@@ -461,8 +466,11 @@ def build_catalog(rows: list[dict[str, Any]], output: Path) -> dict[str, Any]:
             "family_display": family_display,
             "form_name": form_name,
             "image_url": relative.as_posix(),
-            "record_eligible": match_scope != "gallery_only",
+            # A clean render is gallery evidence. It becomes record imagery only
+            # after the Expedition binds it to an exact or descriptor-level key.
+            "record_eligible": match_scope != "gallery_only" and selector_bound,
             "match_scope": match_scope,
+            "record_selectors": record_selectors,
             "evidence_class": "approved_representative",
             "exact_specimen": False,
             "display_label": (
@@ -481,8 +489,8 @@ def build_catalog(rows: list[dict[str, Any]], output: Path) -> dict[str, Any]:
         list(executor.map(build_image, image_jobs))
 
     return {
-        "schema_version": 2,
-        "release": "wonder-forge-v0.1.18",
+        "schema_version": 3,
+        "release": "wonder-forge-precision-binding",
         "entry_count": len(public_rows),
         "category_counts": dict(Counter(row["category_id"] for row in public_rows)),
         "record_image_policy": {
@@ -490,6 +498,8 @@ def build_catalog(rows: list[dict[str, Any]], output: Path) -> dict[str, Any]:
             "representative_label": PUBLIC_LABEL,
             "raw_evidence_unchanged": True,
             "ringless_presentation": True,
+            "exact_or_descriptor_selector_required": True,
+            "unbound_forms_are_gallery_only": True,
         },
         "entries": public_rows,
     }
