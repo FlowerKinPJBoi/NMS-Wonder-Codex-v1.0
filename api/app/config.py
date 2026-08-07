@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Wonder Codex API"
-    app_version: str = "1.25.0"
+    app_version: str = "1.25.1"
     environment: str = "production"
     database_url: str = ""
     allowed_origins: List[str] = Field(

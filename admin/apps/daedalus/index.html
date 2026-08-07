@@ -19,7 +19,7 @@
       <div>
         <p class="eyebrow">Wonder Codex Workshop</p>
         <h1>Daedalus Builder</h1>
-        <p class="subtitle">Builder core <span class="version">v0.9.1</span> · Shared trainer <span class="version">v1.25.0</span></p>
+        <p class="subtitle">Builder core <span class="version">v0.9.1</span> · Shared trainer <span class="version">v1.25.1</span></p>
       </div>
     </div>
     <div class="hosted-actions"><a href="/admin/apps/">← Admin apps</a><div class="safety-pill"><span></span> Local analysis · shared review</div></div>
@@ -28,7 +28,7 @@
   <main>
     <section class="shared-hub panel" id="sharedHub">
       <div class="shared-heading">
-        <div><p class="eyebrow accent">Wonder Codex · Shared trainer</p><h2>Build together. Release deliberately.</h2><p>Analysis stays in this browser. Exported learning ZIPs enter a shared queue, but cannot teach production Daedalus until an authorized reviewer approves and separately releases them.</p></div>
+        <div><p class="eyebrow accent">Wonder Codex · Shared trainer</p><h2>Build together. Release deliberately.</h2><p>Analysis stays in this browser. Verified sessions can be saved directly to the shared queue, while exported learning ZIPs remain available as a manual fallback. Neither path can teach production Daedalus until an authorized reviewer approves and separately releases the record.</p></div>
         <div class="shared-identity"><span id="sharedStatus">Connecting…</span><strong id="sharedOperator">Named operator</strong><button class="text-button" id="sharedRefresh" type="button">Refresh queue</button></div>
       </div>
       <div class="shared-metrics">
@@ -45,7 +45,7 @@
             <label>Python version<input id="sharedPythonVersion" type="text" maxlength="60" placeholder="e.g. 3.x or not used"></label>
           </div>
           <button class="primary-button small" id="sharedSubmit" type="submit">Submit to shared review</button>
-          <small id="sharedUploadHelp">Export a Learning ZIP below, then select it here. Production learning remains locked.</small>
+          <small id="sharedUploadHelp">Use the direct session button below or upload an exported Learning ZIP here. Production learning remains locked.</small>
         </form>
         <div class="requirements-card">
           <p class="eyebrow">Required apps & compatibility</p><h3>Browser-first setup</h3>
@@ -537,6 +537,7 @@
             <button class="secondary-button" id="needsCorrectionButton" type="button">Attempt needs correction</button>
             <button class="secondary-button" id="exportLearningButton" type="button">Export learning package</button>
             <button class="primary-button small" id="approveLearningButton" type="button">Verify ground truth</button>
+            <button class="primary-button small" id="submitLearningReviewButton" type="button">Save this session as learning for review</button>
           </div>
         </div>
       </section>

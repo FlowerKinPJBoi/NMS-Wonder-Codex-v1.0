@@ -60,6 +60,7 @@ const learningEls = {
   attemptCorrectButton: document.querySelector("#attemptCorrectButton"),
   needsCorrectionButton: document.querySelector("#needsCorrectionButton"),
   exportButton: document.querySelector("#exportLearningButton"),
+  submitReviewButton: document.querySelector("#submitLearningReviewButton"),
   approveButton: document.querySelector("#approveLearningButton")
 };
 
@@ -102,6 +103,7 @@ function initLearningLab() {
   learningEls.attemptCorrectButton.addEventListener("click", markAttemptCorrect);
   learningEls.needsCorrectionButton.addEventListener("click", markNeedsCorrection);
   learningEls.exportButton.addEventListener("click", exportLearningPackage);
+  learningEls.submitReviewButton.addEventListener("click", submitLearningForReview);
   learningEls.teacherNote.addEventListener("input", () => {
     learningState.teacherNote = learningEls.teacherNote.value.trim();
   });
@@ -955,76 +957,106 @@ function summarizeProtectedAnchor(objects) {
   };
 }
 
-async function exportLearningPackage() {
+async function createLearningPackage() {
   if (!state.report || !state.packageFile) {
-    showToast("Analyze a verified build before exporting a learning package.");
-    return;
+    throw new Error("Analyze a verified build before creating a learning package.");
   }
-  if (!window.JSZip) {
-    showToast("The local ZIP writer did not load.");
-    return;
+  if (!window.JSZip) throw new Error("The local ZIP writer did not load.");
+
+  const record = await buildLearningRecord();
+  const zip = new JSZip();
+  const sourceName = safeArchiveName(state.packageFile.name);
+  zip.file("learning-record.json", JSON.stringify(record, null, 2));
+  zip.file("ground-truth/reverse-blueprint.json", JSON.stringify(state.report, null, 2));
+  zip.file(`ground-truth/${sourceName}`, await state.packageFile.arrayBuffer());
+  for (const file of state.prefabDefinitionFiles || []) {
+    zip.file(`ground-truth/prefab-definitions/${safeArchiveName(file.name)}`, await file.arrayBuffer());
+  }
+  if (learningState.generatedSign) {
+    zip.file("generated/sign-attempt.nmsprefab", JSON.stringify(learningState.generatedSign.prefab, null, 4));
+    zip.file("generated/sign-generation-manifest.json", JSON.stringify(learningState.generatedSign.manifest, null, 2));
   }
 
+  for (let index = 0; index < state.images.length; index += 1) {
+    const item = state.images[index];
+    const fileName = `${String(index + 1).padStart(2, "0")}-${safeArchiveName(item.file.name)}`;
+    zip.file(`references/${fileName}`, await item.file.arrayBuffer());
+  }
+
+  if (learningState.attemptFile) {
+    zip.file(
+      `attempt/${safeArchiveName(learningState.attemptFile.name)}`,
+      await learningState.attemptFile.arrayBuffer()
+    );
+    zip.file("attempt/comparison.json", JSON.stringify(learningState.comparison, null, 2));
+  }
+  if (learningState.inspectionFile) {
+    zip.file(
+      `inspection/${safeArchiveName(learningState.inspectionFile.name)}`,
+      await learningState.inspectionFile.arrayBuffer()
+    );
+    zip.file("inspection/part-feedback.json", JSON.stringify({
+      modelSummary: learningState.inspectionSummary,
+      selections: learningState.partFeedback
+    }, null, 2));
+  }
+
+  zip.file("START-HERE.txt", learningPackageReadme(record));
+  const blob = await zip.generateAsync({
+    type: "blob",
+    compression: "DEFLATE",
+    compressionOptions: { level: 6 }
+  });
+  const buildName = safeFileName(state.report.build.name || "daedalus-build");
+  return {blob, record, fileName: `${buildName}-daedalus-learning-v0.3.zip`};
+}
+
+async function exportLearningPackage() {
   const priorText = learningEls.exportButton.textContent;
   learningEls.exportButton.disabled = true;
   learningEls.exportButton.textContent = "Packaging learning record…";
 
   try {
-    const record = await buildLearningRecord();
-    const zip = new JSZip();
-    const sourceName = safeArchiveName(state.packageFile.name);
-    zip.file("learning-record.json", JSON.stringify(record, null, 2));
-    zip.file("ground-truth/reverse-blueprint.json", JSON.stringify(state.report, null, 2));
-    zip.file(`ground-truth/${sourceName}`, await state.packageFile.arrayBuffer());
-    for (const file of state.prefabDefinitionFiles || []) {
-      zip.file(`ground-truth/prefab-definitions/${safeArchiveName(file.name)}`, await file.arrayBuffer());
-    }
-    if (learningState.generatedSign) {
-      zip.file("generated/sign-attempt.nmsprefab", JSON.stringify(learningState.generatedSign.prefab, null, 4));
-      zip.file("generated/sign-generation-manifest.json", JSON.stringify(learningState.generatedSign.manifest, null, 2));
-    }
-
-    for (let index = 0; index < state.images.length; index += 1) {
-      const item = state.images[index];
-      const fileName = `${String(index + 1).padStart(2, "0")}-${safeArchiveName(item.file.name)}`;
-      zip.file(`references/${fileName}`, await item.file.arrayBuffer());
-    }
-
-    if (learningState.attemptFile) {
-      zip.file(
-        `attempt/${safeArchiveName(learningState.attemptFile.name)}`,
-        await learningState.attemptFile.arrayBuffer()
-      );
-      zip.file("attempt/comparison.json", JSON.stringify(learningState.comparison, null, 2));
-    }
-    if (learningState.inspectionFile) {
-      zip.file(
-        `inspection/${safeArchiveName(learningState.inspectionFile.name)}`,
-        await learningState.inspectionFile.arrayBuffer()
-      );
-      zip.file("inspection/part-feedback.json", JSON.stringify({
-        modelSummary: learningState.inspectionSummary,
-        selections: learningState.partFeedback
-      }, null, 2));
-    }
-
-    zip.file("START-HERE.txt", learningPackageReadme(record));
-    const blob = await zip.generateAsync({
-      type: "blob",
-      compression: "DEFLATE",
-      compressionOptions: { level: 6 }
-    });
-    const buildName = safeFileName(state.report.build.name || "daedalus-build");
-    downloadBlob(blob, `${buildName}-daedalus-learning-v0.3.zip`);
-    if (record.trust.eligibleForTraining) saveMemorySummary();
-    showToast(record.trust.eligibleForTraining
+    const packageData = await createLearningPackage();
+    downloadBlob(packageData.blob, packageData.fileName);
+    if (packageData.record.trust.eligibleForTraining) saveMemorySummary();
+    showToast(packageData.record.trust.eligibleForTraining
       ? "Trusted learning package exported."
       : "Candidate package exported; approval is still required.");
   } catch (error) {
     showToast(error.message || "The learning package could not be created.");
   } finally {
-    learningEls.exportButton.disabled = false;
+    learningEls.exportButton.disabled = !state.report;
     learningEls.exportButton.textContent = priorText;
+  }
+}
+
+async function submitLearningForReview() {
+  if (learningState.groundTruthStatus !== "verified") {
+    showToast("Verify the ground truth first, then save the session for independent admin review.");
+    return;
+  }
+  if (!window.DaedalusShared?.submitLearningBlob) {
+    showToast("The shared review queue is not connected. Export the learning ZIP as a fallback.");
+    return;
+  }
+
+  const priorText = learningEls.submitReviewButton.textContent;
+  learningEls.submitReviewButton.disabled = true;
+  learningEls.submitReviewButton.textContent = "Saving to review queue…";
+  try {
+    const packageData = await createLearningPackage();
+    const note = learningEls.teacherNote.value.trim()
+      || learningState.teacherNote
+      || "Submitted directly from a verified Daedalus learning session.";
+    await window.DaedalusShared.submitLearningBlob(packageData.blob, packageData.fileName, note);
+    saveMemorySummary();
+    showToast("Learning session saved for admin review. It cannot teach Daedalus until it is approved and released.");
+  } catch (error) {
+    showToast(error.message || "The learning session could not be submitted for review.");
+  } finally {
+    learningEls.submitReviewButton.disabled = !state.report;
+    learningEls.submitReviewButton.textContent = priorText;
   }
 }
 
@@ -1163,6 +1195,7 @@ function renderLearningState() {
   learningEls.attemptCorrectButton.disabled = !state.report;
   learningEls.needsCorrectionButton.disabled = !state.report;
   learningEls.exportButton.disabled = !state.report;
+  learningEls.submitReviewButton.disabled = !state.report;
   renderConversation();
   renderComparison();
 }

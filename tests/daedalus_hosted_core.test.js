@@ -111,5 +111,6 @@ for (const script of ['base-workflow.js', 'sign-generator.js', 'app.js', 'learni
 }
 assert.ok(page.indexOf('src="base-workflow.js"') < page.indexOf('src="app.js"'));
 assert.ok(page.indexOf('src="sign-generator.js"') < page.indexOf('src="app.js"'));
+assert.ok(page.indexOf('src="learning.js"') < page.indexOf('src="shared.js"'));
 
 console.log('Hosted Daedalus core contracts passed.');

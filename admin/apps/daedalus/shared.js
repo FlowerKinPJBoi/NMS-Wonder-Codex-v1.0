@@ -4,7 +4,7 @@
   const API = "/api/admin/apps/daedalus";
   const key = sessionStorage.getItem("wc_admin_key") || "";
   const actor = sessionStorage.getItem("wc_admin_actor") || "";
-  const state = {permissions: {}, maxUploadBytes: 0, items: []};
+  const state = {permissions: {}, maxUploadBytes: 0, storageReady: false, items: []};
   const $ = (selector) => document.querySelector(selector);
   const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
   const headers = () => ({"X-Admin-Key": key, "X-Admin-Actor": actor, Accept: "application/json"});
@@ -33,11 +33,12 @@
       const data = await api();
       state.permissions = data.permissions || {};
       state.maxUploadBytes = Number(data.max_upload_bytes || 0);
+      state.storageReady = Boolean(data.storage_ready);
       $("#sharedStatus").textContent = data.storage_ready ? "Shared storage online" : "Storage setup required";
       $("#sharedOperator").textContent = `${data.operator} · ${state.permissions.review ? "reviewer" : "trainer"}`;
       $("#sharedArchive").disabled = !state.permissions.submit;
-      $("#sharedSubmit").disabled = !state.permissions.submit || !data.storage_ready;
-      $("#sharedUploadHelp").textContent = data.storage_ready
+      $("#sharedSubmit").disabled = !state.permissions.submit || !state.storageReady;
+      $("#sharedUploadHelp").textContent = state.storageReady
         ? `Maximum ${formatBytes(state.maxUploadBytes)}. ${data.production_rule}`
         : "DigitalOcean Spaces must be configured before packages can be shared.";
       renderCounts(data.counts || {});
@@ -122,28 +123,49 @@
     }
   }
 
-  async function submit(event) {
-    event.preventDefault();
-    const file = $("#sharedArchive").files?.[0];
-    if (!file) return notice("Choose the exported Daedalus learning ZIP first.", true);
-    if (state.maxUploadBytes && file.size > state.maxUploadBytes) return notice(`That ZIP exceeds ${formatBytes(state.maxUploadBytes)}.`, true);
-    const form = new FormData();
+  function buildContributorNote(note) {
     const versionDetails = [
       ["BBA", $("#sharedBbaVersion").value.trim()],
       ["Blender", $("#sharedBlenderVersion").value.trim()],
       ["Python", $("#sharedPythonVersion").value.trim()],
     ].filter(([, value]) => value).map(([name, value]) => `${name} ${value}`);
-    const note = [$("#sharedNote").value.trim(), versionDetails.length ? `Compatibility: ${versionDetails.join(" · ")}` : ""]
+    return [String(note || "").trim(), versionDetails.length ? `Compatibility: ${versionDetails.join(" · ")}` : ""]
       .filter(Boolean).join(" — ").slice(0, 4000);
-    form.append("note", note);
-    form.append("archive", file, file.name);
+  }
+
+  async function uploadLearningArchive(archive, filename, note) {
+    if (!state.permissions.submit) throw new Error("This operator cannot submit Daedalus learning records.");
+    if (!state.storageReady) throw new Error("Shared learning storage is not ready.");
+    if (!archive) throw new Error("Choose or create a Daedalus learning ZIP first.");
+    if (state.maxUploadBytes && archive.size > state.maxUploadBytes) {
+      throw new Error(`That ZIP exceeds ${formatBytes(state.maxUploadBytes)}.`);
+    }
+    const form = new FormData();
+    form.append("note", buildContributorNote(note));
+    form.append("archive", archive, filename || archive.name || "daedalus-learning-package.zip");
+    const response = await fetch(`${API}/submissions`, {method: "POST", headers: headers(), body: form});
+    let data = {};
+    try { data = await response.json(); } catch {}
+    if (!response.ok) throw new Error(data.detail || `Upload failed (${response.status})`);
+    return data;
+  }
+
+  async function submitLearningBlob(blob, filename, note = "") {
+    notice("Packaging complete. Uploading and repeating Daedalus safety validation…");
+    const data = await uploadLearningArchive(blob, filename, note);
+    notice("Learning session added to shared review. Admin approval and release are still required.");
+    await connect();
+    return data;
+  }
+
+  async function submit(event) {
+    event.preventDefault();
+    const file = $("#sharedArchive").files?.[0];
+    if (!file) return notice("Choose the exported Daedalus learning ZIP first.", true);
     $("#sharedSubmit").disabled = true;
     notice("Uploading and repeating Daedalus safety validation…");
     try {
-      const response = await fetch(`${API}/submissions`, {method: "POST", headers: headers(), body: form});
-      let data = {};
-      try { data = await response.json(); } catch {}
-      if (!response.ok) throw new Error(data.detail || `Upload failed (${response.status})`);
+      await uploadLearningArchive(file, file.name, $("#sharedNote").value);
       event.target.reset();
       notice("Learning package added to shared review. It is not production training data.");
       await connect();
@@ -157,5 +179,6 @@
   $("#sharedUploadForm").addEventListener("submit", submit);
   $("#sharedRefresh").addEventListener("click", connect);
   $("#queueFilter").addEventListener("change", loadQueue);
+  window.DaedalusShared = {submitLearningBlob, refreshQueue: connect};
   connect();
 })();

@@ -1,5 +1,17 @@
 # Wonder Codex changelog
 
+## v1.25.1 — One-click Daedalus learning review
+
+- Added **Save this session as learning for review** to package the current
+  verified supervised session and submit it directly to the guarded queue.
+- Reused the same learning ZIP creator for direct submissions and manual
+  exports so both paths retain identical evidence, source hashes, Object-ID
+  inventory, normal-shape, part-limit, and protected-anchor checks.
+- Kept human ground-truth verification, independent admin approval, and the
+  separate release action mandatory; the new button cannot auto-train or
+  auto-release a record.
+- Retained manual ZIP export/upload as a recovery and offline workflow.
+
 ## v1.25.0 — Shared Daedalus Builder trainer
 
 - Hosted the Daedalus reverse-blueprint, sign, inspection, feedback, and
