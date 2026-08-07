@@ -16,6 +16,7 @@ def configure_keys(monkeypatch):
     monkeypatch.setenv("TESTER_API_KEY_MONKETSU", "monk-secret")
     monkeypatch.setenv("TESTER_API_KEY_READYFIREAIM", "ready-secret")
     monkeypatch.setenv("TESTER_API_KEY_VISCERAL", "visceral-secret")
+    monkeypatch.setenv("TESTER_API_KEY_KROSSKELT", "kross-secret")
     get_settings.cache_clear()
 
 
@@ -79,7 +80,31 @@ def test_admin_keeps_all_operator_capabilities(monkeypatch):
     configure_keys(monkeypatch)
     session = require_operator_key("pj-secret", "PJ")
     assert session.can_upload_private_apps is True
-    assert {"admin", "apps:download", "apps:upload", "transit", "capture:submit"} <= session.scopes
+    assert {"admin", "apps:download", "apps:upload", "transit", "capture:submit", "daedalus:submit", "daedalus:review", "daedalus:release"} <= session.scopes
+    get_settings.cache_clear()
+
+
+def test_krosskelt_can_train_daedalus_without_review_or_admin(monkeypatch):
+    configure_keys(monkeypatch)
+    session = require_operator_key("kross-secret", "Krosskelt")
+    assert "daedalus:submit" in session.scopes
+    assert "daedalus:review" not in session.scopes
+    assert "daedalus:release" not in session.scopes
+    assert "admin" not in session.scopes
+    get_settings.cache_clear()
+
+
+def test_daedalus_allowlists_are_configurable_without_new_roles(monkeypatch):
+    configure_keys(monkeypatch)
+    monkeypatch.setenv("DAEDALUS_TRAINER_ACTORS", "PJ,Boots,Menomoo")
+    monkeypatch.setenv("DAEDALUS_REVIEWER_ACTORS", "Boots")
+    get_settings.cache_clear()
+    trainer = require_operator_key("meno-secret", "Menomoo")
+    pj = require_operator_key("pj-secret", "PJ")
+    boots = require_operator_key("boots-secret", "Boots")
+    assert "daedalus:submit" in trainer.scopes
+    assert "daedalus:review" not in pj.scopes
+    assert {"daedalus:submit", "daedalus:review", "daedalus:release"} <= boots.scopes
     get_settings.cache_clear()
 
 

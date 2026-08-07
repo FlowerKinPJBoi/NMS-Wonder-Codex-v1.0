@@ -1,0 +1,161 @@
+(() => {
+  "use strict";
+
+  const API = "/api/admin/apps/daedalus";
+  const key = sessionStorage.getItem("wc_admin_key") || "";
+  const actor = sessionStorage.getItem("wc_admin_actor") || "";
+  const state = {permissions: {}, maxUploadBytes: 0, items: []};
+  const $ = (selector) => document.querySelector(selector);
+  const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+  const headers = () => ({"X-Admin-Key": key, "X-Admin-Actor": actor, Accept: "application/json"});
+  const formatBytes = (bytes) => bytes >= 1048576 ? `${(bytes / 1048576).toFixed(1)} MB` : `${Math.ceil(bytes / 1024)} KB`;
+  const formatDate = (value) => value ? new Date(value).toLocaleString() : "—";
+
+  async function api(path = "", options = {}) {
+    const response = await fetch(API + path, {...options, headers: {...headers(), ...(options.headers || {})}});
+    let data = {};
+    try { data = await response.json(); } catch {}
+    if (!response.ok) throw new Error(data.detail || `Request failed (${response.status})`);
+    return data;
+  }
+
+  function notice(message, error = false) {
+    $("#sharedUploadHelp").textContent = message;
+    $("#sharedUploadHelp").style.color = error ? "#ff9eaa" : "";
+  }
+
+  async function connect() {
+    if (!key || !actor) {
+      window.location.replace("/admin/apps/");
+      return;
+    }
+    try {
+      const data = await api();
+      state.permissions = data.permissions || {};
+      state.maxUploadBytes = Number(data.max_upload_bytes || 0);
+      $("#sharedStatus").textContent = data.storage_ready ? "Shared storage online" : "Storage setup required";
+      $("#sharedOperator").textContent = `${data.operator} · ${state.permissions.review ? "reviewer" : "trainer"}`;
+      $("#sharedArchive").disabled = !state.permissions.submit;
+      $("#sharedSubmit").disabled = !state.permissions.submit || !data.storage_ready;
+      $("#sharedUploadHelp").textContent = data.storage_ready
+        ? `Maximum ${formatBytes(state.maxUploadBytes)}. ${data.production_rule}`
+        : "DigitalOcean Spaces must be configured before packages can be shared.";
+      renderCounts(data.counts || {});
+      await loadQueue();
+    } catch (error) {
+      $("#sharedStatus").textContent = "Access unavailable";
+      notice(error.message, true);
+    }
+  }
+
+  function renderCounts(counts) {
+    $("#queuePending").textContent = Number(counts.pending_review || 0).toLocaleString();
+    $("#queueCorrection").textContent = Number(counts.needs_correction || 0).toLocaleString();
+    $("#queueApproved").textContent = Number(counts.approved || 0).toLocaleString();
+    $("#queueReleased").textContent = Number(counts.released || 0).toLocaleString();
+  }
+
+  async function loadQueue() {
+    const status = $("#queueFilter").value;
+    const data = await api(`/submissions${status ? `?status=${encodeURIComponent(status)}` : ""}`);
+    state.items = data.items || [];
+    renderQueue();
+  }
+
+  function actionButtons(item) {
+    if (!state.permissions.review || item.status === "released" || item.status === "rejected") return "";
+    const buttons = [];
+    if (["pending_review", "needs_correction"].includes(item.status)) buttons.push(`<button type="button" data-action="approve">Approve</button>`);
+    if (["pending_review", "approved"].includes(item.status)) buttons.push(`<button type="button" data-action="needs_correction">Needs correction</button>`);
+    if (item.status === "approved" && state.permissions.release) buttons.push(`<button type="button" data-action="release">Release to learning</button>`);
+    buttons.push(`<button type="button" data-action="reject">Reject</button>`);
+    return `<textarea class="queue-note" maxlength="4000" placeholder="Reviewer decision or correction guidance">${escapeHtml(item.reviewer_note || "")}</textarea>${buttons.join("")}`;
+  }
+
+  function renderQueue() {
+    const container = $("#sharedQueue");
+    if (!state.items.length) {
+      container.innerHTML = '<div class="queue-empty">No learning packages match this queue state.</div>';
+      return;
+    }
+    container.innerHTML = state.items.map((item) => {
+      const domain = item.domain === "NO_MANS_SKY_CORVETTE_BUILDING" ? "Corvette" : "Base / Prefab";
+      const intent = item.design_intent?.originalRequest || "No design brief recorded.";
+      return `<article class="queue-card" data-submission="${escapeHtml(item.id)}">
+        <div><h4>${escapeHtml(item.build_name || item.original_filename)}</h4><p>${escapeHtml(intent)}</p><div class="queue-tags"><span class="queue-tag ${escapeHtml(item.status)}">${escapeHtml(item.status.replaceAll("_", " "))}</span><span class="queue-tag">${escapeHtml(domain)}</span><span class="queue-tag">${Number(item.object_count).toLocaleString()} parts</span><span class="queue-tag">${Number(item.distinct_object_ids).toLocaleString()} Object IDs</span><span class="queue-tag">by ${escapeHtml(item.contributor)}</span><span class="queue-tag">${escapeHtml(formatDate(item.created_at))}</span></div></div>
+        <div class="queue-actions"><button type="button" data-download>Download ZIP</button>${actionButtons(item)}</div>
+        <div class="queue-message">Server validation: passed · protected ${escapeHtml(item.server_validation?.protectedObjectId || "prefab geometry")} · uniform-scale source check ${item.server_validation?.uniformScaleVerifiedInSource ? "passed" : "not available for wrapper-only geometry"}. ${item.production_training_eligible ? "Released for production learning." : "Not eligible for production learning."}${item.contributor_note ? ` Trainer: ${escapeHtml(item.contributor_note)}` : ""}${item.reviewer_note ? ` Reviewer: ${escapeHtml(item.reviewer_note)}` : ""}</div>
+      </article>`;
+    }).join("");
+    container.querySelectorAll("[data-download]").forEach((button) => button.addEventListener("click", () => download(button.closest("[data-submission]").dataset.submission, button)));
+    container.querySelectorAll("[data-action]").forEach((button) => button.addEventListener("click", () => review(button.closest("[data-submission]"), button.dataset.action, button)));
+  }
+
+  async function download(id, button) {
+    button.disabled = true;
+    try {
+      const data = await api(`/submissions/${encodeURIComponent(id)}/download`, {method: "POST"});
+      window.location.assign(data.download_url);
+    } catch (error) {
+      notice(error.message, true);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  async function review(card, action, button) {
+    const labels = {approve: "approve", needs_correction: "request corrections for", release: "release", reject: "reject"};
+    if (!window.confirm(`Confirm you want to ${labels[action]} this learning record?`)) return;
+    button.disabled = true;
+    const note = card.querySelector(".queue-note")?.value || "";
+    try {
+      await api(`/submissions/${encodeURIComponent(card.dataset.submission)}`, {
+        method: "PATCH",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({action, note}),
+      });
+      notice(`Queue updated: ${action.replaceAll("_", " ")}.`);
+      await connect();
+    } catch (error) {
+      notice(error.message, true);
+      button.disabled = false;
+    }
+  }
+
+  async function submit(event) {
+    event.preventDefault();
+    const file = $("#sharedArchive").files?.[0];
+    if (!file) return notice("Choose the exported Daedalus learning ZIP first.", true);
+    if (state.maxUploadBytes && file.size > state.maxUploadBytes) return notice(`That ZIP exceeds ${formatBytes(state.maxUploadBytes)}.`, true);
+    const form = new FormData();
+    const versionDetails = [
+      ["BBA", $("#sharedBbaVersion").value.trim()],
+      ["Blender", $("#sharedBlenderVersion").value.trim()],
+      ["Python", $("#sharedPythonVersion").value.trim()],
+    ].filter(([, value]) => value).map(([name, value]) => `${name} ${value}`);
+    const note = [$("#sharedNote").value.trim(), versionDetails.length ? `Compatibility: ${versionDetails.join(" · ")}` : ""]
+      .filter(Boolean).join(" — ").slice(0, 4000);
+    form.append("note", note);
+    form.append("archive", file, file.name);
+    $("#sharedSubmit").disabled = true;
+    notice("Uploading and repeating Daedalus safety validation…");
+    try {
+      const response = await fetch(`${API}/submissions`, {method: "POST", headers: headers(), body: form});
+      let data = {};
+      try { data = await response.json(); } catch {}
+      if (!response.ok) throw new Error(data.detail || `Upload failed (${response.status})`);
+      event.target.reset();
+      notice("Learning package added to shared review. It is not production training data.");
+      await connect();
+    } catch (error) {
+      notice(error.message, true);
+    } finally {
+      $("#sharedSubmit").disabled = false;
+    }
+  }
+
+  $("#sharedUploadForm").addEventListener("submit", submit);
+  $("#sharedRefresh").addEventListener("click", connect);
+  $("#queueFilter").addEventListener("change", loadQueue);
+  connect();
+})();

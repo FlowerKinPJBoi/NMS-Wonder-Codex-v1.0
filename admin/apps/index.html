@@ -11,8 +11,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css?v=1.18.0">
   <link rel="stylesheet" href="/admin.css?v=1.8.4">
-  <link rel="stylesheet" href="/admin/apps/apps.css?v=1.13.3">
-  <link rel="stylesheet" href="/admin/apps/testing.css?v=1.13.3">
+  <link rel="stylesheet" href="/admin/apps/apps.css?v=1.25.0">
+  <link rel="stylesheet" href="/admin/apps/testing.css?v=1.25.0">
 </head>
 <body class="admin-body">
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
@@ -35,6 +35,11 @@
       <div class="apps-title-row"><div><p class="kicker">WONDER CODEX PRIVATE DISTRIBUTION</p><h1>Admin apps</h1><p>Install a reviewed build, verify its SHA-256 fingerprint, and issue a short-lived private download.</p></div><div class="vault-state"><span id="storageBadge" class="status-pill">Checking storage</span><span id="expiryNote"></span></div></div>
 
       <div id="appsAlert" class="inline-alert error" hidden></div>
+      <a id="daedalusWorkspace" class="daedalus-launch" href="/admin/apps/daedalus/" hidden>
+        <span class="daedalus-launch-mark">Δ</span>
+        <span><b>Daedalus Builder</b><small>Analyze builds locally, export supervised learning packages, and collaborate through the guarded review queue.</small></span>
+        <span class="daedalus-launch-action">Open shared trainer →</span>
+      </a>
       <div id="appsGrid" class="apps-grid" aria-live="polite"><div class="app-loading">Checking private releases…</div></div>
 
       <section class="trust-panel">
@@ -45,6 +50,6 @@
   </main>
 
   <div id="toast" class="toast" hidden></div>
-  <script src="/admin/apps/apps.js?v=1.13.3"></script>
+  <script src="/admin/apps/apps.js?v=1.25.0"></script>
 </body>
 </html>

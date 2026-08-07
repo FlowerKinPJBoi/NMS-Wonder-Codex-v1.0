@@ -1,5 +1,21 @@
 # Wonder Codex changelog
 
+## v1.25.0 — Shared Daedalus Builder trainer
+
+- Hosted the Daedalus reverse-blueprint, sign, inspection, feedback, and
+  learning-package workflow at `/admin/apps/daedalus/`.
+- Added a private DigitalOcean-backed learning queue for named trainers, with
+  separate pending, correction, approved, released, and rejected states.
+- Kept production learning locked behind a second reviewer-only release action;
+  client-side trust labels never release a package automatically.
+- Revalidated ZIP safety, source hashes, Object-ID inventories, the 3,000-part
+  cap, uniform scale, and protected Corvette/base anchor records on the API.
+- Added configurable trainer and reviewer allowlists without granting catalog
+  administrator authority to testers.
+- Added official current-download links for NMS Base Builder, Blender, and
+  Python, while keeping the hosted workflow browser-only and describing
+  compatibility as a tested range instead of promising every version.
+
 ## v1.24.0 — Complete spacecraft representatives
 
 - Added thirteen approved front-three-quarter complete-form representatives:

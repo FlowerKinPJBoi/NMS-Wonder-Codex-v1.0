@@ -36,6 +36,17 @@ def _configured_admin_keys() -> dict[str, tuple[str, str]]:
     return _cleaned_keys(values)
 
 
+def _daedalus_scopes(actor: str) -> frozenset[str]:
+    settings = get_settings()
+    actor_key = actor.casefold()
+    scopes: set[str] = set()
+    if actor_key in {item.casefold() for item in settings.daedalus_trainers}:
+        scopes.add("daedalus:submit")
+    if actor_key in {item.casefold() for item in settings.daedalus_reviewers}:
+        scopes.update({"daedalus:review", "daedalus:release"})
+    return frozenset(scopes)
+
+
 def _authenticate(
     x_admin_key: str | None,
     x_admin_actor: str | None,
@@ -56,11 +67,18 @@ def _authenticate(
     lookup = actor.casefold()
     admin = admin_keys.get(lookup) if actor else None
     if admin and secrets.compare_digest(x_admin_key, admin[1]):
-        return OperatorSession(admin[0], frozenset({"admin", "apps:download", "apps:upload", "transit", "capture:submit"}))
+        return OperatorSession(
+            admin[0],
+            frozenset({"admin", "apps:download", "apps:upload", "transit", "capture:submit"})
+            | _daedalus_scopes(admin[0]),
+        )
 
     tester = tester_keys.get(lookup) if actor else None
     if tester and secrets.compare_digest(x_admin_key, tester[1]):
-        return OperatorSession(tester[0], frozenset({"apps:download", "transit", "capture:submit"}))
+        return OperatorSession(
+            tester[0],
+            frozenset({"apps:download", "transit", "capture:submit"}) | _daedalus_scopes(tester[0]),
+        )
 
     if allow_legacy and legacy_key and secrets.compare_digest(x_admin_key, legacy_key):
         return OperatorSession(actor or "legacy-admin", frozenset({"admin", "apps:download", "apps:upload", "transit", "capture:submit"}))

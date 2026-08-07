@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Wonder Codex API"
-    app_version: str = "1.19.0"
+    app_version: str = "1.25.0"
     environment: str = "production"
     database_url: str = ""
     allowed_origins: List[str] = Field(
@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     tester_api_key_ekimo: str = ""
     tester_api_key_jadexp: str = ""
     tester_api_key_krosskelt: str = ""
+    daedalus_trainer_actors: str = "PJ,Boots,Krosskelt"
+    daedalus_reviewer_actors: str = "PJ,Boots"
     ip_hash_salt: str = "change-me"
     max_requests_per_hour: int = 5
     analytics_enabled: bool = True
@@ -70,6 +72,8 @@ class Settings(BaseSettings):
     max_image_dimension: int = 7680
     max_admin_app_mb: int = 160
     admin_app_download_seconds: int = 600
+    max_daedalus_package_mb: int = 40
+    daedalus_download_seconds: int = 900
 
     @property
     def max_image_bytes(self) -> int:
@@ -78,6 +82,10 @@ class Settings(BaseSettings):
     @property
     def max_admin_app_bytes(self) -> int:
         return self.max_admin_app_mb * 1024 * 1024
+
+    @property
+    def max_daedalus_package_bytes(self) -> int:
+        return self.max_daedalus_package_mb * 1024 * 1024
 
     @property
     def spaces_ready(self) -> bool:
@@ -107,9 +115,17 @@ class Settings(BaseSettings):
             and self.auth_supabase_anon_key.strip()
         )
 
+    @property
+    def daedalus_trainers(self) -> list[str]:
+        return [item.strip() for item in self.daedalus_trainer_actors.split(",") if item.strip()]
+
+    @property
+    def daedalus_reviewers(self) -> list[str]:
+        return [item.strip() for item in self.daedalus_reviewer_actors.split(",") if item.strip()]
+
     @field_validator("allowed_origins", mode="before")
     @classmethod
-    def parse_origins(cls, value):
+    def parse_string_lists(cls, value):
         if isinstance(value, str):
             return [item.strip() for item in value.split(",") if item.strip()]
         return value

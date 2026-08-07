@@ -118,4 +118,4 @@ assert.equal(spacecraftGallery.summary.approvedRepresentatives, 13);
 assert.equal(spacecraftGallery.evidencePolicy.exactScreenshotsOverrideRepresentatives, true);
 assert.equal(spacecraftGallery.evidencePolicy.fragmentedOrDetachedGeometryExcluded, true);
 
-console.log('Wonder Codex v1.24.0 site invariants passed.');
+console.log('Wonder Codex v1.25.0 site invariants passed.');

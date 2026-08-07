@@ -52,6 +52,7 @@ def list_private_apps(operator: OperatorSession = Depends(require_operator_key))
             "download": "apps:download" in operator.scopes,
             "upload": operator.can_upload_private_apps,
             "transit": "transit" in operator.scopes,
+            "daedalus": "daedalus:submit" in operator.scopes,
         },
         "storage_ready": settings.spaces_private_ready,
         "storage_warning": storage_warning,
