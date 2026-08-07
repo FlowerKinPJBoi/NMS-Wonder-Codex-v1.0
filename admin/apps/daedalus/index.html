@@ -7,6 +7,7 @@
   <title>Daedalus Builder · Reverse Blueprint Analyzer</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="shared.css">
+  <link rel="stylesheet" href="corpus.css?v=1.26.0">
 </head>
 <body>
   <div class="space-backdrop" aria-hidden="true"></div>
@@ -19,7 +20,7 @@
       <div>
         <p class="eyebrow">Wonder Codex Workshop</p>
         <h1>Daedalus Builder</h1>
-        <p class="subtitle">Builder core <span class="version">v0.9.1</span> · Shared trainer <span class="version">v1.25.1</span></p>
+        <p class="subtitle">Builder core <span class="version">v0.9.1</span> · Corpus consumer <span class="version">v1.26.0</span></p>
       </div>
     </div>
     <div class="hosted-actions"><a href="/admin/apps/">← Admin apps</a><div class="safety-pill"><span></span> Local analysis · shared review</div></div>
@@ -28,11 +29,11 @@
   <main>
     <section class="shared-hub panel" id="sharedHub">
       <div class="shared-heading">
-        <div><p class="eyebrow accent">Wonder Codex · Shared trainer</p><h2>Build together. Release deliberately.</h2><p>Analysis stays in this browser. Verified sessions can be saved directly to the shared queue, while exported learning ZIPs remain available as a manual fallback. Neither path can teach production Daedalus until an authorized reviewer approves and separately releases the record.</p></div>
+        <div><p class="eyebrow accent">Wonder Codex · Shared trainer</p><h2>Build together. Release deliberately.</h2><p>Analysis stays in this browser. Verified sessions enter review first. An authorized release now publishes a compact, versioned lesson to Daedalus retrieval; the original evidence ZIP remains private and immutable.</p></div>
         <div class="shared-identity"><span id="sharedStatus">Connecting…</span><strong id="sharedOperator">Named operator</strong><button class="text-button" id="sharedRefresh" type="button">Refresh queue</button></div>
       </div>
       <div class="shared-metrics">
-        <div><span>Pending</span><strong id="queuePending">—</strong></div><div><span>Needs correction</span><strong id="queueCorrection">—</strong></div><div><span>Approved</span><strong id="queueApproved">—</strong></div><div><span>Released</span><strong id="queueReleased">—</strong></div>
+        <div><span>Pending</span><strong id="queuePending">—</strong></div><div><span>Needs correction</span><strong id="queueCorrection">—</strong></div><div><span>Approved</span><strong id="queueApproved">—</strong></div><div><span>Released</span><strong id="queueReleased">—</strong></div><div><span>Active lessons</span><strong id="corpusActive">—</strong></div><div><span>Corpus version</span><strong id="corpusVersion">—</strong></div>
       </div>
       <div class="shared-grid">
         <form class="shared-upload" id="sharedUploadForm">
@@ -45,7 +46,7 @@
             <label>Python version<input id="sharedPythonVersion" type="text" maxlength="60" placeholder="e.g. 3.x or not used"></label>
           </div>
           <button class="primary-button small" id="sharedSubmit" type="submit">Submit to shared review</button>
-          <small id="sharedUploadHelp">Use the direct session button below or upload an exported Learning ZIP here. Production learning remains locked.</small>
+          <small id="sharedUploadHelp">Use the direct session button below or upload an exported Learning ZIP here. Review and release remain mandatory.</small>
         </form>
         <div class="requirements-card">
           <p class="eyebrow">Required apps & compatibility</p><h3>Browser-first setup</h3>
@@ -67,7 +68,7 @@
       </div>
       <div class="release-note">
         <strong>What this release does</strong>
-          <p>Loads native Base Builder prefab definitions and generates review-ready, ObjectID-only sign prefabs from verified construction evidence.</p>
+          <p>Publishes released examples as versioned lessons and retrieves relevant intent, geometry, Object IDs, corrections, and provenance for a model-powered planner.</p>
       </div>
     </section>
 

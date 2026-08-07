@@ -11,8 +11,9 @@ from app.services.security import OperatorSession
 
 
 class FakeSession:
-    def __init__(self, row):
+    def __init__(self, row, entry=None):
         self.row = row
+        self.entry = entry
         self.added = []
         self.committed = False
 
@@ -22,6 +23,10 @@ class FakeSession:
 
     def add(self, value):
         self.added.append(value)
+
+    def scalar(self, statement):
+        del statement
+        return self.entry
 
     def commit(self):
         self.committed = True
@@ -96,6 +101,19 @@ def test_release_rechecks_stored_digest_and_records_real_prior_state(monkeypatch
         verified.update({"key": object_key, "sha": expected_sha256, "size": expected_size})
 
     monkeypatch.setattr(daedalus, "verify_learning_package", verify)
+    monkeypatch.setattr(
+        daedalus,
+        "read_learning_package",
+        lambda *args, **kwargs: SimpleNamespace(record={"designIntent": {"originalRequest": "Test"}}),
+    )
+    corpus_entry = SimpleNamespace(
+        status="active",
+        published_version=7,
+        last_changed_version=7,
+        disabled_at=None,
+        disabled_reason="",
+    )
+    monkeypatch.setattr(daedalus, "publish_lesson", lambda *args, **kwargs: corpus_entry)
     result = daedalus.review_submission(
         "submission-1",
         daedalus.QueueAction(action="release", note="PJ checked the archive and approves release."),
@@ -111,5 +129,59 @@ def test_release_rechecks_stored_digest_and_records_real_prior_state(monkeypatch
     }
     assert session.row.status == "released"
     assert session.row.reviewer_note == "PJ checked the archive and approves release."
-    assert session.added[-1].detail == {"from": "approved", "to": "released"}
+    assert result["submission"]["corpus"] == {
+        "status": "active",
+        "active": True,
+        "version": 7,
+        "last_changed_version": 7,
+        "disabled_at": None,
+        "disabled_reason": "",
+    }
+    assert session.added[-1].detail == {"from": "approved", "to": "released", "corpusVersion": 7}
+    assert session.committed is True
+
+
+def test_approval_does_not_publish_to_corpus(monkeypatch):
+    session = FakeSession(row(status="pending_review"))
+
+    def unexpected_publish(*args, **kwargs):
+        raise AssertionError("approval must not publish")
+
+    monkeypatch.setattr(daedalus, "publish_lesson", unexpected_publish)
+    result = daedalus.review_submission(
+        "submission-1",
+        daedalus.QueueAction(action="approve", note="Geometry looks ready for release review."),
+        REVIEWER,
+        session,
+    )
+    assert result["submission"]["status"] == "approved"
+    assert result["submission"]["production_training_eligible"] is False
+    assert session.committed is True
+
+
+def test_pre_consumer_release_can_be_explicitly_indexed(monkeypatch):
+    session = FakeSession(row(status="released"))
+    monkeypatch.setattr(daedalus, "verify_learning_package", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        daedalus,
+        "read_learning_package",
+        lambda *args, **kwargs: SimpleNamespace(record={"designIntent": {"originalRequest": "Legacy release"}}),
+    )
+    entry = SimpleNamespace(
+        status="active",
+        published_version=8,
+        last_changed_version=8,
+        disabled_at=None,
+        disabled_reason="",
+    )
+    monkeypatch.setattr(daedalus, "publish_lesson", lambda *args, **kwargs: entry)
+    result = daedalus.change_corpus_entry(
+        "submission-1",
+        daedalus.CorpusDecision(action="index", note="Revalidated after corpus migration."),
+        REVIEWER,
+        session,
+    )
+    assert result["corpus_version"] == 8
+    assert result["corpus"]["active"] is True
+    assert session.added[-1].event_type == "daedalus_corpus_indexed"
     assert session.committed is True

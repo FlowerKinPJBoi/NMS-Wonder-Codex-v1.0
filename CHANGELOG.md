@@ -1,5 +1,21 @@
 # Wonder Codex changelog
 
+## v1.26.0 — Versioned Daedalus corpus consumer
+
+- Made **Release to learning** publish a compact lesson from the exact reviewed
+  ZIP, rather than changing only a queue label.
+- Added an incrementing production corpus version, immutable source provenance,
+  active/disabled controls, and audited rollback decisions.
+- Added provider-independent retrieval that combines intent text with build
+  category, style tags, Object IDs, part count, and domain similarity.
+- Kept full ZIPs, screenshots, and inspection evidence in private object
+  storage; GitHub contains only application source and migrations.
+- Revalidated the stored archive bytes, source hashes, anchors, Object IDs,
+  part cap, and uniform scale again at publication time.
+- Exposed corpus version and active lesson counts in the Daedalus review UI.
+- Added an explicit, revalidated indexing action for records released before
+  the corpus consumer was deployed.
+
 ## v1.25.1 — One-click Daedalus learning review
 
 - Added **Save this session as learning for review** to package the current

@@ -431,6 +431,31 @@ def verify_learning_package(object_key: str, *, expected_sha256: str, expected_s
         raise HTTPException(status_code=409, detail="The stored Daedalus package no longer matches its reviewed digest and size.")
 
 
+def read_learning_package(
+    object_key: str,
+    *,
+    expected_sha256: str,
+    expected_size: int,
+    filename: str,
+    maximum_bytes: int,
+) -> PreparedLearningPackage:
+    """Read and fully revalidate the immutable archive before corpus publication."""
+    settings = get_settings()
+    try:
+        response = _client().get_object(Bucket=settings.spaces_bucket, Key=object_key)
+        stream = response["Body"]
+        try:
+            body = stream.read(maximum_bytes + 1)
+        finally:
+            stream.close()
+    except (BotoCoreError, ClientError, KeyError) as exc:
+        logger.exception("Could not read Daedalus package %s", object_key)
+        raise HTTPException(status_code=502, detail="The stored Daedalus package could not be read for corpus publication.") from exc
+    if len(body) != expected_size or hashlib.sha256(body).hexdigest().casefold() != expected_sha256.casefold():
+        raise HTTPException(status_code=409, detail="The stored Daedalus package no longer matches its reviewed bytes.")
+    return inspect_learning_package(body, filename, maximum_bytes=maximum_bytes)
+
+
 def signed_learning_url(object_key: str, filename: str) -> str:
     settings = get_settings()
     try:

@@ -4,7 +4,7 @@
   const API = "/api/admin/apps/daedalus";
   const key = sessionStorage.getItem("wc_admin_key") || "";
   const actor = sessionStorage.getItem("wc_admin_actor") || "";
-  const state = {permissions: {}, maxUploadBytes: 0, storageReady: false, items: []};
+  const state = {permissions: {}, maxUploadBytes: 0, storageReady: false, corpus: {}, items: []};
   const $ = (selector) => document.querySelector(selector);
   const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
   const headers = () => ({"X-Admin-Key": key, "X-Admin-Actor": actor, Accept: "application/json"});
@@ -34,6 +34,7 @@
       state.permissions = data.permissions || {};
       state.maxUploadBytes = Number(data.max_upload_bytes || 0);
       state.storageReady = Boolean(data.storage_ready);
+      state.corpus = data.corpus || {};
       $("#sharedStatus").textContent = data.storage_ready ? "Shared storage online" : "Storage setup required";
       $("#sharedOperator").textContent = `${data.operator} · ${state.permissions.review ? "reviewer" : "trainer"}`;
       $("#sharedArchive").disabled = !state.permissions.submit;
@@ -42,6 +43,7 @@
         ? `Maximum ${formatBytes(state.maxUploadBytes)}. ${data.production_rule}`
         : "DigitalOcean Spaces must be configured before packages can be shared.";
       renderCounts(data.counts || {});
+      renderCorpus(state.corpus);
       await loadQueue();
     } catch (error) {
       $("#sharedStatus").textContent = "Access unavailable";
@@ -56,6 +58,11 @@
     $("#queueReleased").textContent = Number(counts.released || 0).toLocaleString();
   }
 
+  function renderCorpus(corpus) {
+    $("#corpusActive").textContent = Number(corpus.active || 0).toLocaleString();
+    $("#corpusVersion").textContent = `v${Number(corpus.version || 0).toLocaleString()}`;
+  }
+
   async function loadQueue() {
     const status = $("#queueFilter").value;
     const data = await api(`/submissions${status ? `?status=${encodeURIComponent(status)}` : ""}`);
@@ -64,7 +71,15 @@
   }
 
   function actionButtons(item) {
-    if (!state.permissions.review || item.status === "released" || item.status === "rejected") return "";
+    if (item.status === "released" && state.permissions.release) {
+      if (item.corpus?.status === "not_indexed") {
+        return `<textarea class="queue-note" maxlength="4000" placeholder="Required indexing decision"></textarea><button type="button" data-corpus-action="index">Index released lesson</button>`;
+      }
+      const action = item.corpus?.active ? "disable" : "enable";
+      const label = item.corpus?.active ? "Disable lesson" : "Enable lesson";
+      return `<textarea class="queue-note" maxlength="4000" placeholder="Required corpus decision reason"></textarea><button type="button" data-corpus-action="${action}">${label}</button>`;
+    }
+    if (!state.permissions.review || item.status === "rejected") return "";
     const buttons = [];
     if (["pending_review", "needs_correction"].includes(item.status)) buttons.push(`<button type="button" data-action="approve">Approve</button>`);
     if (["pending_review", "approved"].includes(item.status)) buttons.push(`<button type="button" data-action="needs_correction">Needs correction</button>`);
@@ -82,14 +97,20 @@
     container.innerHTML = state.items.map((item) => {
       const domain = item.domain === "NO_MANS_SKY_CORVETTE_BUILDING" ? "Corvette" : "Base / Prefab";
       const intent = item.design_intent?.originalRequest || "No design brief recorded.";
+      const corpusTag = item.status === "released"
+        ? (item.corpus?.status === "not_indexed"
+          ? '<span class="queue-tag">not indexed</span>'
+          : `<span class="queue-tag corpus-${item.corpus?.active ? "active" : "disabled"}">${item.corpus?.active ? `retrieval active · v${Number(item.corpus.version).toLocaleString()}` : "retrieval disabled"}</span>`)
+        : "";
       return `<article class="queue-card" data-submission="${escapeHtml(item.id)}">
-        <div><h4>${escapeHtml(item.build_name || item.original_filename)}</h4><p>${escapeHtml(intent)}</p><div class="queue-tags"><span class="queue-tag ${escapeHtml(item.status)}">${escapeHtml(item.status.replaceAll("_", " "))}</span><span class="queue-tag">${escapeHtml(domain)}</span><span class="queue-tag">${Number(item.object_count).toLocaleString()} parts</span><span class="queue-tag">${Number(item.distinct_object_ids).toLocaleString()} Object IDs</span><span class="queue-tag">by ${escapeHtml(item.contributor)}</span><span class="queue-tag">${escapeHtml(formatDate(item.created_at))}</span></div></div>
+        <div><h4>${escapeHtml(item.build_name || item.original_filename)}</h4><p>${escapeHtml(intent)}</p><div class="queue-tags"><span class="queue-tag ${escapeHtml(item.status)}">${escapeHtml(item.status.replaceAll("_", " "))}</span>${corpusTag}<span class="queue-tag">${escapeHtml(domain)}</span><span class="queue-tag">${Number(item.object_count).toLocaleString()} parts</span><span class="queue-tag">${Number(item.distinct_object_ids).toLocaleString()} Object IDs</span><span class="queue-tag">by ${escapeHtml(item.contributor)}</span><span class="queue-tag">${escapeHtml(formatDate(item.created_at))}</span></div></div>
         <div class="queue-actions"><button type="button" data-download>Download ZIP</button>${actionButtons(item)}</div>
-        <div class="queue-message">Server validation: passed · protected ${escapeHtml(item.server_validation?.protectedObjectId || "prefab geometry")} · uniform-scale source check ${item.server_validation?.uniformScaleVerifiedInSource ? "passed" : "not available for wrapper-only geometry"}. ${item.production_training_eligible ? "Released for production learning." : "Not eligible for production learning."}${item.contributor_note ? ` Trainer: ${escapeHtml(item.contributor_note)}` : ""}${item.reviewer_note ? ` Reviewer: ${escapeHtml(item.reviewer_note)}` : ""}</div>
+        <div class="queue-message">Server validation: passed · protected ${escapeHtml(item.server_validation?.protectedObjectId || "prefab geometry")} · uniform-scale source check ${item.server_validation?.uniformScaleVerifiedInSource ? "passed" : "not available for wrapper-only geometry"}. ${item.production_training_eligible ? "Released and available to Daedalus retrieval." : "Not active in Daedalus retrieval."}${item.contributor_note ? ` Trainer: ${escapeHtml(item.contributor_note)}` : ""}${item.reviewer_note ? ` Reviewer: ${escapeHtml(item.reviewer_note)}` : ""}</div>
       </article>`;
     }).join("");
     container.querySelectorAll("[data-download]").forEach((button) => button.addEventListener("click", () => download(button.closest("[data-submission]").dataset.submission, button)));
     container.querySelectorAll("[data-action]").forEach((button) => button.addEventListener("click", () => review(button.closest("[data-submission]"), button.dataset.action, button)));
+    container.querySelectorAll("[data-corpus-action]").forEach((button) => button.addEventListener("click", () => changeCorpus(button.closest("[data-submission]"), button.dataset.corpusAction, button)));
   }
 
   async function download(id, button) {
@@ -121,6 +142,34 @@
       notice(error.message, true);
       button.disabled = false;
     }
+  }
+
+  async function changeCorpus(card, action, button) {
+    const note = card.querySelector(".queue-note")?.value.trim() || "";
+    if (!note) return notice("Record a reason before changing the production corpus.", true);
+    if (!window.confirm(`Confirm you want to ${action} this Daedalus lesson?`)) return;
+    button.disabled = true;
+    try {
+      await api(`/corpus/${encodeURIComponent(card.dataset.submission)}`, {
+        method: "PATCH",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({action, note}),
+      });
+      const completed = {index: "indexed", disable: "disabled", enable: "enabled"};
+      notice(`Corpus updated: lesson ${completed[action]}.`);
+      await connect();
+    } catch (error) {
+      notice(error.message, true);
+      button.disabled = false;
+    }
+  }
+
+  async function retrieveLessons(request) {
+    return api("/corpus/retrieve", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(request),
+    });
   }
 
   function buildContributorNote(note) {
@@ -179,6 +228,6 @@
   $("#sharedUploadForm").addEventListener("submit", submit);
   $("#sharedRefresh").addEventListener("click", connect);
   $("#queueFilter").addEventListener("change", loadQueue);
-  window.DaedalusShared = {submitLearningBlob, refreshQueue: connect};
+  window.DaedalusShared = {submitLearningBlob, retrieveLessons, refreshQueue: connect};
   connect();
 })();

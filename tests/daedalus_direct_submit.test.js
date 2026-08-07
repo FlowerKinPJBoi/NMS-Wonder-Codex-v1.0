@@ -39,9 +39,10 @@ const fetch = async (url, options = {}) => {
       operator: 'PJ',
       permissions: {submit: true, review: true, release: true},
       counts: {},
+      corpus: {active: 0, disabled: 0, version: 0},
       max_upload_bytes: 40 * 1024 * 1024,
       storage_ready: true,
-      production_rule: 'Only released packages are eligible for production learning.'
+      production_rule: 'Only released, active corpus lessons may influence Daedalus retrieval.'
     })
   };
 };

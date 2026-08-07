@@ -12,12 +12,19 @@ from sqlalchemy.orm import Session
 
 from ..config import get_settings
 from ..database import get_session
-from ..models import AuditEvent, DaedalusTrainingSubmission
+from ..models import AuditEvent, DaedalusCorpusEntry, DaedalusTrainingSubmission
 from ..services.daedalus import (
     inspect_learning_package,
+    read_learning_package,
     signed_learning_url,
     store_learning_package,
     verify_learning_package,
+)
+from ..services.daedalus_corpus import (
+    corpus_counts,
+    publish_lesson,
+    retrieve_lessons,
+    set_entry_active,
 )
 from ..services.security import OperatorSession, require_operator_key
 
@@ -30,12 +37,40 @@ class QueueAction(BaseModel):
     note: str = Field(default="", max_length=4000)
 
 
+class CorpusDecision(BaseModel):
+    action: Literal["index", "disable", "enable"]
+    note: str = Field(min_length=1, max_length=4000)
+
+
+class CorpusQuery(BaseModel):
+    query: str = Field(default="", max_length=8000)
+    domain: Literal["NO_MANS_SKY_CORVETTE_BUILDING", "NO_MANS_SKY_BASE_BUILDING"]
+    category: str = Field(default="", max_length=120)
+    style_tags: list[str] = Field(default_factory=list, max_length=40)
+    object_ids: list[str] = Field(default_factory=list, max_length=250)
+    part_count: int | None = Field(default=None, ge=1, le=3000)
+    limit: int = Field(default=8, ge=1, le=20)
+
+
 def _require(operator: OperatorSession, scope: str) -> None:
     if scope not in operator.scopes:
         raise HTTPException(status_code=403, detail="Your named operator does not have this Daedalus permission.")
 
 
-def _public(row: DaedalusTrainingSubmission) -> dict:
+def _corpus_public(entry: DaedalusCorpusEntry | None) -> dict:
+    if entry is None:
+        return {"status": "not_indexed", "active": False, "version": None}
+    return {
+        "status": entry.status,
+        "active": entry.status == "active",
+        "version": entry.published_version,
+        "last_changed_version": entry.last_changed_version,
+        "disabled_at": entry.disabled_at,
+        "disabled_reason": entry.disabled_reason,
+    }
+
+
+def _public(row: DaedalusTrainingSubmission, corpus_entry: DaedalusCorpusEntry | None = None) -> dict:
     return {
         "id": row.id,
         "created_at": row.created_at,
@@ -61,7 +96,8 @@ def _public(row: DaedalusTrainingSubmission) -> dict:
         "trust_collection": row.trust_collection,
         "server_validation": row.server_validation,
         "design_intent": row.design_intent,
-        "production_training_eligible": row.status == "released",
+        "corpus": _corpus_public(corpus_entry),
+        "production_training_eligible": row.status == "released" and corpus_entry is not None and corpus_entry.status == "active",
     }
 
 
@@ -84,10 +120,11 @@ def workspace(operator: OperatorSession = Depends(require_operator_key), session
             "release": "daedalus:release" in operator.scopes,
         },
         "counts": counts,
+        "corpus": corpus_counts(session),
         "max_upload_bytes": settings.max_daedalus_package_bytes,
         "download_expires_seconds": settings.daedalus_download_seconds,
         "storage_ready": settings.spaces_private_ready,
-        "production_rule": "Only released packages are eligible for production learning.",
+        "production_rule": "Only released, active corpus lessons may influence Daedalus retrieval.",
     }
 
 
@@ -104,7 +141,16 @@ def list_submissions(
     statement = select(DaedalusTrainingSubmission).order_by(DaedalusTrainingSubmission.created_at.desc()).limit(limit)
     if status:
         statement = statement.where(DaedalusTrainingSubmission.status == status)
-    return {"items": [_public(row) for row in session.scalars(statement).all()]}
+    rows = session.scalars(statement).all()
+    entries = {}
+    if rows:
+        entries = {
+            entry.submission_id: entry
+            for entry in session.scalars(
+                select(DaedalusCorpusEntry).where(DaedalusCorpusEntry.submission_id.in_([row.id for row in rows]))
+            ).all()
+        }
+    return {"items": [_public(row, entries.get(row.id)) for row in rows]}
 
 
 @router.post("/submissions")
@@ -190,6 +236,13 @@ def review_submission(
         if not cleaned_note:
             raise HTTPException(status_code=400, detail="Record an explicit release decision before production learning.")
         verify_learning_package(row.object_key, expected_sha256=row.sha256, expected_size=row.size_bytes)
+        package = read_learning_package(
+            row.object_key,
+            expected_sha256=row.sha256,
+            expected_size=row.size_bytes,
+            filename=row.original_filename,
+            maximum_bytes=get_settings().max_daedalus_package_bytes,
+        )
 
     previous_status = row.status
     now = datetime.now(timezone.utc)
@@ -200,14 +253,108 @@ def review_submission(
         row.reviewer_note = cleaned_note
     if target == "released":
         row.released_at = now
+        corpus_entry = publish_lesson(
+            session,
+            row,
+            package.record,
+            actor=operator.actor,
+            release_note=cleaned_note,
+        )
+    else:
+        corpus_entry = None
     session.add(AuditEvent(
         event_type=f"daedalus_training_{target}",
         actor=operator.actor,
         batch_id=row.id,
-        detail={"from": previous_status, "to": target},
+        detail={
+            "from": previous_status,
+            "to": target,
+            **({"corpusVersion": corpus_entry.published_version} if corpus_entry is not None else {}),
+        },
     ))
     session.commit()
-    return {"ok": True, "submission": _public(row)}
+    return {"ok": True, "submission": _public(row, corpus_entry)}
+
+
+@router.post("/corpus/retrieve")
+def retrieve_corpus(
+    request: CorpusQuery,
+    operator: OperatorSession = Depends(require_operator_key),
+    session: Session = Depends(get_session),
+):
+    _require(operator, "daedalus:submit")
+    invalid_ids = [value for value in request.object_ids if not value.startswith("^")]
+    if invalid_ids:
+        raise HTTPException(status_code=400, detail="Corpus Object ID filters must begin with ^.")
+    return retrieve_lessons(
+        session,
+        query=" ".join(request.query.split()),
+        domain=request.domain,
+        category=request.category,
+        style_tags=request.style_tags,
+        object_ids=request.object_ids,
+        part_count=request.part_count,
+        limit=request.limit,
+    )
+
+
+@router.patch("/corpus/{submission_id}")
+def change_corpus_entry(
+    submission_id: str,
+    decision: CorpusDecision,
+    operator: OperatorSession = Depends(require_operator_key),
+    session: Session = Depends(get_session),
+):
+    _require(operator, "daedalus:release")
+    entry = session.scalar(select(DaedalusCorpusEntry).where(DaedalusCorpusEntry.submission_id == submission_id))
+    if decision.action == "index":
+        if entry is not None:
+            raise HTTPException(status_code=409, detail="This released submission is already indexed.")
+        row = session.get(DaedalusTrainingSubmission, submission_id)
+        if row is None:
+            raise HTTPException(status_code=404, detail="Daedalus submission not found.")
+        if row.status != "released":
+            raise HTTPException(status_code=409, detail="Only released submissions may be indexed.")
+        verify_learning_package(row.object_key, expected_sha256=row.sha256, expected_size=row.size_bytes)
+        package = read_learning_package(
+            row.object_key,
+            expected_sha256=row.sha256,
+            expected_size=row.size_bytes,
+            filename=row.original_filename,
+            maximum_bytes=get_settings().max_daedalus_package_bytes,
+        )
+        entry = publish_lesson(
+            session,
+            row,
+            package.record,
+            actor=operator.actor,
+            release_note=decision.note,
+        )
+        version = entry.published_version
+        session.add(AuditEvent(
+            event_type="daedalus_corpus_indexed",
+            actor=operator.actor,
+            batch_id=submission_id,
+            detail={"corpusVersion": version, "reason": " ".join(decision.note.split())},
+        ))
+        session.commit()
+        return {"ok": True, "corpus": _corpus_public(entry), "corpus_version": version}
+    if entry is None:
+        raise HTTPException(status_code=404, detail="Index this released submission before changing its corpus state.")
+    version = set_entry_active(
+        session,
+        entry,
+        active=decision.action == "enable",
+        reason=decision.note,
+    )
+    session.add(AuditEvent(
+        event_type=f"daedalus_corpus_{decision.action}d",
+        actor=operator.actor,
+        batch_id=submission_id,
+        detail={"corpusVersion": version, "reason": " ".join(decision.note.split())},
+    ))
+    session.commit()
+    return {"ok": True, "corpus": _corpus_public(entry), "corpus_version": version}
 
 
 @router.post("/submissions/{submission_id}/download")

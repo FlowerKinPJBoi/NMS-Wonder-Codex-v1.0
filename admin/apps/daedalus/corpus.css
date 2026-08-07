@@ -1,0 +1,30 @@
+.shared-metrics {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.queue-tag.corpus-active {
+  color: var(--green);
+  border-color: rgba(114, 239, 189, .3);
+}
+
+.queue-tag.corpus-disabled {
+  color: #ff9eaa;
+}
+
+@media (max-width: 1100px) {
+  .shared-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 850px) {
+  .shared-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .shared-metrics {
+    grid-template-columns: 1fr;
+  }
+}

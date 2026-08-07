@@ -1,4 +1,4 @@
-# Wonder Codex v1.25.1
+# Wonder Codex v1.26.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
@@ -19,15 +19,19 @@ Descriptor Atlas evidence layer. It also includes a private receiver and owner
 review lane for locally confirmed Capture Companion discovery/screenshot pairs;
 nothing from that lane becomes public without an administrator decision.
 
-v1.25.1 hosts Daedalus Builder inside `/admin/apps/` for named trainers. Build
+v1.26.0 hosts Daedalus Builder inside `/admin/apps/` for named trainers. Build
 analysis remains browser-local; exported learning packages are validated again
 by the API and stored in a shared private review queue. A verified session can
 also be packaged and submitted directly from the Learning Lab without a manual
-download/re-upload step. Approval and release
-are deliberately separate, and only released records may enter production
-learning. The server enforces the 3,000-part limit, Object-ID-only inventory,
+download/re-upload step. Approval and release are deliberately separate. A
+release now re-reads the immutable ZIP, extracts a compact lesson, advances the
+production corpus version, and makes that lesson available to ranked semantic
+and structural retrieval. Reviewers can disable or restore a lesson with an
+audited reason, and explicitly index any records released before this corpus
+consumer existed. The server enforces the 3,000-part limit, Object-ID-only inventory,
 normal part shape (uniform scale), source hashes, and protected `^U_PARAGON` /
-`^BASE_FLAG` records.
+`^BASE_FLAG` records. The corpus consumer is provider-independent; connecting
+its retrieved lessons to a creative model planner is a separate integration.
 
 v1.18 adds the public Wonder Forge gallery with 95 evidence-labeled fauna
 holograms. Thirty verified natural forms can serve as deterministic
