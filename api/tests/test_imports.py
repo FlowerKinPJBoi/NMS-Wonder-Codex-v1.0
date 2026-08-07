@@ -309,11 +309,12 @@ def test_approved_cat_family_pool_is_attached_without_exact_claim():
 
 
 def test_record_eligible_forge_pool_is_quality_gated_and_ringless():
-    assert len(CATALOG_ENTRIES) == 207
+    assert len(CATALOG_ENTRIES) == 220
     assert all(entry["ringless"] is True for entry in CATALOG_ENTRIES)
     assert all(entry["exact_specimen"] is False for entry in CATALOG_ENTRIES)
     assert {entry["category_id"] for entry in CATALOG_ENTRIES} == {
-        "fauna", "flora", "frigates", "minerals", "multitools", "planets",
+        "fauna", "flora", "freighters", "frigates", "minerals", "multitools",
+        "planets", "starships",
     }
 
 
