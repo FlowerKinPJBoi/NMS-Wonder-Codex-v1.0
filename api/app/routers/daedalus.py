@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, Response, UploadFile
+from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, inspect, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -17,6 +18,7 @@ from ..config import get_settings
 from ..database import get_session
 from ..models import (
     AuditEvent,
+    DaedalusBuildJob,
     DaedalusBuildPass,
     DaedalusBuildSession,
     DaedalusCorpusEntry,
@@ -36,14 +38,21 @@ from ..services.daedalus_corpus import (
     set_entry_active,
 )
 from ..services.daedalus_build_storage import read_build_artifact, signed_build_url, store_build_artifact
-from ..services.daedalus_builder import generate_build, parse_build, prompt_seed_build, safe_build_filename
-from ..services.error_incidents import create_incident, incident_public
+from ..services.daedalus_builder import (
+    generate_build,
+    parse_build,
+    poll_provider_plan,
+    prompt_seed_build,
+    safe_build_filename,
+    start_provider_plan,
+)
+from ..services.error_incidents import create_incident, incident_public, sanitized_message
 from ..services.security import OperatorSession, require_operator_key
 
 router = APIRouter(prefix="/admin/apps/daedalus", tags=["daedalus-builder"])
 STATUSES = {"pending_review", "needs_correction", "approved", "released", "rejected"}
 logger = logging.getLogger(__name__)
-BUILD_TABLES = ("daedalus_build_sessions", "daedalus_build_passes")
+BUILD_TABLES = ("daedalus_build_sessions", "daedalus_build_passes", "daedalus_build_jobs")
 
 
 class QueueAction(BaseModel):
@@ -78,6 +87,7 @@ class DaedalusClientError(BaseModel):
     elapsed_ms: int = Field(default=0, ge=0, le=900_000)
     message: str = Field(min_length=1, max_length=1200)
     session_id: str = Field(default="", max_length=64, pattern=r"^[A-Za-z0-9-]*$")
+    job_id: str = Field(default="", max_length=64, pattern=r"^[A-Za-z0-9-]*$")
     pass_version: int = Field(default=0, ge=0, le=10_000)
     source_kind: Literal["prompt_only", "uploaded_build", "existing_session"] = "prompt_only"
     reference_count: int = Field(default=0, ge=0, le=20)
@@ -117,7 +127,7 @@ def _require_build_schema(session: Session) -> None:
             status_code=503,
             detail=(
                 "Daedalus build storage is waiting for database migration "
-                "0013_daedalus_builder_writer. Set RUN_MIGRATIONS_ON_START=true on the API Web Service and redeploy."
+                "0015_daedalus_build_jobs. Set RUN_MIGRATIONS_ON_START=true on the API Web Service and redeploy."
             ),
         )
 
@@ -200,6 +210,45 @@ def _build_pass_public(row: DaedalusBuildPass) -> dict:
     }
 
 
+def _build_job_public(row: DaedalusBuildJob) -> dict:
+    return {
+        "id": row.id,
+        "created_at": row.created_at,
+        "updated_at": row.updated_at,
+        "completed_at": row.completed_at,
+        "status": row.status,
+        "phase": row.phase,
+        "session_id": row.session_id,
+        "version": row.version,
+        "base_version": row.base_version,
+        "provider_status": row.provider_status,
+        "reference_count": row.reference_count,
+        "error_incident_id": row.error_incident_id or None,
+        "error_message": row.error_message or None,
+    }
+
+
+def _job_response(
+    row: DaedalusBuildJob,
+    build_session: DaedalusBuildSession | None = None,
+    build_pass: DaedalusBuildPass | None = None,
+) -> dict:
+    payload = {"ok": row.status != "failed", "job": _build_job_public(row)}
+    if row.status == "completed" and build_session is not None and build_pass is not None:
+        payload["result"] = _generated_response(build_session, build_pass)
+    return payload
+
+
+def _validated_job_id(value: str) -> str:
+    try:
+        normalized = str(uuid.UUID(str(value)))
+    except (ValueError, TypeError, AttributeError) as exc:
+        raise HTTPException(status_code=400, detail="Daedalus build job IDs must be UUIDs.") from exc
+    if normalized != str(value).casefold():
+        raise HTTPException(status_code=400, detail="Daedalus build job ID is not canonical.")
+    return normalized
+
+
 @router.get("")
 def workspace(operator: OperatorSession = Depends(require_operator_key), session: Session = Depends(get_session)):
     _require(operator, "daedalus:submit")
@@ -214,7 +263,7 @@ def workspace(operator: OperatorSession = Depends(require_operator_key), session
     build_schema_ready = _build_schema_ready(session)
     generation_ready = settings.daedalus_generation_ready and build_schema_ready
     if not build_schema_ready:
-        setup_required = "Redeploy the API with RUN_MIGRATIONS_ON_START=true so migration 0013 can create the Daedalus build tables."
+        setup_required = "Redeploy the API with RUN_MIGRATIONS_ON_START=true so migration 0015 can create the Daedalus background-job table."
     elif not settings.daedalus_generation_ready:
         setup_required = "Add OPENAI_API_KEY to the API service's encrypted environment settings."
     else:
@@ -322,6 +371,7 @@ def report_client_error(
             "apiIncidentId": report.api_incident_id or None,
             "elapsedMs": report.elapsed_ms,
             "sessionId": report.session_id or None,
+            "jobId": report.job_id or None,
             "passVersion": report.pass_version,
             "sourceKind": report.source_kind,
             "referenceCount": report.reference_count,
@@ -339,9 +389,10 @@ def report_client_error(
     }
 
 
-@router.post("/build-sessions")
+@router.post("/build-sessions", status_code=202)
 async def create_build_session(
     request: Request,
+    job_id: str = Form(..., min_length=36, max_length=36),
     instruction: str = Form(..., min_length=1, max_length=8000),
     source: UploadFile | None = File(default=None),
     references: list[UploadFile] | None = File(default=None),
@@ -352,14 +403,23 @@ async def create_build_session(
     request.state.diagnostic_actor = operator.actor
     _require(operator, "daedalus:submit")
     _require_build_schema(session)
+    job_id = _validated_job_id(job_id)
+    existing_job = session.get(DaedalusBuildJob, job_id)
+    if existing_job is not None:
+        if existing_job.actor != operator.actor:
+            raise HTTPException(status_code=404, detail="Daedalus build job not found for this trainer.")
+        return _job_response(existing_job)
     settings = get_settings()
     if not settings.spaces_private_ready:
         raise HTTPException(status_code=503, detail="Private Daedalus build storage is not configured yet.")
     if not settings.openai_api_key.strip():
         raise HTTPException(status_code=503, detail="Daedalus generation needs OPENAI_API_KEY in the API service's encrypted environment settings.")
+    cleaned_instruction = " ".join(instruction.split())
+    if not cleaned_instruction:
+        raise HTTPException(status_code=400, detail="Tell Daedalus what to build or change.")
     request.state.diagnostic_phase = "source_parse"
     if source is None:
-        raw, source_filename, bootstrap = prompt_seed_build(instruction)
+        raw, source_filename, bootstrap = prompt_seed_build(cleaned_instruction)
         parsed = parse_build(raw, source_filename)
         parsed.origin = str(bootstrap["origin"])
         parsed.bootstrap = bootstrap
@@ -374,75 +434,77 @@ async def create_build_session(
         parsed = parse_build(raw, source.filename or "daedalus-build.json")
     reference_bodies = await _reference_bodies(references or [], settings)
     request.state.diagnostic_phase = "corpus_retrieval"
-    retrieval = _retrieve_for_build(session, parsed, instruction)
-    request.state.diagnostic_phase = "model_generation"
-    generated = await run_in_threadpool(partial(
-        generate_build,
-        parsed,
-        instruction,
-        retrieval,
-        [],
-        reference_bodies,
-        settings,
-        version=1,
-    ))
-
+    retrieval = _retrieve_for_build(session, parsed, cleaned_instruction)
     session_id = str(uuid.uuid4())
     source_key = f"admin-apps/daedalus-builds/{session_id}/source/{parsed.filename}"
-    output_key = f"admin-apps/daedalus-builds/{session_id}/passes/1/{generated.filename}"
-    request.state.diagnostic_phase = "artifact_storage"
+    request.state.diagnostic_phase = "source_storage"
     source_digest, source_size = await run_in_threadpool(store_build_artifact, source_key, raw, parsed.filename, operator.actor)
-    output_digest, output_size = await run_in_threadpool(store_build_artifact, output_key, generated.body, generated.filename, operator.actor)
     build_session = DaedalusBuildSession(
         id=session_id,
         actor=operator.actor,
-        status="active",
+        status="generating",
         source_filename=parsed.filename,
         source_format=parsed.format,
         source_object_key=source_key,
         source_sha256=source_digest,
         source_size_bytes=source_size,
         source_validation=parsed.validation,
-        latest_version=1,
+        latest_version=0,
     )
-    build_pass = DaedalusBuildPass(
-        id=str(uuid.uuid4()),
+    build_job = DaedalusBuildJob(
+        id=job_id,
+        actor=operator.actor,
         session_id=session_id,
         version=1,
-        instruction=" ".join(instruction.split()),
-        output_filename=generated.filename,
-        output_object_key=output_key,
-        output_sha256=output_digest,
-        output_size_bytes=output_size,
-        object_count=generated.object_count,
-        distinct_object_ids=generated.distinct_object_ids,
-        operation_count=generated.operation_count,
-        corpus_version=int(retrieval.get("corpus_version") or 0),
-        model_name=settings.daedalus_model,
-        provider_response_id=generated.provider_response_id,
-        plan=generated.plan,
-        validation=generated.validation,
+        base_version=0,
+        status="preparing",
+        phase="provider_submission",
+        instruction=cleaned_instruction,
+        retrieval_snapshot=jsonable_encoder(retrieval),
+        reference_count=len(reference_bodies),
     )
     session.add(build_session)
-    session.add(build_pass)
-    session.add(AuditEvent(
-        event_type="daedalus_build_pass_generated",
-        actor=operator.actor,
-        batch_id=session_id,
-        detail={"version": 1, "operations": generated.operation_count, "sha256": output_digest},
-    ))
-    request.state.diagnostic_phase = "session_persistence"
+    session.add(build_job)
     try:
         session.commit()
     except SQLAlchemyError as exc:
         session.rollback()
-        logger.exception("Daedalus generated Pass 1 but could not persist its build session")
+        logger.exception("Daedalus could not persist its background build job")
         raise HTTPException(
             status_code=503,
-            detail="Daedalus generated the build but could not record its session. Verify API database migration 0013 and retry.",
+            detail="Daedalus could not record its background build job. Verify API database migration 0015 and retry.",
         ) from exc
-    request.state.diagnostic_phase = "completed"
-    return _generated_response(build_session, build_pass)
+    request.state.diagnostic_phase = "provider_submission"
+    try:
+        provider = await run_in_threadpool(partial(
+            start_provider_plan,
+            parsed,
+            cleaned_instruction,
+            retrieval,
+            [],
+            reference_bodies,
+            settings,
+        ))
+    except Exception as exc:
+        build_job.status = "failed"
+        build_job.provider_status = "failed"
+        build_job.error_message = sanitized_message(getattr(exc, "detail", exc), fallback="Daedalus could not start this build job.")
+        build_session.status = "failed"
+        session.commit()
+        raise
+    build_job.provider_response_id = provider.response_id
+    build_job.provider_status = provider.status
+    build_job.status = provider.status if provider.status in {"queued", "in_progress"} else "in_progress"
+    build_job.phase = "model_generation"
+    session.add(AuditEvent(
+        event_type="daedalus_build_job_started",
+        actor=operator.actor,
+        batch_id=session_id,
+        detail={"jobId": job_id, "version": 1, "references": len(reference_bodies)},
+    ))
+    session.commit()
+    request.state.diagnostic_phase = "job_acknowledged"
+    return _job_response(build_job)
 
 
 def _owned_build_session(session_id: str, operator: OperatorSession, session: Session) -> DaedalusBuildSession:
@@ -452,10 +514,11 @@ def _owned_build_session(session_id: str, operator: OperatorSession, session: Se
     return row
 
 
-@router.post("/build-sessions/{session_id}/passes")
+@router.post("/build-sessions/{session_id}/passes", status_code=202)
 async def create_build_pass(
     request: Request,
     session_id: str,
+    job_id: str = Form(..., min_length=36, max_length=36),
     instruction: str = Form(..., min_length=1, max_length=8000),
     references: list[UploadFile] | None = File(default=None),
     operator: OperatorSession = Depends(require_operator_key),
@@ -465,10 +528,22 @@ async def create_build_pass(
     request.state.diagnostic_actor = operator.actor
     _require(operator, "daedalus:submit")
     _require_build_schema(session)
+    job_id = _validated_job_id(job_id)
+    existing_job = session.get(DaedalusBuildJob, job_id)
+    if existing_job is not None:
+        if existing_job.actor != operator.actor:
+            raise HTTPException(status_code=404, detail="Daedalus build job not found for this trainer.")
+        return _job_response(existing_job)
     settings = get_settings()
     if not settings.daedalus_generation_ready:
         raise HTTPException(status_code=503, detail="Daedalus generation needs private storage and OPENAI_API_KEY.")
     build_session = _owned_build_session(session_id, operator, session)
+    active_job = session.scalar(select(DaedalusBuildJob).where(
+        DaedalusBuildJob.session_id == session_id,
+        DaedalusBuildJob.status.in_(("preparing", "queued", "in_progress", "finalizing")),
+    ))
+    if active_job is not None:
+        raise HTTPException(status_code=409, detail="Daedalus is already generating a pass for this build session.")
     starting_version = build_session.latest_version
     previous = session.scalar(
         select(DaedalusBuildPass).where(
@@ -489,8 +564,11 @@ async def create_build_pass(
     parsed = parse_build(raw, previous.output_filename)
     parsed.filename = build_session.source_filename
     reference_bodies = await _reference_bodies(references or [], settings)
+    cleaned_instruction = " ".join(instruction.split())
+    if not cleaned_instruction:
+        raise HTTPException(status_code=400, detail="Tell Daedalus what to build or change.")
     request.state.diagnostic_phase = "corpus_retrieval"
-    retrieval = _retrieve_for_build(session, parsed, instruction)
+    retrieval = _retrieve_for_build(session, parsed, cleaned_instruction)
     prior_rows = session.scalars(
         select(DaedalusBuildPass).where(DaedalusBuildPass.session_id == session_id).order_by(DaedalusBuildPass.version)
     ).all()
@@ -501,69 +579,280 @@ async def create_build_pass(
         "warnings": (row.plan or {}).get("warnings") or [],
     } for row in prior_rows[-6:]]
     version = starting_version + 1
-    request.state.diagnostic_phase = "model_generation"
-    generated = await run_in_threadpool(partial(
-        generate_build,
-        parsed,
-        instruction,
-        retrieval,
-        history,
-        reference_bodies,
-        settings,
-        version=version,
-    ))
-    pass_id = str(uuid.uuid4())
-    output_key = f"admin-apps/daedalus-builds/{session_id}/passes/{version}-{pass_id}/{generated.filename}"
-    request.state.diagnostic_phase = "artifact_storage"
-    output_digest, output_size = await run_in_threadpool(store_build_artifact, output_key, generated.body, generated.filename, operator.actor)
-    request.state.diagnostic_phase = "session_lock"
-    locked_session = session.scalar(
-        select(DaedalusBuildSession)
-        .where(DaedalusBuildSession.id == session_id, DaedalusBuildSession.actor == operator.actor)
-        .with_for_update()
-        .execution_options(populate_existing=True)
-    )
-    if locked_session is None or locked_session.latest_version != starting_version:
-        raise HTTPException(status_code=409, detail="A newer Daedalus pass finished first. Retry this revision against the latest pass.")
-    build_session = locked_session
-    build_pass = DaedalusBuildPass(
-        id=pass_id,
+    build_job = DaedalusBuildJob(
+        id=job_id,
+        actor=operator.actor,
         session_id=session_id,
         version=version,
-        instruction=" ".join(instruction.split()),
-        output_filename=generated.filename,
-        output_object_key=output_key,
-        output_sha256=output_digest,
-        output_size_bytes=output_size,
-        object_count=generated.object_count,
-        distinct_object_ids=generated.distinct_object_ids,
-        operation_count=generated.operation_count,
-        corpus_version=int(retrieval.get("corpus_version") or 0),
-        model_name=settings.daedalus_model,
-        provider_response_id=generated.provider_response_id,
-        plan=generated.plan,
-        validation=generated.validation,
+        base_version=starting_version,
+        status="preparing",
+        phase="provider_submission",
+        instruction=cleaned_instruction,
+        retrieval_snapshot=jsonable_encoder(retrieval),
+        reference_count=len(reference_bodies),
     )
-    build_session.latest_version = version
-    session.add(build_pass)
-    session.add(AuditEvent(
-        event_type="daedalus_build_pass_generated",
-        actor=operator.actor,
-        batch_id=session_id,
-        detail={"version": version, "operations": generated.operation_count, "sha256": output_digest},
-    ))
-    request.state.diagnostic_phase = "session_persistence"
+    build_session.status = "generating"
+    session.add(build_job)
     try:
         session.commit()
-    except SQLAlchemyError as exc:
+    except (IntegrityError, SQLAlchemyError) as exc:
         session.rollback()
-        logger.exception("Daedalus generated a revision but could not persist its build pass")
+        logger.exception("Daedalus could not persist its revision build job")
         raise HTTPException(
-            status_code=503,
-            detail="Daedalus generated the revision but could not record its pass. Verify API database migration 0013 and retry.",
+            status_code=409,
+            detail="A Daedalus revision job already exists for this pass. Refresh the current job before retrying.",
         ) from exc
-    request.state.diagnostic_phase = "completed"
-    return _generated_response(build_session, build_pass)
+    request.state.diagnostic_phase = "provider_submission"
+    try:
+        provider = await run_in_threadpool(partial(
+            start_provider_plan,
+            parsed,
+            cleaned_instruction,
+            retrieval,
+            history,
+            reference_bodies,
+            settings,
+        ))
+    except Exception as exc:
+        build_job.status = "failed"
+        build_job.provider_status = "failed"
+        build_job.error_message = sanitized_message(getattr(exc, "detail", exc), fallback="Daedalus could not start this revision job.")
+        build_session.status = "active"
+        session.commit()
+        raise
+    build_job.provider_response_id = provider.response_id
+    build_job.provider_status = provider.status
+    build_job.status = provider.status if provider.status in {"queued", "in_progress"} else "in_progress"
+    build_job.phase = "model_generation"
+    session.add(AuditEvent(
+        event_type="daedalus_build_job_started",
+        actor=operator.actor,
+        batch_id=session_id,
+        detail={"jobId": job_id, "version": version, "references": len(reference_bodies)},
+    ))
+    session.commit()
+    request.state.diagnostic_phase = "job_acknowledged"
+    return _job_response(build_job)
+
+
+def _owned_build_job(job_id: str, operator: OperatorSession, session: Session) -> DaedalusBuildJob:
+    row = session.get(DaedalusBuildJob, job_id)
+    if row is None or row.actor != operator.actor:
+        raise HTTPException(status_code=404, detail="Daedalus build job not found for this trainer.")
+    return row
+
+
+def _completed_job_result(row: DaedalusBuildJob, session: Session) -> dict | None:
+    build_session = session.get(DaedalusBuildSession, row.session_id)
+    build_pass = session.scalar(select(DaedalusBuildPass).where(
+        DaedalusBuildPass.session_id == row.session_id,
+        DaedalusBuildPass.version == row.version,
+    ))
+    if build_session is None or build_pass is None:
+        return None
+    row.status = "completed"
+    row.phase = "completed"
+    row.provider_status = "completed"
+    row.completed_at = row.completed_at or datetime.now(timezone.utc)
+    row.instruction = ""
+    row.retrieval_snapshot = {}
+    build_session.status = "active"
+    build_session.latest_version = max(build_session.latest_version, row.version)
+    session.commit()
+    return _job_response(row, build_session, build_pass)
+
+
+def _failed_job_response(
+    row: DaedalusBuildJob,
+    build_session: DaedalusBuildSession,
+    session: Session,
+    exc: Exception,
+) -> dict:
+    status_code = int(getattr(exc, "status_code", 500) or 500)
+    message = sanitized_message(
+        getattr(exc, "detail", exc),
+        fallback="Daedalus could not complete this background build job.",
+    )
+    incident = create_incident(
+        session,
+        area="daedalus",
+        source="daedalus_job",
+        message=message,
+        status_code=status_code,
+        actor=row.actor,
+        method="GET",
+        path=f"/admin/apps/daedalus/build-jobs/{row.id}",
+        phase=row.phase,
+        exception_type="" if isinstance(exc, HTTPException) else type(exc).__name__,
+        detail={
+            "jobId": row.id,
+            "sessionId": row.session_id,
+            "version": row.version,
+            "baseVersion": row.base_version,
+            "providerStatus": row.provider_status,
+            "referenceCount": row.reference_count,
+            "promptStoredInIncident": False,
+            "filenamesStoredInIncident": False,
+        },
+    )
+    row.status = "failed"
+    row.phase = "failed"
+    row.error_incident_id = incident.id
+    row.error_message = message
+    row.completed_at = datetime.now(timezone.utc)
+    row.instruction = ""
+    row.retrieval_snapshot = {}
+    build_session.status = "failed" if row.base_version == 0 else "active"
+    session.commit()
+    return _job_response(row)
+
+
+@router.get("/build-jobs/{job_id}")
+async def get_build_job(
+    request: Request,
+    job_id: str,
+    operator: OperatorSession = Depends(require_operator_key),
+    session: Session = Depends(get_session),
+):
+    request.state.diagnostic_phase = "job_poll"
+    request.state.diagnostic_actor = operator.actor
+    _require(operator, "daedalus:submit")
+    _require_build_schema(session)
+    row = _owned_build_job(_validated_job_id(job_id), operator, session)
+    completed = _completed_job_result(row, session)
+    if completed is not None:
+        return completed
+    if row.status == "failed":
+        return _job_response(row)
+    if row.status == "finalizing":
+        updated = row.updated_at
+        if updated is not None and updated.tzinfo is None:
+            updated = updated.replace(tzinfo=timezone.utc)
+        if updated is not None and (datetime.now(timezone.utc) - updated).total_seconds() < 60:
+            return _job_response(row)
+    build_session = _owned_build_session(row.session_id, operator, session)
+    if not row.provider_response_id:
+        created = row.created_at
+        if created is not None and created.tzinfo is None:
+            created = created.replace(tzinfo=timezone.utc)
+        if row.status == "preparing" and (
+            created is None or (datetime.now(timezone.utc) - created).total_seconds() < 60
+        ):
+            return _job_response(row)
+        return _failed_job_response(
+            row,
+            build_session,
+            session,
+            HTTPException(status_code=502, detail="Daedalus's background job was not acknowledged by the model provider."),
+        )
+
+    request.state.diagnostic_phase = "provider_poll"
+    try:
+        provider = await run_in_threadpool(poll_provider_plan, row.provider_response_id, get_settings())
+        row.provider_status = provider.status
+        if provider.plan is None:
+            row.status = provider.status
+            row.phase = "model_generation"
+            session.commit()
+            return _job_response(row)
+
+        row.status = "finalizing"
+        row.phase = "plan_validation"
+        session.commit()
+        settings = get_settings()
+        if row.base_version == 0:
+            raw = await run_in_threadpool(partial(
+                read_build_artifact,
+                build_session.source_object_key,
+                maximum_bytes=settings.max_daedalus_build_bytes,
+                expected_sha256=build_session.source_sha256,
+                expected_size=build_session.source_size_bytes,
+            ))
+            parsed = parse_build(raw, build_session.source_filename)
+            if build_session.source_validation.get("promptOnly"):
+                parsed.bootstrap = build_session.source_validation.get("promptBootstrap") or None
+                parsed.origin = str((parsed.bootstrap or {}).get("origin") or "prompt_blank_prefab")
+        else:
+            previous = session.scalar(select(DaedalusBuildPass).where(
+                DaedalusBuildPass.session_id == row.session_id,
+                DaedalusBuildPass.version == row.base_version,
+            ))
+            if previous is None:
+                raise HTTPException(status_code=409, detail="The source pass for this Daedalus job is no longer available.")
+            raw = await run_in_threadpool(partial(
+                read_build_artifact,
+                previous.output_object_key,
+                maximum_bytes=settings.max_daedalus_build_bytes,
+                expected_sha256=previous.output_sha256,
+                expected_size=previous.output_size_bytes,
+            ))
+            parsed = parse_build(raw, previous.output_filename)
+            parsed.filename = build_session.source_filename
+
+        request.state.diagnostic_phase = "plan_application"
+        generated = await run_in_threadpool(partial(
+            generate_build,
+            parsed,
+            row.instruction,
+            row.retrieval_snapshot,
+            [],
+            [],
+            settings,
+            version=row.version,
+            supplied_plan=provider.plan,
+            provider_response_id=row.provider_response_id,
+        ))
+        output_key = f"admin-apps/daedalus-builds/{row.session_id}/passes/{row.version}-{row.id}/{generated.filename}"
+        request.state.diagnostic_phase = "artifact_storage"
+        output_digest, output_size = await run_in_threadpool(
+            store_build_artifact, output_key, generated.body, generated.filename, operator.actor
+        )
+        build_pass = DaedalusBuildPass(
+            id=row.id,
+            session_id=row.session_id,
+            version=row.version,
+            instruction=row.instruction,
+            output_filename=generated.filename,
+            output_object_key=output_key,
+            output_sha256=output_digest,
+            output_size_bytes=output_size,
+            object_count=generated.object_count,
+            distinct_object_ids=generated.distinct_object_ids,
+            operation_count=generated.operation_count,
+            corpus_version=int(row.retrieval_snapshot.get("corpus_version") or 0),
+            model_name=settings.daedalus_model,
+            provider_response_id=row.provider_response_id,
+            plan=generated.plan,
+            validation=generated.validation,
+        )
+        session.add(build_pass)
+        build_session.latest_version = row.version
+        build_session.status = "active"
+        row.status = "completed"
+        row.phase = "completed"
+        row.completed_at = datetime.now(timezone.utc)
+        row.instruction = ""
+        row.retrieval_snapshot = {}
+        session.add(AuditEvent(
+            event_type="daedalus_build_pass_generated",
+            actor=operator.actor,
+            batch_id=row.session_id,
+            detail={
+                "jobId": row.id,
+                "version": row.version,
+                "operations": generated.operation_count,
+                "sha256": output_digest,
+            },
+        ))
+        session.commit()
+        request.state.diagnostic_phase = "completed"
+        return _job_response(row, build_session, build_pass)
+    except Exception as exc:
+        session.rollback()
+        row = _owned_build_job(job_id, operator, session)
+        build_session = _owned_build_session(row.session_id, operator, session)
+        logger.exception("Daedalus background build job %s failed during %s", row.id, row.phase)
+        return _failed_job_response(row, build_session, session, exc)
 
 
 @router.get("/build-sessions/{session_id}")

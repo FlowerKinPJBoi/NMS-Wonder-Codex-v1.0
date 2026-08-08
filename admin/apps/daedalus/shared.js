@@ -178,10 +178,89 @@
     return `client-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 
+  function newBuildJobId() {
+    if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (character) => {
+      const value = Math.floor(Math.random() * 16);
+      return (character === "x" ? value : (value & 0x3) | 0x8).toString(16);
+    });
+  }
+
   function buildRequestError(message, context) {
     const error = new Error(message);
     error.diagnostic = context;
     return error;
+  }
+
+  const pendingJobKey = "wc_daedalus_pending_build_job";
+  const wait = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+  function rememberPendingJob(jobId) {
+    try { localStorage.setItem(pendingJobKey, jobId); } catch {}
+  }
+
+  function forgetPendingJob(jobId) {
+    try {
+      if (!jobId || localStorage.getItem(pendingJobKey) === jobId) localStorage.removeItem(pendingJobKey);
+    } catch {}
+  }
+
+  async function waitForBuildJob(jobId, requestContext) {
+    rememberPendingJob(jobId);
+    const deadline = Date.now() + 6 * 60 * 1000;
+    let missingChecks = 0;
+    while (Date.now() < deadline) {
+      await wait(2000);
+      let response;
+      try {
+        response = await fetch(`${API}/build-jobs/${encodeURIComponent(jobId)}`, {headers: headers()});
+      } catch (error) {
+        if (Date.now() + 2500 < deadline) continue;
+        throw buildRequestError(error?.message || "Daedalus could not check the background build job.", {
+          ...requestContext,
+          phase: "job_poll",
+          httpStatus: 0,
+          elapsedMs: Date.now() - requestContext.startedAt,
+        });
+      }
+      let data = {};
+      try { data = await response.json(); } catch {}
+      if (response.status === 404 && missingChecks < 14) {
+        missingChecks += 1;
+        continue;
+      }
+      if (!response.ok) {
+        forgetPendingJob(jobId);
+        throw buildRequestError(data.detail || `Background build check failed (${response.status})`, {
+          ...requestContext,
+          apiIncidentId: data.incident_id || response.headers.get("X-Incident-ID") || "",
+          phase: "job_poll",
+          httpStatus: response.status,
+          elapsedMs: Date.now() - requestContext.startedAt,
+        });
+      }
+      const job = data.job || {};
+      if (job.status === "completed" && data.result) {
+        forgetPendingJob(jobId);
+        return data.result;
+      }
+      if (job.status === "failed") {
+        forgetPendingJob(jobId);
+        throw buildRequestError(job.error_message || "Daedalus could not complete this background build job.", {
+          ...requestContext,
+          apiIncidentId: job.error_incident_id || "",
+          phase: job.phase || "job_failed",
+          httpStatus: 502,
+          elapsedMs: Date.now() - requestContext.startedAt,
+        });
+      }
+    }
+    throw buildRequestError("Daedalus is still working, but this browser stopped waiting after six minutes. Download the diagnostic so we can recover the recorded job ID.", {
+      ...requestContext,
+      phase: "job_poll_timeout",
+      httpStatus: 0,
+      elapsedMs: Date.now() - requestContext.startedAt,
+    });
   }
 
   async function reportBuildError(error) {
@@ -195,6 +274,7 @@
       elapsed_ms: Math.max(0, Math.round(context.elapsedMs || 0)),
       message: String(error?.message || "Daedalus build request failed.").slice(0, 1200),
       session_id: context.sessionId || "",
+      job_id: context.jobId || "",
       pass_version: Number(context.passVersion || 0),
       source_kind: context.sourceKind || "prompt_only",
       reference_count: Number(context.referenceCount || 0),
@@ -236,6 +316,7 @@
       model: state.generation.model || null,
       session: {
         id: payload.session_id || null,
+        jobId: payload.job_id || null,
         passVersion: payload.pass_version,
         sourceKind: payload.source_kind,
         referenceCount: payload.reference_count,
@@ -259,6 +340,8 @@
       throw new Error(state.generation.setup_required || "Daedalus generation is not ready on the API service.");
     }
     const form = new FormData();
+    const jobId = newBuildJobId();
+    form.append("job_id", jobId);
     form.append("instruction", String(instruction || "").trim());
     if (!sessionId && sourceFile) {
       form.append("source", sourceFile, sourceFile.name);
@@ -272,6 +355,8 @@
     const startedAt = Date.now();
     const requestContext = {
       clientIncidentId: newClientIncidentId(),
+      jobId,
+      startedAt,
       phase: "generation_request",
       sessionId: sessionId || "",
       passVersion: 0,
@@ -279,19 +364,18 @@
       referenceCount: references.length,
       instructionLength: String(instruction || "").trim().length,
     };
+    rememberPendingJob(jobId);
     let response;
     try {
       response = await fetch(API + path, {method: "POST", headers: headers(), body: form});
     } catch (error) {
-      throw buildRequestError(error?.message || "Daedalus build request could not reach the API.", {
-        ...requestContext,
-        httpStatus: 0,
-        elapsedMs: Date.now() - startedAt,
-      });
+      return waitForBuildJob(jobId, requestContext);
     }
     let data = {};
     try { data = await response.json(); } catch {}
     if (!response.ok) {
+      if (response.status === 504) return waitForBuildJob(jobId, requestContext);
+      forgetPendingJob(jobId);
       throw buildRequestError(data.detail || `Build generation failed (${response.status})`, {
         ...requestContext,
         apiIncidentId: data.incident_id || response.headers.get("X-Incident-ID") || "",
@@ -299,7 +383,7 @@
         elapsedMs: Date.now() - startedAt,
       });
     }
-    return data;
+    return waitForBuildJob(data.job?.id || jobId, requestContext);
   }
 
   async function fetchGeneratedFile(filePath, filename) {

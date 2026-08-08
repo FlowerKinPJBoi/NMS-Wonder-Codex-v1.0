@@ -99,7 +99,8 @@ After both components are healthy:
 8. Open `/admin/apps/daedalus/` as Krosskelt (or another configured trainer).
    First, attach nothing and request `Build a sign that says "NMS 10 YEARS!"
    with a black backdrop and yellow lettering`; confirm Send is available and
-   Pass 1 returns a portable native prefab. Then upload a small test NMSBASE,
+   the workshop remains in its working state while the private job is queued,
+   then Pass 1 returns a portable native prefab without a gateway 504. Then upload a small test NMSBASE,
    request one safe visible change, and confirm its Pass 1 download retains the
    source anchor exactly.
 9. Request a second change in the same chat and confirm Pass 2 builds from Pass
@@ -152,3 +153,7 @@ the API service during deployment.
 Migration `0014_operational_errors` adds PJ's private, sanitized operational
 error ledger and Daedalus incident downloads. It is separate from anonymous
 traffic analytics and defaults to 90-day retention.
+Migration `0015_daedalus_build_jobs` adds durable private job state for OpenAI
+background responses. Daedalus now acknowledges generation before the model
+finishes and the browser polls the recorded job until the validated build file
+is ready. No additional worker service or environment variable is required.

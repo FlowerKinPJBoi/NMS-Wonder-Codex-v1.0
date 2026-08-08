@@ -166,6 +166,19 @@ class GeneratedBuild:
     provider_response_id: str
 
 
+@dataclass
+class ProviderBuildJob:
+    response_id: str
+    status: str
+
+
+@dataclass
+class ProviderPlanPoll:
+    response_id: str
+    status: str
+    plan: BuildPlan | None = None
+
+
 def safe_build_filename(value: str, *, fallback: str = "daedalus-build.nmsbase") -> str:
     name = PurePosixPath((value or "").replace("\\", "/")).name
     if "." in name:
@@ -458,20 +471,16 @@ def _source_geometry(objects: list[dict[str, Any]]) -> list[dict[str, Any]]:
     } for index, item in enumerate(objects)]
 
 
-def _provider_plan(
+def _provider_request(
     parsed: ParsedBuild,
     instruction: str,
     retrieval: dict[str, Any],
     history: list[dict[str, Any]],
     references: list[tuple[str, bytes]],
     settings: Settings,
-) -> tuple[BuildPlan, str]:
+) -> dict[str, Any]:
     if not settings.openai_api_key.strip():
         raise HTTPException(status_code=503, detail="Daedalus generation needs OPENAI_API_KEY in the API service's encrypted environment settings.")
-    try:
-        from openai import OpenAI
-    except ImportError as exc:
-        raise HTTPException(status_code=503, detail="The OpenAI server SDK is not installed in this deployment.") from exc
 
     palette = candidate_palette(parsed, retrieval)
     context = {
@@ -493,36 +502,104 @@ def _provider_plan(
     content: list[dict[str, Any]] = [{"type": "input_text", "text": json.dumps(context, separators=(",", ":"), ensure_ascii=False)}]
     for mime, body in references:
         content.append({"type": "input_image", "image_url": f"data:{mime};base64,{base64.b64encode(body).decode('ascii')}", "detail": "low"})
-    schema = BuildPlan.model_json_schema()
+    return {
+        "model": settings.daedalus_model,
+        "reasoning": {"effort": settings.daedalus_reasoning_effort},
+        "store": False,
+        "parallel_tool_calls": False,
+        "tool_choice": {"type": "function", "name": "submit_build_plan"},
+        "tools": [{
+            "type": "function",
+            "name": "submit_build_plan",
+            "description": "Submit one bounded, deterministic NMS build-edit plan for server validation and execution.",
+            "parameters": BuildPlan.model_json_schema(),
+            "strict": True,
+        }],
+        "input": [
+            {"role": "developer", "content": developer},
+            {"role": "user", "content": content},
+        ],
+    }
+
+
+def _openai_client(settings: Settings):
     try:
-        client = OpenAI(api_key=settings.openai_api_key, timeout=settings.daedalus_generation_timeout_seconds)
-        response = client.responses.create(
-            model=settings.daedalus_model,
-            reasoning={"effort": settings.daedalus_reasoning_effort},
-            store=False,
-            parallel_tool_calls=False,
-            tool_choice={"type": "function", "name": "submit_build_plan"},
-            tools=[{
-                "type": "function",
-                "name": "submit_build_plan",
-                "description": "Submit one bounded, deterministic NMS build-edit plan for server validation and execution.",
-                "parameters": schema,
-                "strict": True,
-            }],
-            input=[
-                {"role": "developer", "content": developer},
-                {"role": "user", "content": content},
-            ],
-        )
+        from openai import OpenAI
+    except ImportError as exc:
+        raise HTTPException(status_code=503, detail="The OpenAI server SDK is not installed in this deployment.") from exc
+    try:
+        return OpenAI(api_key=settings.openai_api_key, timeout=settings.daedalus_generation_timeout_seconds)
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Daedalus's model planner could not complete this pass: {type(exc).__name__}.") from exc
+        raise HTTPException(status_code=502, detail=f"Daedalus could not initialize its model planner: {type(exc).__name__}.") from exc
+
+
+def _plan_from_response(response: Any) -> BuildPlan:
     for item in getattr(response, "output", []) or []:
         if getattr(item, "type", "") == "function_call" and getattr(item, "name", "") == "submit_build_plan":
             try:
-                return BuildPlan.model_validate_json(item.arguments), str(getattr(response, "id", "") or "")
+                return BuildPlan.model_validate_json(item.arguments)
             except (ValidationError, ValueError, TypeError) as exc:
                 raise HTTPException(status_code=502, detail="Daedalus returned a build plan that failed the strict operation schema.") from exc
     raise HTTPException(status_code=502, detail="Daedalus did not return the required build plan.")
+
+
+def _provider_plan(
+    parsed: ParsedBuild,
+    instruction: str,
+    retrieval: dict[str, Any],
+    history: list[dict[str, Any]],
+    references: list[tuple[str, bytes]],
+    settings: Settings,
+) -> tuple[BuildPlan, str]:
+    try:
+        response = _openai_client(settings).responses.create(
+            **_provider_request(parsed, instruction, retrieval, history, references, settings)
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Daedalus's model planner could not complete this pass: {type(exc).__name__}.") from exc
+    return _plan_from_response(response), str(getattr(response, "id", "") or "")
+
+
+def start_provider_plan(
+    parsed: ParsedBuild,
+    instruction: str,
+    retrieval: dict[str, Any],
+    history: list[dict[str, Any]],
+    references: list[tuple[str, bytes]],
+    settings: Settings,
+) -> ProviderBuildJob:
+    """Start a durable OpenAI background response and return before model generation finishes."""
+    try:
+        response = _openai_client(settings).responses.create(
+            **_provider_request(parsed, instruction, retrieval, history, references, settings),
+            background=True,
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Daedalus could not start its background model planner: {type(exc).__name__}.") from exc
+    response_id = str(getattr(response, "id", "") or "")
+    if not response_id:
+        raise HTTPException(status_code=502, detail="Daedalus's background model planner did not return a response ID.")
+    return ProviderBuildJob(response_id=response_id, status=str(getattr(response, "status", "queued") or "queued"))
+
+
+def poll_provider_plan(response_id: str, settings: Settings) -> ProviderPlanPoll:
+    """Retrieve one background response without blocking for its completion."""
+    try:
+        response = _openai_client(settings).responses.retrieve(response_id)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Daedalus could not check its background model planner: {type(exc).__name__}.") from exc
+    status = str(getattr(response, "status", "") or "unknown")
+    if status in {"queued", "in_progress"}:
+        return ProviderPlanPoll(response_id=response_id, status=status)
+    if status == "completed":
+        return ProviderPlanPoll(response_id=response_id, status=status, plan=_plan_from_response(response))
+    raise HTTPException(status_code=502, detail=f"Daedalus's background model planner ended with status {status}.")
 
 
 def _required_scale(object_id: str, requested: float | None) -> float:
@@ -659,6 +736,7 @@ def generate_build(
     *,
     version: int,
     supplied_plan: BuildPlan | None = None,
+    provider_response_id: str = "",
 ) -> GeneratedBuild:
     cleaned_instruction = " ".join(instruction.split())
     if not cleaned_instruction:
@@ -668,7 +746,7 @@ def generate_build(
     if supplied_plan is None:
         plan, response_id = _provider_plan(parsed, cleaned_instruction, retrieval, history, references, settings)
     else:
-        plan, response_id = supplied_plan, "test-supplied-plan"
+        plan, response_id = supplied_plan, provider_response_id or "test-supplied-plan"
     objects, validation = apply_plan(parsed, plan, retrieval, maximum_operations=settings.max_daedalus_operations)
     if not objects:
         raise HTTPException(status_code=400, detail="Daedalus did not place any parts in this build pass.")

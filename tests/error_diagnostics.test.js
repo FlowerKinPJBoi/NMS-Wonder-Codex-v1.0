@@ -21,6 +21,7 @@ assert.match(daedalusShared, /storedInOwnerLedger/);
 assert.match(daedalusShared, /promptIncluded: false/);
 assert.match(daedalusShared, /apiKeysIncluded: false/);
 assert.match(daedalusShared, /uploadedFileContentsIncluded: false/);
+assert.match(daedalusShared, /job_id: context\.jobId/);
 assert.match(daedalusShared, /AbortController/);
 assert.match(daedalusGuided, /daedalus-error-.*\.json/);
 
