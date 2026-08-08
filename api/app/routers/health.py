@@ -23,6 +23,8 @@ def health(response: Response):
         "database": {
             "ready": state.ready,
             "detail": state.detail,
+            "revision": state.revision or None,
+            "required_revision": state.required_revision,
             "checked_at": state.checked_at.isoformat() if state.checked_at else None,
         },
     }

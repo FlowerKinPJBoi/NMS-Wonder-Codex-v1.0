@@ -175,6 +175,9 @@
 
   async function generateBuild({sourceFile = null, instruction, references = [], sessionId = null}) {
     if (!state.permissions.submit) throw new Error("This operator cannot generate Daedalus builds.");
+    if (state.generation.ready === false) {
+      throw new Error(state.generation.setup_required || "Daedalus generation is not ready on the API service.");
+    }
     const form = new FormData();
     form.append("instruction", String(instruction || "").trim());
     if (!sessionId && sourceFile) {

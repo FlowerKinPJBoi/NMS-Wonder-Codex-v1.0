@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 from functools import partial
+import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile
 from pydantic import BaseModel, Field
-from sqlalchemy import func, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import func, inspect, select
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 from starlette.concurrency import run_in_threadpool
 
@@ -40,6 +41,8 @@ from ..services.security import OperatorSession, require_operator_key
 
 router = APIRouter(prefix="/admin/apps/daedalus", tags=["daedalus-builder"])
 STATUSES = {"pending_review", "needs_correction", "approved", "released", "rejected"}
+logger = logging.getLogger(__name__)
+BUILD_TABLES = ("daedalus_build_sessions", "daedalus_build_passes")
 
 
 class QueueAction(BaseModel):
@@ -78,6 +81,26 @@ def _valid_reference_signature(content_type: str, body: bytes) -> bool:
 def _require(operator: OperatorSession, scope: str) -> None:
     if scope not in operator.scopes:
         raise HTTPException(status_code=403, detail="Your named operator does not have this Daedalus permission.")
+
+
+def _build_schema_ready(session: Session) -> bool:
+    try:
+        inspector = inspect(session.get_bind())
+        return all(inspector.has_table(table_name) for table_name in BUILD_TABLES)
+    except SQLAlchemyError:
+        logger.exception("Could not inspect Daedalus build database schema")
+        return False
+
+
+def _require_build_schema(session: Session) -> None:
+    if not _build_schema_ready(session):
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "Daedalus build storage is waiting for database migration "
+                "0013_daedalus_builder_writer. Set RUN_MIGRATIONS_ON_START=true on the API Web Service and redeploy."
+            ),
+        )
 
 
 def _corpus_public(entry: DaedalusCorpusEntry | None) -> dict:
@@ -169,6 +192,14 @@ def workspace(operator: OperatorSession = Depends(require_operator_key), session
     ):
         counts[str(status)] = int(count)
     settings = get_settings()
+    build_schema_ready = _build_schema_ready(session)
+    generation_ready = settings.daedalus_generation_ready and build_schema_ready
+    if not build_schema_ready:
+        setup_required = "Redeploy the API with RUN_MIGRATIONS_ON_START=true so migration 0013 can create the Daedalus build tables."
+    elif not settings.daedalus_generation_ready:
+        setup_required = "Add OPENAI_API_KEY to the API service's encrypted environment settings."
+    else:
+        setup_required = None
     return {
         "operator": operator.actor,
         "permissions": {
@@ -182,11 +213,12 @@ def workspace(operator: OperatorSession = Depends(require_operator_key), session
         "download_expires_seconds": settings.daedalus_download_seconds,
         "storage_ready": settings.spaces_private_ready,
         "generation": {
-            "ready": settings.daedalus_generation_ready,
+            "ready": generation_ready,
             "model": settings.daedalus_model,
             "maximum_operations_per_pass": settings.max_daedalus_operations,
             "maximum_references": settings.max_daedalus_references,
-            "setup_required": None if settings.daedalus_generation_ready else "Add OPENAI_API_KEY to the API service's encrypted environment settings.",
+            "build_schema_ready": build_schema_ready,
+            "setup_required": setup_required,
         },
         "production_rule": "Only released, active corpus lessons may influence Daedalus retrieval.",
     }
@@ -258,6 +290,7 @@ async def create_build_session(
     session: Session = Depends(get_session),
 ):
     _require(operator, "daedalus:submit")
+    _require_build_schema(session)
     settings = get_settings()
     if not settings.spaces_private_ready:
         raise HTTPException(status_code=503, detail="Private Daedalus build storage is not configured yet.")
@@ -333,7 +366,15 @@ async def create_build_session(
         batch_id=session_id,
         detail={"version": 1, "operations": generated.operation_count, "sha256": output_digest},
     ))
-    session.commit()
+    try:
+        session.commit()
+    except SQLAlchemyError as exc:
+        session.rollback()
+        logger.exception("Daedalus generated Pass 1 but could not persist its build session")
+        raise HTTPException(
+            status_code=503,
+            detail="Daedalus generated the build but could not record its session. Verify API database migration 0013 and retry.",
+        ) from exc
     return _generated_response(build_session, build_pass)
 
 
@@ -353,6 +394,7 @@ async def create_build_pass(
     session: Session = Depends(get_session),
 ):
     _require(operator, "daedalus:submit")
+    _require_build_schema(session)
     settings = get_settings()
     if not settings.daedalus_generation_ready:
         raise HTTPException(status_code=503, detail="Daedalus generation needs private storage and OPENAI_API_KEY.")
@@ -435,7 +477,15 @@ async def create_build_pass(
         batch_id=session_id,
         detail={"version": version, "operations": generated.operation_count, "sha256": output_digest},
     ))
-    session.commit()
+    try:
+        session.commit()
+    except SQLAlchemyError as exc:
+        session.rollback()
+        logger.exception("Daedalus generated a revision but could not persist its build pass")
+        raise HTTPException(
+            status_code=503,
+            detail="Daedalus generated the revision but could not record its pass. Verify API database migration 0013 and retry.",
+        ) from exc
     return _generated_response(build_session, build_pass)
 
 

@@ -14,6 +14,8 @@ from .config import get_settings
 
 logger = logging.getLogger(__name__)
 
+REQUIRED_DATABASE_REVISION = "0013_daedalus_builder_writer"
+
 
 class Base(DeclarativeBase):
     pass
@@ -24,6 +26,8 @@ class DatabaseState:
     ready: bool = False
     detail: str = "Database has not been checked yet."
     checked_at: datetime | None = None
+    revision: str = ""
+    required_revision: str = REQUIRED_DATABASE_REVISION
 
 
 state = DatabaseState()
@@ -52,10 +56,11 @@ def get_engine() -> Engine:
     return _engine
 
 
-def mark_database(ready: bool, detail: str) -> None:
+def mark_database(ready: bool, detail: str, *, revision: str = "") -> None:
     state.ready = ready
     state.detail = detail[:1000]
     state.checked_at = datetime.now(timezone.utc)
+    state.revision = revision[:120]
 
 
 def check_database() -> bool:
@@ -63,7 +68,17 @@ def check_database() -> bool:
         engine = get_engine()
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
-        mark_database(True, "PostgreSQL connection successful.")
+            revisions = [str(row[0]) for row in connection.execute(text("SELECT version_num FROM alembic_version"))]
+        revision = ", ".join(revisions)
+        if revisions != [REQUIRED_DATABASE_REVISION]:
+            found = revision or "no Alembic revision"
+            mark_database(
+                False,
+                f"Database schema is at {found}; this API requires {REQUIRED_DATABASE_REVISION}.",
+                revision=revision,
+            )
+            return False
+        mark_database(True, "PostgreSQL connection and schema are ready.", revision=revision)
         return True
     except Exception as exc:  # service must stay alive to expose diagnostics
         logger.exception("Database readiness check failed")
