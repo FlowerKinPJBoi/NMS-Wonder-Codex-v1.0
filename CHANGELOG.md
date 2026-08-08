@@ -1,5 +1,15 @@
 # Wonder Codex changelog
 
+## v1.31.0 — Durable Daedalus generation
+
+- Replaced the single long-running Daedalus generation request with OpenAI Responses background mode and authenticated job polling.
+- Added a browser-generated UUID before submission so a gateway 504 cannot detach the workshop from an already-accepted build.
+- Added durable private job state for queued, in-progress, finalizing, completed, and failed passes.
+- Kept source builds and final artifacts in private Spaces storage and kept `store=false` on provider responses.
+- Applied the strict operation schema, protected-anchor validation, deterministic NMS writer, and round-trip checks only after the provider reports completion.
+- Added sanitized job IDs to downloadable diagnostics without adding prompts, filenames, source bytes, reference images, or credentials.
+- Added migration `0015_daedalus_build_jobs`.
+
 ## v1.30.0 — Private operational diagnostics
 
 - Added an owner-only operational error ledger to Analytics, separate from anonymous visitor activity.

@@ -1,9 +1,9 @@
-# Wonder Codex v1.30.0
+# Wonder Codex v1.31.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
 
-v1.30.0 adds a private operational error ledger to PJ's Analytics observatory and a safe downloadable diagnostic beside failed Daedalus requests. Server failures receive incident IDs and sanitized owner-only records; gateway failures such as HTTP 504 are reported by the authenticated Daedalus client after the gateway responds. Diagnostics never include API keys, operator keys, prompts, uploaded filenames or bytes, reference images, raw IP addresses, or raw user-agent strings. v1.29.0's model-powered planner, deterministic NMS file writer, protected-anchor rules, and deliberate learning-release boundary remain intact.
+v1.31.0 moves Daedalus model planning onto durable OpenAI background responses. The API acknowledges a private build job before model generation finishes, the workshop polls its recorded UUID, and the validated NMS file is written only after the strict plan reaches `completed`. A gateway 504 can no longer orphan a build that the provider already accepted: the browser follows the preassigned job ID until the result is ready. v1.30.0's private operational ledger and downloadable diagnostics remain in place.
 
 ## Repository contents
 

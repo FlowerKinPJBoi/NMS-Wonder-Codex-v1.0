@@ -15,7 +15,9 @@ from app.services.daedalus_builder import (
     BuildPlan,
     generate_build,
     parse_build,
+    poll_provider_plan,
     prompt_seed_build,
+    start_provider_plan,
 )
 
 
@@ -340,3 +342,50 @@ def test_provider_connection_forces_one_strict_build_plan_tool_call(monkeypatch)
     assert "Owner" not in captured["input"][1]["content"][0]["text"]
     assert "private" not in captured["input"][1]["content"][0]["text"]
     assert generated.provider_response_id == "resp_test_123"
+
+
+def test_provider_background_job_returns_immediately_and_polls_strict_plan(monkeypatch):
+    import openai
+
+    captured = {}
+    provider_plan = plan(operation(
+        "add",
+        object_id="^BUILDTABLE2",
+        position=[1, 0.2, 1],
+        up=[0, 1, 0],
+        forward=[0, 0, 1],
+        scale=1,
+    ))
+
+    class Responses:
+        def create(self, **kwargs):
+            captured.update(kwargs)
+            return SimpleNamespace(id="resp_background_123", status="queued", output=[])
+
+        def retrieve(self, response_id):
+            assert response_id == "resp_background_123"
+            return SimpleNamespace(
+                id=response_id,
+                status="completed",
+                output=[SimpleNamespace(
+                    type="function_call",
+                    name="submit_build_plan",
+                    arguments=provider_plan.model_dump_json(),
+                )],
+            )
+
+    responses = Responses()
+    monkeypatch.setattr(openai, "OpenAI", lambda **kwargs: SimpleNamespace(responses=responses))
+    configured = settings()
+    configured.openai_api_key = "sk-test"
+    parsed = parse_build(base_source(), "base.NMSBASE")
+
+    job = start_provider_plan(parsed, "Add one table.", empty_retrieval(), [], [], configured)
+    assert job.response_id == "resp_background_123"
+    assert job.status == "queued"
+    assert captured["background"] is True
+    assert captured["store"] is False
+
+    completed = poll_provider_plan(job.response_id, configured)
+    assert completed.status == "completed"
+    assert completed.plan == provider_plan

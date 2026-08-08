@@ -437,6 +437,35 @@ class DaedalusBuildPass(Base):
     validation: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
 
 
+class DaedalusBuildJob(Base):
+    """A durable OpenAI background response awaiting server-side build finalization."""
+
+    __tablename__ = "daedalus_build_jobs"
+    __table_args__ = (UniqueConstraint("session_id", "version", name="uq_daedalus_build_job_version"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    actor: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    session_id: Mapped[str] = mapped_column(
+        ForeignKey("daedalus_build_sessions.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    base_version: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    status: Mapped[str] = mapped_column(String(30), default="preparing", nullable=False, index=True)
+    phase: Mapped[str] = mapped_column(String(60), default="provider_submission", nullable=False, index=True)
+    instruction: Mapped[str] = mapped_column(Text, nullable=False)
+    provider_response_id: Mapped[str] = mapped_column(String(160), default="", nullable=False, index=True)
+    provider_status: Mapped[str] = mapped_column(String(40), default="preparing", nullable=False)
+    retrieval_snapshot: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    reference_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    error_incident_id: Mapped[str] = mapped_column(String(36), default="", nullable=False, index=True)
+    error_message: Mapped[str] = mapped_column(Text, default="", nullable=False)
+
+
 class AssetSpecimen(Base):
     """A normalized procedural asset, independent of where it was acquired."""
 

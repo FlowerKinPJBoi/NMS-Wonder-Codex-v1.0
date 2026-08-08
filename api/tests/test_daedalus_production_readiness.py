@@ -17,14 +17,15 @@ def test_build_schema_preflight_reports_missing_tables():
         with pytest.raises(HTTPException) as raised:
             daedalus._require_build_schema(session)
     assert raised.value.status_code == 503
-    assert "0013_daedalus_builder_writer" in raised.value.detail
+    assert "0015_daedalus_build_jobs" in raised.value.detail
 
 
-def test_build_schema_preflight_accepts_both_build_tables():
+def test_build_schema_preflight_accepts_all_build_tables():
     engine = create_engine("sqlite+pysqlite:///:memory:")
     with engine.begin() as connection:
         connection.execute(text("CREATE TABLE daedalus_build_sessions (id VARCHAR(36) PRIMARY KEY)"))
         connection.execute(text("CREATE TABLE daedalus_build_passes (id VARCHAR(36) PRIMARY KEY)"))
+        connection.execute(text("CREATE TABLE daedalus_build_jobs (id VARCHAR(36) PRIMARY KEY)"))
     with Session(engine) as session:
         daedalus._require_build_schema(session)
 
