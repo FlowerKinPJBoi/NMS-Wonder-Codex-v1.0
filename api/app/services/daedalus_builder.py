@@ -494,8 +494,8 @@ def _provider_plan(
     for mime, body in references:
         content.append({"type": "input_image", "image_url": f"data:{mime};base64,{base64.b64encode(body).decode('ascii')}", "detail": "low"})
     schema = BuildPlan.model_json_schema()
-    client = OpenAI(api_key=settings.openai_api_key, timeout=settings.daedalus_generation_timeout_seconds)
     try:
+        client = OpenAI(api_key=settings.openai_api_key, timeout=settings.daedalus_generation_timeout_seconds)
         response = client.responses.create(
             model=settings.daedalus_model,
             reasoning={"effort": settings.daedalus_reasoning_effort},

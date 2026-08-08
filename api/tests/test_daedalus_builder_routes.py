@@ -30,6 +30,9 @@ class FakeSession:
     def commit(self):
         self.committed = True
 
+    def rollback(self):
+        self.committed = False
+
 
 def source_bytes():
     objects = [
@@ -51,6 +54,7 @@ def test_create_build_session_persists_real_generated_pass_contract(monkeypatch)
         spaces_endpoint="https://example.invalid",
     )
     monkeypatch.setattr(daedalus, "get_settings", lambda: configured)
+    monkeypatch.setattr(daedalus, "_require_build_schema", lambda *args: None)
     monkeypatch.setattr(daedalus, "_retrieve_for_build", lambda *args: {"corpus_version": 9, "items": []})
     generated_body = raw.replace(b"Route Test", b"Route Pass")
     generated = SimpleNamespace(
@@ -108,6 +112,7 @@ def test_create_build_session_accepts_prompt_without_source_or_references(monkey
     )
     captured = {}
     monkeypatch.setattr(daedalus, "get_settings", lambda: configured)
+    monkeypatch.setattr(daedalus, "_require_build_schema", lambda *args: None)
     monkeypatch.setattr(daedalus, "_retrieve_for_build", lambda *args: {"corpus_version": 0, "items": []})
 
     def fake_generate(parsed, *args, **kwargs):
