@@ -61,6 +61,28 @@
     message.append(label, body);
     ui.conversation.appendChild(message);
     ui.conversation.scrollTop = ui.conversation.scrollHeight;
+    return message;
+  }
+
+  function attachDiagnostic(message, diagnostic) {
+    if (!message || !diagnostic) return;
+    const footer = document.createElement("div");
+    footer.className = "guided-diagnostic";
+    const incident = document.createElement("code");
+    incident.textContent = `Incident ${diagnostic.incidentId}`;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "Download diagnostic";
+    button.addEventListener("click", () => {
+      const body = new Blob([JSON.stringify(diagnostic, null, 2)], {type: "application/json"});
+      downloadFile(new File(
+        [body],
+        `daedalus-error-${diagnostic.incidentId}.json`,
+        {type: "application/json"}
+      ));
+    });
+    footer.append(incident, button);
+    message.appendChild(footer);
   }
 
   function setBusy(busy, label = "") {
@@ -223,7 +245,18 @@
       setStatus(`Build Pass ${result.pass.version} ready`, "ready");
     } catch (error) {
       setStatus("Build generation needs attention");
-      appendMessage("assistant", error.message || "I could not generate a validated build pass.");
+      let diagnostic = null;
+      try {
+        diagnostic = await window.DaedalusShared?.reportBuildError?.(error);
+      } catch {}
+      const gatewayTimeout = Number(diagnostic?.httpStatus || error?.diagnostic?.httpStatus) === 504;
+      const message = appendMessage(
+        "assistant",
+        gatewayTimeout
+          ? "The gateway timed out before Daedalus returned the build. I recorded a diagnostic so we can trace where the request stopped."
+          : (error.message || "I could not generate a validated build pass.")
+      );
+      attachDiagnostic(message, diagnostic);
     } finally {
       setBusy(false);
       updateFinishState();

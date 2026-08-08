@@ -77,6 +77,36 @@
     }).join('') : '<div class="metric-empty">Recent anonymous journeys will appear here.</div>';
   }
 
+  async function downloadIncident(incidentId, button) {
+    button.disabled = true;
+    try {
+      const response = await fetch(`${API}/owner/analytics/errors/${encodeURIComponent(incidentId)}/diagnostic`, {headers:headers()});
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.detail || `Diagnostic download failed (${response.status})`);
+      }
+      const blob = await response.blob();
+      const anchor = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      anchor.href = url; anchor.download = `wonder-codex-error-${incidentId}.json`;
+      document.body.appendChild(anchor); anchor.click(); anchor.remove(); URL.revokeObjectURL(url);
+    } catch (error) { toast(error.message, true); }
+    finally { button.disabled = false; }
+  }
+
+  function renderErrors(errors) {
+    $('#errorSummary').innerHTML = errors?.by_category?.length
+      ? `<strong>${number(errors.total)} incident${Number(errors.total) === 1 ? '' : 's'}</strong><div class="error-category-list">${errors.by_category.map((item) => `<span>${escapeHtml(item.label.replaceAll('_',' '))} · ${number(item.count)}</span>`).join('')}</div>`
+      : '<div class="metric-empty">No operational errors in this range.</div>';
+    $('#errorLedger').innerHTML = errors?.items?.length ? errors.items.map((item) => `
+      <article class="error-card">
+        <div class="error-card-head"><div><strong>${escapeHtml(item.area)} · ${escapeHtml(item.category.replaceAll('_',' '))}</strong><span>${escapeHtml(dateTime(item.occurred_at))}</span></div><button type="button" data-error-download="${escapeHtml(item.id)}">Download diagnostic</button></div>
+        <p>${escapeHtml(item.message)}</p>
+        <div class="error-meta"><span>${item.status_code ? `HTTP ${number(item.status_code)}` : 'Client/network'}</span><span>Phase: ${escapeHtml(item.phase.replaceAll('_',' '))}</span><span>${escapeHtml(item.source.replaceAll('_',' '))}</span>${item.actor ? `<span>Operator: ${escapeHtml(item.actor)}</span>` : ''}<code>${escapeHtml(item.id)}</code></div>
+      </article>`).join('') : '';
+    $$('#errorLedger [data-error-download]').forEach((button) => button.addEventListener('click', () => downloadIncident(button.dataset.errorDownload, button)));
+  }
+
   function render(data) {
     $('#pageViews').textContent = number(data.totals.page_views); $('#sessions').textContent = number(data.totals.sessions);
     $('#pagesPerSession').textContent = Number(data.totals.pages_per_session || 0).toLocaleString(undefined,{maximumFractionDigits:2});
@@ -85,7 +115,7 @@
     $('#topPages').innerHTML = metricRows(data.top_pages); $('#topReferrers').innerHTML = metricRows(data.top_referrers);
     $('#devices').innerHTML = metricRows(data.devices); $('#browsers').innerHTML = metricRows(data.browsers); $('#operatingSystems').innerHTML = metricRows(data.operating_systems);
     $('#topEvents').innerHTML = metricRows(data.top_events); $('#topEntities').innerHTML = metricRows(data.top_entities);
-    renderFilters(data.filters); renderJourneys(data.journeys); $('#lastRefresh').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+    renderFilters(data.filters); renderErrors(data.errors); renderJourneys(data.journeys); $('#lastRefresh').textContent = `Updated ${new Date().toLocaleTimeString()}`;
   }
 
   async function refresh() {

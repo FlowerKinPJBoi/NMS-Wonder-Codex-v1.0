@@ -1,9 +1,9 @@
-# Wonder Codex v1.29.0
+# Wonder Codex v1.30.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
 
-v1.29.0 connects Daedalus's guided workshop to a real model-powered planner and deterministic NMS file writer. Named trainers can begin with chat alone or optionally upload an NMSBASE, native prefab, Corvette, JSON build, and reference pictures; describe changes in ordinary language; retrieve released lessons; and receive a private, versioned, validated build file. Prompt-only sessions begin on a portable native-prefab canvas, with illuminated signs bootstrapped from fixed-scale verified Object IDs. The writer preserves protected anchors and Corvette identity members, applies only strict Object-ID operations, keeps seats and ramps at normal scale, miniaturizes the giant planetary probe safely, rejects unknown parts, and reparses every output before download. Learning still requires separate human inspection, approval, and release.
+v1.30.0 adds a private operational error ledger to PJ's Analytics observatory and a safe downloadable diagnostic beside failed Daedalus requests. Server failures receive incident IDs and sanitized owner-only records; gateway failures such as HTTP 504 are reported by the authenticated Daedalus client after the gateway responds. Diagnostics never include API keys, operator keys, prompts, uploaded filenames or bytes, reference images, raw IP addresses, or raw user-agent strings. v1.29.0's model-powered planner, deterministic NMS file writer, protected-anchor rules, and deliberate learning-release boundary remain intact.
 
 ## Repository contents
 

@@ -26,6 +26,8 @@ assert.ok(page.indexOf('id="guidedWorkspace"') < page.indexOf('id="sharedHub"'))
 
 assert.match(guided, /DaedalusShared\.generateBuild/);
 assert.match(guided, /DaedalusShared\.fetchGeneratedFile/);
+assert.match(guided, /Download diagnostic/);
+assert.match(guided, /gateway timed out/i);
 assert.match(guided, /DaedalusLearning\.loadAttempt/);
 assert.match(guided, /DaedalusLearning\.approveGroundTruth/);
 assert.match(guided, /DaedalusLearning\.submitForReview/);

@@ -14,7 +14,7 @@ from .config import get_settings
 
 logger = logging.getLogger(__name__)
 
-REQUIRED_DATABASE_REVISION = "0013_daedalus_builder_writer"
+REQUIRED_DATABASE_REVISION = "0014_operational_errors"
 
 
 class Base(DeclarativeBase):

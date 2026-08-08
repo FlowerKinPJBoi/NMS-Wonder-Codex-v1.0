@@ -9,6 +9,7 @@ from types import SimpleNamespace
 import pytest
 from fastapi import HTTPException
 from starlette.datastructures import UploadFile
+from starlette.requests import Request
 
 from app.config import Settings
 from app.models import DaedalusBuildPass, DaedalusBuildSession
@@ -40,6 +41,10 @@ def source_bytes():
         {"Timestamp": 2, "ObjectID": "^F_FLOOR", "UserData": 0, "Position": [0, 0, 1], "Up": [0, 1, 0], "At": [0, 0, 1]},
     ]
     return json.dumps({"Name": "Route Test", "Objects": objects}).encode()
+
+
+def build_request():
+    return Request({"type": "http", "method": "POST", "path": "/admin/apps/daedalus/build-sessions", "headers": []})
 
 
 def test_create_build_session_persists_real_generated_pass_contract(monkeypatch):
@@ -77,6 +82,7 @@ def test_create_build_session_persists_real_generated_pass_contract(monkeypatch)
     database = FakeSession()
     upload = UploadFile(filename="Route Test.NMSBASE", file=io.BytesIO(raw))
     result = asyncio.run(daedalus.create_build_session(
+        request=build_request(),
         instruction="Add a safe table.",
         source=upload,
         references=None,
@@ -137,6 +143,7 @@ def test_create_build_session_accepts_prompt_without_source_or_references(monkey
     )
     database = FakeSession()
     result = asyncio.run(daedalus.create_build_session(
+        request=build_request(),
         instruction='Build a sign that says "NMS 10 YEARS!" with a black backdrop and yellow lettering.',
         source=None,
         references=None,
