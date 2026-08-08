@@ -18,6 +18,7 @@ assert.match(page, /Start with a chat prompt/);
 assert.match(page, /Files and reference pictures are optional/);
 assert.match(page, /id="guidedBuildInput"[^>]*accept="\.nmsship,\.nmsprefab,\.nmsbase,\.json/);
 assert.match(page, /id="guidedReferenceInput"/);
+assert.match(page, /src="preview\.js\?v=1\.31\.4"/);
 assert.match(page, /id="guidedDownloadOutput"[^>]*>Download latest build</);
 assert.match(page, /id="guidedSubmitLearning"[^>]*>Finish &amp; submit for learning review</);
 assert.match(page, /I inspected the latest result in BBA or the game and confirm the source is accurate ground truth/);
@@ -26,6 +27,12 @@ assert.ok(page.indexOf('id="guidedWorkspace"') < page.indexOf('id="sharedHub"'))
 
 assert.match(guided, /DaedalusShared\.generateBuild/);
 assert.match(guided, /DaedalusShared\.fetchGeneratedFile/);
+assert.match(guided, /onProgress: \(progress\) => updateThinking/);
+assert.match(guided, /Opening a private build workspace/);
+assert.match(guided, /Writing the portable build file/);
+assert.match(guided, /Drawing the build schematic/);
+assert.match(guided, /DaedalusPreview\?\.buildSchematic/);
+assert.match(guided, /attemptSnapshot\.attemptGeometry/);
 assert.match(guided, /Download diagnostic/);
 assert.match(guided, /gateway timed out/i);
 assert.match(guided, /DaedalusLearning\.loadAttempt/);
@@ -47,6 +54,8 @@ assert.match(analyzer, /sourceIds\.has\("\^U_PARAGON"\)/);
 assert.match(learning, /addRevision: recordRevision/);
 assert.match(learning, /submitForReview: submitLearningForReview/);
 assert.match(styles, /\.guided-layout/);
+assert.match(styles, /\.guided-thinking-dots/);
+assert.match(styles, /@keyframes guided-thinking-pulse/);
 assert.match(styles, /\.advanced-workspace/);
 
 console.log('Daedalus guided-workspace contracts passed.');

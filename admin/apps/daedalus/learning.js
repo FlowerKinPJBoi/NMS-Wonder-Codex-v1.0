@@ -1242,7 +1242,10 @@ window.DaedalusLearning = {
       groundTruthStatus: learningState.groundTruthStatus,
       attemptStatus: learningState.attemptStatus,
       revisions: [...learningState.revisions],
-      attemptFile: learningState.attemptFile
+      attemptFile: learningState.attemptFile,
+      attemptGeometry: learningState.attemptData
+        ? {sourceName: learningState.attemptData.sourceName, objects: learningState.attemptData.objects}
+        : null
     };
   }
 };
