@@ -177,8 +177,7 @@
     if (!state.permissions.submit) throw new Error("This operator cannot generate Daedalus builds.");
     const form = new FormData();
     form.append("instruction", String(instruction || "").trim());
-    if (!sessionId) {
-      if (!sourceFile) throw new Error("Add the source build before asking Daedalus to generate a pass.");
+    if (!sessionId && sourceFile) {
       form.append("source", sourceFile, sourceFile.name);
     }
     references.slice(0, Number(state.generation.maximum_references || 4)).forEach((file) => {

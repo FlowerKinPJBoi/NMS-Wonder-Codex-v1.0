@@ -95,9 +95,12 @@ After both components are healthy:
    console or replacement-build controls, and can authorize Pegasus Transit.
 7. Confirm `/admin/apps/` reports private storage online before uploading a
    reviewed inner application ZIP.
-8. Open `/admin/apps/daedalus/` as Krosskelt (or another configured trainer),
-   upload a small test NMSBASE, request one safe visible change, and confirm
-   Daedalus returns Pass 1 as a downloadable file with the source anchor intact.
+8. Open `/admin/apps/daedalus/` as Krosskelt (or another configured trainer).
+   First, attach nothing and request `Build a sign that says "NMS 10 YEARS!"
+   with a black backdrop and yellow lettering`; confirm Send is available and
+   Pass 1 returns a portable native prefab. Then upload a small test NMSBASE,
+   request one safe visible change, and confirm its Pass 1 download retains the
+   source anchor exactly.
 9. Request a second change in the same chat and confirm Pass 2 builds from Pass
    1 while Pass 1 remains downloadable. Mark the final result **Looks good**,
    submit it for learning review, and confirm it enters `pending_review`

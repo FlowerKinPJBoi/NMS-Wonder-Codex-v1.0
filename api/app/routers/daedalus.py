@@ -35,7 +35,7 @@ from ..services.daedalus_corpus import (
     set_entry_active,
 )
 from ..services.daedalus_build_storage import read_build_artifact, signed_build_url, store_build_artifact
-from ..services.daedalus_builder import generate_build, parse_build, safe_build_filename
+from ..services.daedalus_builder import generate_build, parse_build, prompt_seed_build, safe_build_filename
 from ..services.security import OperatorSession, require_operator_key
 
 router = APIRouter(prefix="/admin/apps/daedalus", tags=["daedalus-builder"])
@@ -252,7 +252,7 @@ def _generated_response(build_session: DaedalusBuildSession, build_pass: Daedalu
 @router.post("/build-sessions")
 async def create_build_session(
     instruction: str = Form(..., min_length=1, max_length=8000),
-    source: UploadFile = File(...),
+    source: UploadFile | None = File(default=None),
     references: list[UploadFile] | None = File(default=None),
     operator: OperatorSession = Depends(require_operator_key),
     session: Session = Depends(get_session),
@@ -263,10 +263,20 @@ async def create_build_session(
         raise HTTPException(status_code=503, detail="Private Daedalus build storage is not configured yet.")
     if not settings.openai_api_key.strip():
         raise HTTPException(status_code=503, detail="Daedalus generation needs OPENAI_API_KEY in the API service's encrypted environment settings.")
-    raw = await source.read(settings.max_daedalus_build_bytes + 1)
-    if len(raw) > settings.max_daedalus_build_bytes:
-        raise HTTPException(status_code=413, detail="The Daedalus source build exceeds the configured limit.")
-    parsed = parse_build(raw, source.filename or "daedalus-build.json")
+    if source is None:
+        raw, source_filename, bootstrap = prompt_seed_build(instruction)
+        parsed = parse_build(raw, source_filename)
+        parsed.origin = str(bootstrap["origin"])
+        parsed.bootstrap = bootstrap
+        parsed.validation.update({
+            "promptOnly": True,
+            "promptBootstrap": bootstrap,
+        })
+    else:
+        raw = await source.read(settings.max_daedalus_build_bytes + 1)
+        if len(raw) > settings.max_daedalus_build_bytes:
+            raise HTTPException(status_code=413, detail="The Daedalus source build exceeds the configured limit.")
+        parsed = parse_build(raw, source.filename or "daedalus-build.json")
     reference_bodies = await _reference_bodies(references or [], settings)
     retrieval = _retrieve_for_build(session, parsed, instruction)
     generated = await run_in_threadpool(partial(

@@ -15,6 +15,7 @@ from app.services.daedalus_builder import (
     BuildPlan,
     generate_build,
     parse_build,
+    prompt_seed_build,
 )
 
 
@@ -83,6 +84,54 @@ def ship_source(objects):
 
 def vector_length(value):
     return math.sqrt(sum(number * number for number in value))
+
+
+def test_prompt_only_sign_bootstrap_uses_fixed_scale_verified_object_ids():
+    raw, filename, bootstrap = prompt_seed_build(
+        'Build a sign that says "NMS 10 YEARS!" with a black backdrop and yellow lettering.'
+    )
+    parsed = parse_build(raw, filename)
+    ids = [item["ObjectID"] for item in parsed.objects]
+    assert filename == "Daedalus-Sign-NMS-10-YEARS.nmsprefab"
+    assert bootstrap["origin"] == "prompt_bootstrap_sign"
+    assert bootstrap["text"] == "NMS 10 YEARS!"
+    assert "^C_WALL" in ids
+    assert "^WALLLIGHTYELLOW" in ids
+    assert len(parsed.objects) < 300
+    assert parsed.validation["uniformScale"] is True
+    assert all(vector_length(item["Up"]) == pytest.approx(1.0) for item in parsed.objects)
+    assert all(vector_length(item["At"]) == pytest.approx(1.0) for item in parsed.objects)
+
+
+def test_prompt_only_generic_build_starts_with_empty_native_prefab_canvas():
+    raw, filename, bootstrap = prompt_seed_build("Build a small observation tower with an open landing.")
+    parsed = parse_build(raw, filename)
+    assert filename == "Daedalus-Prompt-Build.nmsprefab"
+    assert bootstrap["origin"] == "prompt_blank_prefab"
+    assert parsed.format == "nmsprefab"
+    assert parsed.objects == []
+
+    parsed.origin = bootstrap["origin"]
+    parsed.bootstrap = bootstrap
+    generated = generate_build(
+        parsed,
+        "Build a small observation tower with an open landing.",
+        empty_retrieval(),
+        [],
+        [],
+        settings(),
+        version=1,
+        supplied_plan=plan(operation(
+            "add",
+            object_id="^F_FLOOR",
+            position=[0, 0, 0],
+            up=[0, 1, 0],
+            forward=[0, 0, 1],
+            scale=1,
+        )),
+    )
+    assert parse_build(generated.body, generated.filename).objects[0]["ObjectID"] == "^F_FLOOR"
+    assert generated.plan["bootstrap"]["origin"] == "prompt_blank_prefab"
 
 
 def test_nmsbase_writer_preserves_metadata_anchor_and_normalizes_seat_scale():
