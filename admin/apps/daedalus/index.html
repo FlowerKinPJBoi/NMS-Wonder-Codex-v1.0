@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#07131f">
   <title>Daedalus Builder · Guided Workshop</title>
-  <link rel="stylesheet" href="styles.css?v=1.27.0">
+  <link rel="stylesheet" href="styles.css?v=1.29.0">
   <link rel="stylesheet" href="shared.css">
-  <link rel="stylesheet" href="corpus.css?v=1.27.0">
-  <link rel="stylesheet" href="guided.css?v=1.27.0">
+  <link rel="stylesheet" href="corpus.css?v=1.29.0">
+  <link rel="stylesheet" href="guided.css?v=1.29.0">
 </head>
 <body>
   <div class="space-backdrop" aria-hidden="true"></div>
@@ -21,10 +21,10 @@
       <div>
         <p class="eyebrow">Wonder Codex Workshop</p>
         <h1>Daedalus Builder</h1>
-        <p class="subtitle">Builder core <span class="version">v0.9.1</span> · Guided workspace <span class="version">v1.27.0</span></p>
+        <p class="subtitle">Builder core <span class="version">v0.9.1</span> · Builder/Writer <span class="version">v1.29.0</span></p>
       </div>
     </div>
-    <div class="hosted-actions"><a href="/admin/apps/">← Admin apps</a><div class="safety-pill"><span></span> Local analysis · shared review</div></div>
+    <div class="hosted-actions"><a href="/admin/apps/">← Admin apps</a><div class="safety-pill"><span></span> Private builds · human-reviewed learning</div></div>
   </header>
 
   <main>
@@ -56,8 +56,8 @@
             </div>
           </form>
           <div class="guided-plan" id="guidedPlan" hidden>
-            <div><strong>Next build pass is planned</strong><span id="guidedPlanSummary"></span></div>
-            <button class="secondary-button" id="guidedDownloadPlan" type="button">Download build plan</button>
+            <div><strong>Latest build pass validated</strong><span id="guidedPlanSummary"></span></div>
+            <button class="secondary-button" id="guidedDownloadPlan" type="button">Download build details</button>
           </div>
         </section>
 
@@ -76,15 +76,15 @@
 
           <div class="guided-file-grid">
             <article class="guided-file-card source">
-              <div><p class="eyebrow">Start here</p><h3>Add your build</h3><p>The original stays untouched in your browser.</p></div>
+              <div><p class="eyebrow">Start here</p><h3>Add your build</h3><p>The original remains untouched. Daedalus stores private, versioned working copies and sends only normalized geometry plus your references to the configured planner.</p></div>
               <label class="guided-file-button" for="guidedBuildInput">Choose NMSBASE, prefab, Corvette, or JSON<input id="guidedBuildInput" type="file" accept=".nmsship,.nmsprefab,.nmsbase,.json,application/json"></label>
               <div class="guided-file-name" id="guidedBuildName">No build added</div>
-              <label class="guided-file-button secondary" for="guidedReferenceInput">Add reference pictures<input id="guidedReferenceInput" type="file" multiple accept=".png,.jpg,.jpeg,.webp,.jxr,image/png,image/jpeg,image/webp"></label>
+              <label class="guided-file-button secondary" for="guidedReferenceInput">Add up to four reference pictures<input id="guidedReferenceInput" type="file" multiple accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"></label>
               <div class="guided-reference-list" id="guidedReferenceList"></div>
             </article>
 
             <article class="guided-file-card output">
-              <div><p class="eyebrow">Latest result</p><h3>Daedalus build file</h3><p id="guidedOutputHelp">No result file yet. Daedalus can prepare the next build here; automatic NMSBASE or prefab creation is not connected yet.</p></div>
+              <div><p class="eyebrow">Latest result</p><h3>Daedalus build file</h3><p id="guidedOutputHelp">No result file yet. Tell Daedalus what to build and the validated result will appear here.</p></div>
               <label class="guided-file-button secondary" for="guidedOutputInput">Add Daedalus's returned file<input id="guidedOutputInput" type="file" accept=".nmsship,.nmsprefab,.nmsbase,.json,application/json"></label>
               <div class="guided-file-name" id="guidedOutputName">No returned build attached</div>
               <div class="guided-output-actions">
@@ -97,7 +97,7 @@
 
           <div class="guided-finish-card">
             <div><p class="eyebrow">When you are finished</p><h3>Help Daedalus learn from this session</h3><p>Your session goes to the human review queue first. It cannot influence future builds until an admin approves and releases it.</p></div>
-            <label class="guided-confirm"><input id="guidedTruthConfirm" type="checkbox"><span>I inspected this source and confirm it is accurate ground truth.</span></label>
+            <label class="guided-confirm"><input id="guidedTruthConfirm" type="checkbox"><span>I inspected the latest result in BBA or the game and confirm the source is accurate ground truth.</span></label>
             <button class="primary-button" id="guidedSubmitLearning" type="button" disabled>Finish &amp; submit for learning review</button>
           </div>
         </section>
@@ -726,9 +726,9 @@
   <script src="vendor/daedalus-inspector.bundle.js"></script>
   <script src="base-workflow.js"></script>
   <script src="sign-generator.js"></script>
-  <script src="app.js?v=1.27.0"></script>
-  <script src="learning.js?v=1.27.0"></script>
-  <script src="shared.js?v=1.27.0"></script>
-  <script src="guided.js?v=1.27.0"></script>
+  <script src="app.js?v=1.29.0"></script>
+  <script src="learning.js?v=1.29.0"></script>
+  <script src="shared.js?v=1.29.0"></script>
+  <script src="guided.js?v=1.29.0"></script>
 </body>
 </html>

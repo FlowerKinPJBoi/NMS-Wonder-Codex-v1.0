@@ -68,13 +68,21 @@ async def request_size_limit(request: Request, call_next):
         request.method == "POST"
         and request_path.endswith("/admin/apps/daedalus/submissions")
     )
+    is_daedalus_build = (
+        request.method == "POST"
+        and "/admin/apps/daedalus/build-sessions" in request_path
+    )
     is_admin_app_upload = (
         request.method == "POST"
         and "/admin/apps/" in request_path
         and request_path.endswith("/upload")
     )
     request_limit = (
-        settings.max_daedalus_package_bytes + 2_000_000
+        settings.max_daedalus_build_bytes
+        + settings.max_daedalus_reference_bytes * settings.max_daedalus_references
+        + 2_000_000
+        if is_daedalus_build
+        else settings.max_daedalus_package_bytes + 2_000_000
         if is_daedalus_upload
         else (settings.max_admin_app_bytes + 2_000_000 if is_admin_app_upload else settings.max_request_bytes)
     )

@@ -9,6 +9,8 @@
     previewUrl: null,
     initialRequest: "",
     buildPlan: null,
+    sessionId: null,
+    sessionVersion: 0,
     busy: false
   };
 
@@ -71,7 +73,8 @@
 
   function updateFinishState() {
     const analyzed = Boolean(window.DaedalusApp?.getSnapshot?.().report);
-    ui.submitLearning.disabled = !analyzed || !ui.truthConfirm.checked || guided.busy;
+    const attemptApproved = window.DaedalusLearning?.getSnapshot?.().attemptStatus === "correct";
+    ui.submitLearning.disabled = !analyzed || !guided.outputFile || !attemptApproved || !ui.truthConfirm.checked || guided.busy;
   }
 
   function renderFacts(report) {
@@ -93,10 +96,12 @@
     ui.plan.hidden = true;
     guided.buildPlan = null;
     guided.initialRequest = "";
+    guided.sessionId = null;
+    guided.sessionVersion = 0;
     guided.outputFile = null;
     ui.outputInput.value = "";
     ui.outputName.textContent = "No returned build attached";
-    ui.outputHelp.textContent = "No result file yet. Daedalus can prepare the next build here; automatic NMSBASE or prefab creation is not connected yet.";
+    ui.outputHelp.textContent = "No result file yet. Tell Daedalus what to build and the validated result will appear here.";
     ui.downloadOutput.disabled = true;
     ui.attemptGood.disabled = true;
     ui.attemptFix.disabled = true;
@@ -141,12 +146,14 @@
   }
 
   async function addReferences(files) {
-    const supported = files.filter((file) => /\.(png|jpe?g|webp|jxr)$/i.test(file.name));
+    const supported = files.filter((file) => /\.(png|jpe?g|webp)$/i.test(file.name));
     if (!supported.length) return;
-    guided.referenceFiles.push(...supported.slice(0, Math.max(0, 12 - guided.referenceFiles.length)));
-    window.DaedalusApp?.addReferenceImages?.(supported);
+    const maximum = Number(window.DaedalusShared?.generationStatus?.().maximum_references || 4);
+    const accepted = supported.slice(0, Math.max(0, maximum - guided.referenceFiles.length));
+    guided.referenceFiles.push(...accepted);
+    window.DaedalusApp?.addReferenceImages?.(accepted);
     renderReferences();
-    const previewable = supported.find((file) => /\.(png|jpe?g|webp)$/i.test(file.name));
+    const previewable = accepted.find((file) => /\.(png|jpe?g|webp)$/i.test(file.name));
     if (previewable) {
       if (guided.previewUrl) URL.revokeObjectURL(guided.previewUrl);
       guided.previewUrl = URL.createObjectURL(previewable);
@@ -163,43 +170,6 @@
     }
   }
 
-  function compactLesson(item) {
-    return {
-      score: item.score,
-      reasons: item.reasons || [],
-      intent: item.lesson?.intent || {},
-      corrections: item.lesson?.corrections || {},
-      structuralFingerprint: {
-        objectCount: item.lesson?.groundTruth?.objectCount || null,
-        distinctObjectIds: item.lesson?.groundTruth?.distinctObjectIds || null,
-        bounds: item.lesson?.groundTruth?.bounds || null,
-        topPartInventory: (item.lesson?.groundTruth?.partInventory || []).slice(0, 40)
-      },
-      provenance: {
-        submissionId: item.provenance?.submissionId || null,
-        recordId: item.provenance?.recordId || null,
-        sourceSha256: item.provenance?.sourceSha256 || null,
-        contributor: item.provenance?.contributor || null,
-        reviewer: item.provenance?.reviewer || null,
-        releasedAt: item.provenance?.releasedAt || null
-      }
-    };
-  }
-
-  async function retrieveLessons(instruction, snapshot) {
-    if (!window.DaedalusShared?.retrieveLessons) return { corpus_version: 0, items: [] };
-    const parts = snapshot.report?.build?.parts || [];
-    return window.DaedalusShared.retrieveLessons({
-      query: instruction,
-      domain: snapshot.mode === "corvette" ? "NO_MANS_SKY_CORVETTE_BUILDING" : "NO_MANS_SKY_BASE_BUILDING",
-      category: snapshot.category || "other",
-      style_tags: [],
-      object_ids: parts.slice(0, 120).map((part) => part.objectId).filter((id) => /^\^/.test(id)),
-      part_count: snapshot.report?.build?.objectCount || null,
-      limit: 6
-    });
-  }
-
   async function submitPrompt(event) {
     event?.preventDefault?.();
     const instruction = ui.prompt.value.trim();
@@ -209,77 +179,63 @@
 
     appendMessage("user", instruction);
     ui.prompt.value = "";
-    setBusy(true, "Preparing pass…");
-    setStatus("Finding approved lessons", "working");
+    setBusy(true, "Generating build…");
+    setStatus("Daedalus is designing and validating this pass", "working");
     setStep(2);
     if (!guided.initialRequest) {
       guided.initialRequest = instruction;
       window.DaedalusApp.setBrief(instruction);
     }
 
-    const revision = window.DaedalusLearning?.addRevision?.(instruction) || null;
-    let retrieval = { corpus_version: 0, items: [] };
-    let retrievalError = null;
+    window.DaedalusLearning?.addRevision?.(instruction);
     try {
-      retrieval = await retrieveLessons(instruction, snapshot);
-    } catch (error) {
-      retrievalError = error;
-    }
-
-    const lessons = (retrieval.items || []).map(compactLesson);
-    guided.buildPlan = {
-      schema: "wonder-codex.daedalus.guided-build-plan.v1",
-      createdAt: new Date().toISOString(),
-      status: "PLANNED_NOT_APPLIED",
-      source: {
-        fileName: snapshot.source?.sourceName || guided.sourceFile.name,
-        format: snapshot.source?.format || null,
-        objectCount: snapshot.report.build.objectCount,
-        distinctObjectIds: snapshot.report.build.distinctObjectIds,
-        sourceUnmodified: true
-      },
-      request: instruction,
-      revision,
-      retrieval: {
-        corpusVersion: retrieval.corpus_version || 0,
-        lessonCount: lessons.length,
-        lessons,
-        error: retrievalError?.message || null
-      },
-      safety: {
-        maximumParts: 3000,
-        objectIdsOnly: true,
-        protectedAnchorPreserved: true,
-        uniformScaleRequired: true,
-        preserveUnmentionedGeometry: true
-      },
-      output: {
-        generatedBuildFile: null,
-        reason: "Automatic NMSBASE or prefab creation is not connected on this server. This plan is ready for that connection."
+      if (!window.DaedalusShared?.generateBuild || !window.DaedalusShared?.fetchGeneratedFile) {
+        throw new Error("The Daedalus generation service did not load. Refresh the page and try again.");
       }
-    };
+      const result = await window.DaedalusShared.generateBuild({
+        sourceFile: guided.sourceFile,
+        instruction,
+        references: guided.referenceFiles,
+        sessionId: guided.sessionId
+      });
+      const outputFile = await window.DaedalusShared.fetchGeneratedFile(result.file_path, result.pass.filename);
+      if (!await loadOutput(outputFile, {announce: false})) return;
+      guided.sessionId = result.session.id;
+      guided.sessionVersion = result.pass.version;
+      guided.buildPlan = result.pass.plan;
 
-    const scopeText = revision?.scopes?.length ? revision.scopes.join(", ") : "the requested areas";
-    const lessonText = lessons.length
-      ? `I matched ${lessons.length} approved learning lesson${lessons.length === 1 ? "" : "s"} from corpus v${retrieval.corpus_version}.`
-      : retrievalError
-        ? "The approved lesson library was unavailable, so I kept this pass grounded only in your analyzed build and instructions."
-        : "No approved lesson was close enough yet, so I kept this pass grounded in your analyzed build and instructions.";
-    appendMessage(
-      "assistant",
-      `${lessonText} I captured a safe next pass for ${scopeText}, preserving everything you did not mention. The build plan is ready. Automatic NMSBASE and prefab creation is not connected yet, so I have not claimed that a modified file exists.`
-    );
-    ui.planSummary.textContent = `${lessons.length} released lesson${lessons.length === 1 ? "" : "s"} · ${revision?.scopes?.length || 1} change scope${revision?.scopes?.length === 1 ? "" : "s"}`;
-    ui.plan.hidden = false;
-    setStep(3);
-    setStatus("Build plan ready", "ready");
-    setBusy(false);
-    updateFinishState();
+      const plan = result.pass.plan || {};
+      const operationCount = Number(result.pass.operation_count || 0);
+      const corpusVersion = Number(result.pass.corpus_version || 0);
+      appendMessage(
+        "assistant",
+        plan.assistantMessage || `Build Pass ${result.pass.version} is complete with ${operationCount.toLocaleString()} validated operation${operationCount === 1 ? "" : "s"}. Inspect it in BBA or in game, then tell me what to revise.`
+      );
+      ui.planSummary.textContent = `Pass ${result.pass.version} · ${operationCount.toLocaleString()} validated operation${operationCount === 1 ? "" : "s"} · corpus v${corpusVersion}`;
+      ui.plan.hidden = false;
+      renderFacts({build: {
+        objectCount: Number(result.pass.object_count || 0),
+        distinctObjectIds: Number(result.pass.distinct_object_ids || 0)
+      }});
+      ui.previewBadge.textContent = `Latest: Pass ${result.pass.version}`;
+      setStep(3);
+      setStatus(`Build Pass ${result.pass.version} ready`, "ready");
+    } catch (error) {
+      setStatus("Build generation needs attention");
+      appendMessage("assistant", error.message || "I could not generate a validated build pass.");
+    } finally {
+      setBusy(false);
+      updateFinishState();
+    }
   }
 
-  async function loadOutput(file) {
-    if (!file || !guided.sourceFile) return;
+  async function loadOutput(file, options = {}) {
+    if (!file || !guided.sourceFile) return false;
     setStatus("Comparing returned build", "working");
+    guided.outputFile = null;
+    ui.downloadOutput.disabled = true;
+    ui.attemptGood.disabled = true;
+    ui.attemptFix.disabled = true;
     try {
       await window.DaedalusLearning.loadAttempt(file);
       const attempt = window.DaedalusLearning.getSnapshot().attemptFile;
@@ -292,10 +248,16 @@
       ui.attemptFix.disabled = false;
       setStep(3);
       setStatus("Returned build ready to inspect", "ready");
-      appendMessage("assistant", `I attached ${file.name} as the latest Daedalus result and compared its placed parts with your source. Please inspect it in BBA or in game, then tell me what is right or what needs another pass.`);
+      if (options.announce !== false) {
+        appendMessage("assistant", `I attached ${file.name} as the latest Daedalus result and compared its placed parts with your source. Please inspect it in BBA or in game, then tell me what is right or what needs another pass.`);
+      }
+      return true;
     } catch (error) {
       setStatus("Returned build could not be read");
       appendMessage("assistant", error.message || "I could not read that returned build.");
+      return false;
+    } finally {
+      updateFinishState();
     }
   }
 
@@ -315,7 +277,7 @@
     if (!guided.buildPlan) return;
     const stem = (guided.sourceFile?.name || "daedalus-build").replace(/\.[^.]+$/, "").replace(/[^a-z0-9_-]+/gi, "-");
     const blob = new Blob([JSON.stringify(guided.buildPlan, null, 2)], { type: "application/json" });
-    downloadFile(new File([blob], `${stem}-next-build-plan.json`, { type: "application/json" }));
+    downloadFile(new File([blob], `${stem}-pass-${guided.sessionVersion || 1}-details.json`, { type: "application/json" }));
   }
 
   async function finishSession() {
@@ -352,11 +314,13 @@
   ui.attemptGood.addEventListener("click", () => {
     if (window.DaedalusLearning.markAttemptCorrect()) {
       appendMessage("assistant", "I recorded that this attempt looks correct. That decision is separate from verifying the original source.");
+      updateFinishState();
     }
   });
   ui.attemptFix.addEventListener("click", () => {
     if (window.DaedalusLearning.markNeedsCorrection()) {
       appendMessage("assistant", "I marked this attempt as needing correction. Tell me what is wrong in the chat so the next pass and learning package preserve the details.");
+      updateFinishState();
       ui.prompt.focus();
     }
   });

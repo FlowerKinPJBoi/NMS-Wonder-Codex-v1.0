@@ -1,5 +1,16 @@
 # Wonder Codex changelog
 
+## v1.29.0 — Daedalus Builder/Writer
+
+- Connected the guided chat workspace to a server-side OpenAI Responses planner using one forced, strict build-plan tool call.
+- Added deterministic `add`, `move`, `remove`, and `recolor` execution for NMSBASE, native prefab, Corvette, and JSON builds.
+- Added private, versioned build sessions and immutable generated passes with hashes, model provenance, corpus version, operation plans, and validation reports.
+- Preserved `^BASE_FLAG`, `^U_PARAGON`, Corvette `so.json`, `ccd.json`, source metadata, and all unmentioned placed records.
+- Enforced the 3,000-part limit, verified Object-ID palette, finite transforms, uniform scale, normal-sized seats and ramps, 0.10-scale planetary probes, unique generated timestamps, duplicate-placement rejection, and output round-trip parsing.
+- Made every generated pass immediately inspectable and downloadable from the friendly workshop; later chat messages build from the latest validated pass.
+- Required the trainer to mark the latest result **Looks good** and confirm BBA/in-game inspection before finishing the learning-review handoff.
+- Kept source and generated artifacts in private object storage; only normalized build geometry, selected corpus lessons, instructions, and attached references are sent to the configured planner.
+
 ## v1.28.0 — Human-made field guide and Discord home
 
 - Combined the explorer field-guide typography and rhythm with restrained galactic-museum framing across every public page.
