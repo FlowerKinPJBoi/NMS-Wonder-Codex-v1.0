@@ -38,6 +38,13 @@ variables. Never commit real values. The service currently recognizes:
   (default `PJ,Boots`)
 - `MAX_DAEDALUS_PACKAGE_MB` and `DAEDALUS_DOWNLOAD_SECONDS` when the 40 MB /
   15 minute defaults need adjustment
+- `OPENAI_API_KEY` as an encrypted API-service secret; never expose it to the
+  static site or commit it to GitHub
+- `DAEDALUS_MODEL` (default `gpt-5.6`), `DAEDALUS_REASONING_EFFORT` (default
+  `medium`), and `DAEDALUS_GENERATION_TIMEOUT_SECONDS` (default `180`)
+- `MAX_DAEDALUS_BUILD_MB`, `MAX_DAEDALUS_REFERENCE_MB`,
+  `MAX_DAEDALUS_REFERENCES`, and `MAX_DAEDALUS_OPERATIONS` for the 40 MB build,
+  8 MB/image, four-image, and 400-operation defaults
 - `SPACES_ACCESS_KEY`, `SPACES_SECRET_KEY`, `SPACES_REGION`,
   `SPACES_BUCKET`, `SPACES_ENDPOINT`, and `SPACES_CDN_URL`
 - `AUTH_SUPABASE_URL` and the public `AUTH_SUPABASE_ANON_KEY`
@@ -89,33 +96,37 @@ After both components are healthy:
 7. Confirm `/admin/apps/` reports private storage online before uploading a
    reviewed inner application ZIP.
 8. Open `/admin/apps/daedalus/` as Krosskelt (or another configured trainer),
-   submit a clearly labeled learning ZIP, and confirm it enters
-   `pending_review` without becoming production-training eligible.
-9. As PJ or Boots, mark the test package approved and confirm it is still not
+   upload a small test NMSBASE, request one safe visible change, and confirm
+   Daedalus returns Pass 1 as a downloadable file with the source anchor intact.
+9. Request a second change in the same chat and confirm Pass 2 builds from Pass
+   1 while Pass 1 remains downloadable. Mark the final result **Looks good**,
+   submit it for learning review, and confirm it enters `pending_review`
+   without becoming production-training eligible.
+10. As PJ or Boots, mark the test package approved and confirm it is still not
    training eligible. Release it separately only if it is a genuine retained
    training record; otherwise reject it after the workflow test.
-10. Browse two or three public pages, then confirm PJ can open
+11. Browse two or three public pages, then confirm PJ can open
    `https://wondercodex.com/admin/analytics/` with the existing named PJ admin
    credential. Confirm a Boots or tester credential is refused there.
-11. Open `https://wondercodex.com/feedback.html`, move through all four steps,
+12. Open `https://wondercodex.com/feedback.html`, move through all four steps,
    and submit one clearly labeled test response. Confirm the success panel appears.
-12. Open `https://wondercodex.com/admin/feedback/` with PJ's named credential,
+13. Open `https://wondercodex.com/admin/feedback/` with PJ's named credential,
     confirm the test response and pricing summary appear, then download the CSV.
-13. Authorize Capture Companion with a named tester credential, submit one
+14. Authorize Capture Companion with a named tester credential, submit one
     clearly labeled confirmed test pair, then confirm it appears only in the
     **Capture pairs** lane of the owner review console.
-14. Reject that test pair and confirm neither its discovery nor image appears in
+15. Reject that test pair and confirm neither its discovery nor image appears in
     the public catalog.
-15. Open `/account.html`, test Discord and email magic-link sign-in, save a
+16. Open `/account.html`, test Discord and email magic-link sign-in, save a
     contributor profile, and confirm `/contribute.html?mode=image` fills that
     contributor name and attribution preference.
-16. In the admin console's **Users** lane, change the test account from Regular
+17. In the admin console's **Users** lane, change the test account from Regular
     to Tester, refresh the account page, and confirm its tier updates. Return the
     test account to Regular afterward.
-17. Open `/contribute.html?mode=image`, keep **New discovery** selected, submit
+18. Open `/contribute.html?mode=image`, keep **New discovery** selected, submit
     a clearly labeled console screenshot without choosing a catalog record, and
     confirm a `NEW-XXXXXXXX` reference appears.
-18. Approve it from the admin console's **New screenshots** lane, confirm a WC
+19. Approve it from the admin console's **New screenshots** lane, confirm a WC
     record and primary image are created together, then remove the test record
     through the normal review process if it should not remain public.
 
@@ -130,3 +141,7 @@ Migration `0010_new_discovery_screenshots` adds the private non-PC intake queue.
 Migration `0011_daedalus_training_queue` adds the guarded Daedalus learning
 queue. It reuses private Spaces storage and never treats client-side trust as a
 production release decision.
+Migration `0012_daedalus_corpus` adds released-lesson indexing and versioning.
+Migration `0013_daedalus_builder_writer` adds private iterative build sessions
+and immutable generated passes. With migrations enabled, both are applied by
+the API service during deployment.

@@ -4,7 +4,7 @@
   const API = "/api/admin/apps/daedalus";
   const key = sessionStorage.getItem("wc_admin_key") || "";
   const actor = sessionStorage.getItem("wc_admin_actor") || "";
-  const state = {permissions: {}, maxUploadBytes: 0, storageReady: false, corpus: {}, items: []};
+  const state = {permissions: {}, maxUploadBytes: 0, storageReady: false, corpus: {}, generation: {}, items: []};
   const $ = (selector) => document.querySelector(selector);
   const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
   const headers = () => ({"X-Admin-Key": key, "X-Admin-Actor": actor, Accept: "application/json"});
@@ -35,6 +35,7 @@
       state.maxUploadBytes = Number(data.max_upload_bytes || 0);
       state.storageReady = Boolean(data.storage_ready);
       state.corpus = data.corpus || {};
+      state.generation = data.generation || {};
       $("#sharedStatus").textContent = data.storage_ready ? "Shared storage online" : "Storage setup required";
       $("#sharedOperator").textContent = `${data.operator} · ${state.permissions.review ? "reviewer" : "trainer"}`;
       $("#sharedArchive").disabled = !state.permissions.submit;
@@ -172,6 +173,38 @@
     });
   }
 
+  async function generateBuild({sourceFile = null, instruction, references = [], sessionId = null}) {
+    if (!state.permissions.submit) throw new Error("This operator cannot generate Daedalus builds.");
+    const form = new FormData();
+    form.append("instruction", String(instruction || "").trim());
+    if (!sessionId) {
+      if (!sourceFile) throw new Error("Add the source build before asking Daedalus to generate a pass.");
+      form.append("source", sourceFile, sourceFile.name);
+    }
+    references.slice(0, Number(state.generation.maximum_references || 4)).forEach((file) => {
+      form.append("references", file, file.name);
+    });
+    const path = sessionId
+      ? `/build-sessions/${encodeURIComponent(sessionId)}/passes`
+      : "/build-sessions";
+    const response = await fetch(API + path, {method: "POST", headers: headers(), body: form});
+    let data = {};
+    try { data = await response.json(); } catch {}
+    if (!response.ok) throw new Error(data.detail || `Build generation failed (${response.status})`);
+    return data;
+  }
+
+  async function fetchGeneratedFile(filePath, filename) {
+    const response = await fetch(filePath, {headers: headers()});
+    if (!response.ok) {
+      let data = {};
+      try { data = await response.json(); } catch {}
+      throw new Error(data.detail || `Generated file download failed (${response.status})`);
+    }
+    const blob = await response.blob();
+    return new File([blob], filename || "daedalus-build.nmsbase", {type: "application/octet-stream"});
+  }
+
   function buildContributorNote(note) {
     const versionDetails = [
       ["BBA", $("#sharedBbaVersion").value.trim()],
@@ -228,6 +261,13 @@
   $("#sharedUploadForm").addEventListener("submit", submit);
   $("#sharedRefresh").addEventListener("click", connect);
   $("#queueFilter").addEventListener("change", loadQueue);
-  window.DaedalusShared = {submitLearningBlob, retrieveLessons, refreshQueue: connect};
+  window.DaedalusShared = {
+    submitLearningBlob,
+    retrieveLessons,
+    generateBuild,
+    fetchGeneratedFile,
+    generationStatus: () => ({...state.generation}),
+    refreshQueue: connect
+  };
   connect();
 })();

@@ -18,22 +18,20 @@ assert.match(page, /id="guidedBuildInput"[^>]*accept="\.nmsship,\.nmsprefab,\.nm
 assert.match(page, /id="guidedReferenceInput"/);
 assert.match(page, /id="guidedDownloadOutput"[^>]*>Download latest build</);
 assert.match(page, /id="guidedSubmitLearning"[^>]*>Finish &amp; submit for learning review</);
-assert.match(page, /I inspected this source and confirm it is accurate ground truth/);
+assert.match(page, /I inspected the latest result in BBA or the game and confirm the source is accurate ground truth/);
 assert.match(page, /<details class="advanced-workspace"/);
 assert.ok(page.indexOf('id="guidedWorkspace"') < page.indexOf('id="sharedHub"'));
 
-assert.match(guided, /DaedalusShared\.retrieveLessons/);
+assert.match(guided, /DaedalusShared\.generateBuild/);
+assert.match(guided, /DaedalusShared\.fetchGeneratedFile/);
 assert.match(guided, /DaedalusLearning\.loadAttempt/);
 assert.match(guided, /DaedalusLearning\.approveGroundTruth/);
 assert.match(guided, /DaedalusLearning\.submitForReview/);
-assert.match(guided, /maximumParts: 3000/);
-assert.match(guided, /objectIdsOnly: true/);
-assert.match(guided, /protectedAnchorPreserved: true/);
-assert.match(guided, /uniformScaleRequired: true/);
-assert.match(guided, /status: "PLANNED_NOT_APPLIED"/);
-assert.match(guided, /generatedBuildFile: null/);
-assert.match(guided, /Automatic NMSBASE and prefab creation is not connected yet/);
-assert.doesNotMatch(guided, /modified NMSBASE (?:is|was) ready/i);
+assert.match(guided, /Build Pass \$\{result\.pass\.version\} ready/);
+assert.match(guided, /result\.pass\.operation_count/);
+assert.match(guided, /attemptStatus === "correct"/);
+assert.doesNotMatch(guided, /PLANNED_NOT_APPLIED/);
+assert.doesNotMatch(guided, /automatic NMSBASE or prefab creation is not connected yet/i);
 
 assert.match(analyzer, /window\.DaedalusApp =/);
 assert.match(analyzer, /loadBuildFile: loadPackage/);

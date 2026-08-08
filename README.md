@@ -1,9 +1,9 @@
-# Wonder Codex v1.28.0
+# Wonder Codex v1.29.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
 
-v1.28.0 gives the public Wonder Codex a more human-made explorer field-guide identity while preserving its galactic museum structure. Bitter, Source Sans 3, and Barlow Condensed replace the earlier generic interface pairing; moonstone cyan, amethyst, sea-glass blue, and ivory replace amber/gold accents. Every public header now also links directly to the Wonder Codex Discord. No catalog, Forge, map, contribution, Passport, evidence, or review behavior changes in this release.
+v1.29.0 connects Daedalus's guided workshop to a real model-powered planner and deterministic NMS file writer. Named trainers can upload an NMSBASE, native prefab, Corvette, or JSON build; describe changes in ordinary language; retrieve released lessons; and receive a private, versioned, validated build file. The writer preserves protected anchors and Corvette identity members, applies only strict Object-ID operations, keeps seats and ramps at normal scale, miniaturizes the giant planetary probe safely, rejects unknown parts, and reparses every output before download. Learning still requires separate human inspection, approval, and release.
 
 ## Repository contents
 
@@ -21,18 +21,19 @@ Descriptor Atlas evidence layer. It also includes a private receiver and owner
 review lane for locally confirmed Capture Companion discovery/screenshot pairs;
 nothing from that lane becomes public without an administrator decision.
 
-v1.27.0 makes Daedalus Builder's primary experience a guided workshop for named
+v1.27.0 introduced Daedalus Builder's guided workshop for named
 trainers: add a build and references, analyze automatically, discuss iterative
 changes in plain language, retrieve approved lessons, attach and download a
 returned build, and submit the finished session directly to human review. The
 exact Object IDs, safety checks, Blender tools, queue, and corpus controls remain
-available under Advanced Analyzer & Trainer. The guided workspace labels a
-retrieval-grounded plan as planned—not applied—and never presents a modified
-NMSBASE or prefab unless a real returned file is attached; connecting a model
-file-writer remains a separate deployment integration.
+available under Advanced Analyzer & Trainer. v1.29.0 completes that path with
+the model planner, deterministic writer, private pass history, and real output.
 
-Build analysis remains browser-local; exported learning packages are validated again
-by the API and stored in a shared private review queue. A verified session can
+Initial build analysis remains browser-local; generation sends normalized
+geometry, selected lessons, the instruction, and attached references to the
+configured planner while source and result files remain private. Exported
+learning packages are validated again by the API and stored in a shared private
+review queue. A verified session can
 also be packaged and submitted directly from the Learning Lab without a manual
 download/re-upload step. Approval and release are deliberately separate. A
 release now re-reads the immutable ZIP, extracts a compact lesson, advances the
@@ -41,8 +42,7 @@ and structural retrieval. Reviewers can disable or restore a lesson with an
 audited reason, and explicitly index any records released before this corpus
 consumer existed. The server enforces the 3,000-part limit, Object-ID-only inventory,
 normal part shape (uniform scale), source hashes, and protected `^U_PARAGON` /
-`^BASE_FLAG` records. The corpus consumer is provider-independent; connecting
-its retrieved lessons to a creative model planner is a separate integration.
+`^BASE_FLAG` records. Released lessons now feed the configured Daedalus planner.
 
 v1.18 adds the public Wonder Forge gallery with 95 evidence-labeled fauna
 holograms. Thirty verified natural forms can serve as deterministic

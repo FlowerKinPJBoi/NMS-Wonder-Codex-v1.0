@@ -389,6 +389,54 @@ class DaedalusCorpusEntry(Base):
     disabled_reason: Mapped[str] = mapped_column(Text, default="", nullable=False)
 
 
+class DaedalusBuildSession(Base):
+    """A private iterative build session owned by one named Daedalus trainer."""
+
+    __tablename__ = "daedalus_build_sessions"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+    actor: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(30), default="active", nullable=False, index=True)
+    source_filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    source_format: Mapped[str] = mapped_column(String(30), nullable=False, index=True)
+    source_object_key: Mapped[str] = mapped_column(Text, nullable=False)
+    source_sha256: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    source_size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    source_validation: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    latest_version: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+
+class DaedalusBuildPass(Base):
+    """One immutable generated artifact and its audited operation plan."""
+
+    __tablename__ = "daedalus_build_passes"
+    __table_args__ = (UniqueConstraint("session_id", "version", name="uq_daedalus_build_pass_version"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    session_id: Mapped[str] = mapped_column(
+        ForeignKey("daedalus_build_sessions.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    instruction: Mapped[str] = mapped_column(Text, nullable=False)
+    output_filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    output_object_key: Mapped[str] = mapped_column(Text, nullable=False)
+    output_sha256: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    output_size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    object_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    distinct_object_ids: Mapped[int] = mapped_column(Integer, nullable=False)
+    operation_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    corpus_version: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    model_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    provider_response_id: Mapped[str] = mapped_column(String(160), default="", nullable=False)
+    plan: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    validation: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+
+
 class AssetSpecimen(Base):
     """A normalized procedural asset, independent of where it was acquired."""
 

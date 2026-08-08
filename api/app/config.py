@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Wonder Codex API"
-    app_version: str = "1.27.0"
+    app_version: str = "1.29.0"
     environment: str = "production"
     database_url: str = ""
     allowed_origins: List[str] = Field(
@@ -74,6 +74,14 @@ class Settings(BaseSettings):
     admin_app_download_seconds: int = 600
     max_daedalus_package_mb: int = 40
     daedalus_download_seconds: int = 900
+    openai_api_key: str = ""
+    daedalus_model: str = "gpt-5.6"
+    daedalus_reasoning_effort: str = "medium"
+    daedalus_generation_timeout_seconds: int = 180
+    max_daedalus_build_mb: int = 40
+    max_daedalus_reference_mb: int = 8
+    max_daedalus_references: int = 4
+    max_daedalus_operations: int = 400
 
     @property
     def max_image_bytes(self) -> int:
@@ -86,6 +94,18 @@ class Settings(BaseSettings):
     @property
     def max_daedalus_package_bytes(self) -> int:
         return self.max_daedalus_package_mb * 1024 * 1024
+
+    @property
+    def max_daedalus_build_bytes(self) -> int:
+        return self.max_daedalus_build_mb * 1024 * 1024
+
+    @property
+    def max_daedalus_reference_bytes(self) -> int:
+        return self.max_daedalus_reference_mb * 1024 * 1024
+
+    @property
+    def daedalus_generation_ready(self) -> bool:
+        return bool(self.openai_api_key.strip() and self.spaces_private_ready)
 
     @property
     def spaces_ready(self) -> bool:
