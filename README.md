@@ -1,9 +1,9 @@
-# Wonder Codex v1.31.1
+# Wonder Codex v1.31.2
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
 
-v1.31.1 registers the private Daedalus job and session before source storage or prior-pass reads begin, closing the remaining window where a slow private-storage call could produce a 504 before polling had a job to find. v1.31.0's background model responses, strict writer, job polling, and safe diagnostics remain intact.
+v1.31.2 separates Daedalus job reservation from the multipart build request. The browser now receives an acknowledgement only after the job UUID and private session are committed, then submits or safely retries the build payload while polling the same durable record. v1.31.1's early preparation commits, strict writer, background model responses, and safe diagnostics remain intact.
 
 ## Repository contents
 
