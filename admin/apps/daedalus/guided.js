@@ -67,7 +67,7 @@
     guided.busy = busy;
     ui.buildInput.disabled = busy;
     ui.referenceInput.disabled = busy;
-    ui.send.disabled = busy || !guided.sourceFile;
+    ui.send.disabled = busy;
     ui.send.textContent = busy ? (label || "Working…") : "Send to Daedalus";
   }
 
@@ -124,7 +124,7 @@
       ui.prompt.focus();
     } catch (error) {
       guided.sourceFile = null;
-      ui.buildName.textContent = "No build added";
+      ui.buildName.textContent = "No source file — prompt-only build";
       renderFacts(null);
       setStep(1);
       setStatus("Build could not be read");
@@ -173,9 +173,7 @@
   async function submitPrompt(event) {
     event?.preventDefault?.();
     const instruction = ui.prompt.value.trim();
-    if (!instruction || !guided.sourceFile || guided.busy) return;
-    const snapshot = window.DaedalusApp.getSnapshot();
-    if (!snapshot.report) return;
+    if (!instruction || guided.busy) return;
 
     appendMessage("user", instruction);
     ui.prompt.value = "";
@@ -187,7 +185,9 @@
       window.DaedalusApp.setBrief(instruction);
     }
 
-    window.DaedalusLearning?.addRevision?.(instruction);
+    if (guided.sourceFile && window.DaedalusApp?.getSnapshot?.().report) {
+      window.DaedalusLearning?.addRevision?.(instruction);
+    }
     try {
       if (!window.DaedalusShared?.generateBuild || !window.DaedalusShared?.fetchGeneratedFile) {
         throw new Error("The Daedalus generation service did not load. Refresh the page and try again.");
@@ -206,12 +206,13 @@
 
       const plan = result.pass.plan || {};
       const operationCount = Number(result.pass.operation_count || 0);
+      const objectCount = Number(result.pass.object_count || 0);
       const corpusVersion = Number(result.pass.corpus_version || 0);
       appendMessage(
         "assistant",
-        plan.assistantMessage || `Build Pass ${result.pass.version} is complete with ${operationCount.toLocaleString()} validated operation${operationCount === 1 ? "" : "s"}. Inspect it in BBA or in game, then tell me what to revise.`
+        plan.assistantMessage || `Build Pass ${result.pass.version} is complete with ${objectCount.toLocaleString()} placed parts and ${operationCount.toLocaleString()} validated refinement${operationCount === 1 ? "" : "s"}. Inspect it in BBA or in game, then tell me what to revise.`
       );
-      ui.planSummary.textContent = `Pass ${result.pass.version} · ${operationCount.toLocaleString()} validated operation${operationCount === 1 ? "" : "s"} · corpus v${corpusVersion}`;
+      ui.planSummary.textContent = `Pass ${result.pass.version} · ${objectCount.toLocaleString()} parts · ${operationCount.toLocaleString()} refinement${operationCount === 1 ? "" : "s"} · corpus v${corpusVersion}`;
       ui.plan.hidden = false;
       renderFacts({build: {
         objectCount: Number(result.pass.object_count || 0),
@@ -230,19 +231,32 @@
   }
 
   async function loadOutput(file, options = {}) {
-    if (!file || !guided.sourceFile) return false;
-    setStatus("Comparing returned build", "working");
+    if (!file) return false;
+    const promptOnly = !guided.sourceFile;
+    setStatus(promptOnly ? "Opening prompt-created build" : "Comparing returned build", "working");
     guided.outputFile = null;
     ui.downloadOutput.disabled = true;
     ui.attemptGood.disabled = true;
     ui.attemptFix.disabled = true;
     try {
+      if (promptOnly) {
+        const source = await window.DaedalusApp.loadBuildFile(file);
+        if (!source) throw new Error("Daedalus could not open the prompt-created build.");
+        guided.sourceFile = file;
+        ui.buildName.textContent = `Prompt-created canvas · ${file.name}`;
+        const report = await window.DaedalusApp.analyze();
+        if (!report) throw new Error("Daedalus could not analyze the prompt-created build.");
+        window.DaedalusApp.setBrief(guided.initialRequest);
+        renderFacts(report);
+      }
       await window.DaedalusLearning.loadAttempt(file);
       const attempt = window.DaedalusLearning.getSnapshot().attemptFile;
       if (!attempt) throw new Error("The returned build could not be compared.");
       guided.outputFile = file;
       ui.outputName.textContent = file.name;
-      ui.outputHelp.textContent = "Returned build attached and compared with the source. Inspect it in BBA or in game before marking the result.";
+      ui.outputHelp.textContent = promptOnly
+        ? "Created from your prompt as a portable prefab. Inspect it in BBA or in game before marking the result."
+        : "Returned build attached and compared with the source. Inspect it in BBA or in game before marking the result.";
       ui.downloadOutput.disabled = false;
       ui.attemptGood.disabled = false;
       ui.attemptFix.disabled = false;
@@ -253,6 +267,7 @@
       }
       return true;
     } catch (error) {
+      if (promptOnly) guided.sourceFile = null;
       setStatus("Returned build could not be read");
       appendMessage("assistant", error.message || "I could not read that returned build.");
       return false;
@@ -329,4 +344,7 @@
   window.addEventListener("beforeunload", () => {
     if (guided.previewUrl) URL.revokeObjectURL(guided.previewUrl);
   });
+  setBusy(false);
+  setStatus("Describe a build or add a file", "ready");
+  ui.prompt.focus();
 })();

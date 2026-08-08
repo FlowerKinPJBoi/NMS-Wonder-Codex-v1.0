@@ -37,6 +37,7 @@ assert.match(shared, /production_training_eligible/);
 assert.match(shared, /Release to learning/);
 assert.match(shared, /Index released lesson/);
 assert.match(shared, /generateBuild/);
+assert.match(shared, /if \(!sessionId && sourceFile\)/);
 assert.match(shared, /fetchGeneratedFile/);
 assert.match(shared, /generationStatus/);
 assert.match(page, /id="corpusActive"/);

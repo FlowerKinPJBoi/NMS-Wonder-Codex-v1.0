@@ -14,6 +14,8 @@ const learning = read('admin/apps/daedalus/learning.js');
 
 assert.match(page, /id="guidedWorkspace"/);
 assert.match(page, /Chat with Daedalus/);
+assert.match(page, /Start with a chat prompt/);
+assert.match(page, /Files and reference pictures are optional/);
 assert.match(page, /id="guidedBuildInput"[^>]*accept="\.nmsship,\.nmsprefab,\.nmsbase,\.json/);
 assert.match(page, /id="guidedReferenceInput"/);
 assert.match(page, /id="guidedDownloadOutput"[^>]*>Download latest build</);
@@ -30,6 +32,9 @@ assert.match(guided, /DaedalusLearning\.submitForReview/);
 assert.match(guided, /Build Pass \$\{result\.pass\.version\} ready/);
 assert.match(guided, /result\.pass\.operation_count/);
 assert.match(guided, /attemptStatus === "correct"/);
+assert.match(guided, /ui\.send\.disabled = busy/);
+assert.match(guided, /const promptOnly = !guided\.sourceFile/);
+assert.doesNotMatch(guided, /if \(!instruction \|\| !guided\.sourceFile/);
 assert.doesNotMatch(guided, /PLANNED_NOT_APPLIED/);
 assert.doesNotMatch(guided, /automatic NMSBASE or prefab creation is not connected yet/i);
 

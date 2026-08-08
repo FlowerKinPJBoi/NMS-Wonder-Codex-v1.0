@@ -27,8 +27,36 @@ SEAT_IDS = {
     "^BUILDCHAIR", "^BUILDCHAIR2", "^BUILDCHAIR3", "^BUILDCHAIR4",
     "^BUILDSOFA", "^BUILDSOFA2", "^BUILDSOFA2L", "^S_BARSTOOL0", "^S_CHAIR0",
 }
-NORMAL_SCALE_IDS = SEAT_IDS | {"^F_RAMP", "^T_RAMP_Q_TOP"}
+NORMAL_SCALE_IDS = SEAT_IDS | {
+    "^B_RAMP", "^C_RAMP", "^F_RAMP", "^M_RAMP", "^S_RAMP", "^T_RAMP_Q_TOP",
+}
 CURATED_PARTS: dict[str, dict[str, Any]] = {
+    "^C_WALL": {"label": "concrete wall backdrop", "category": "structure", "scale": 1.0},
+    "^C_FLOOR": {"label": "concrete floor", "category": "structure", "scale": 1.0},
+    "^C_DOOR": {"label": "concrete doorway", "category": "structure", "scale": 1.0},
+    "^C_ROOF": {"label": "concrete roof", "category": "structure", "scale": 1.0},
+    "^C_RAMP": {"label": "concrete ramp", "category": "structure", "scale": 1.0},
+    "^F_FLOOR": {"label": "construction floor", "category": "structure", "scale": 1.0},
+    "^F_WALL": {"label": "construction wall", "category": "structure", "scale": 1.0},
+    "^F_DOOR": {"label": "construction doorway", "category": "structure", "scale": 1.0},
+    "^F_ROOF_M": {"label": "construction roof", "category": "structure", "scale": 1.0},
+    "^F_RAMP": {"label": "construction ramp", "category": "structure", "scale": 1.0},
+    "^S_FLOOR": {"label": "stone floor", "category": "structure", "scale": 1.0},
+    "^S_WALL": {"label": "stone wall", "category": "structure", "scale": 1.0},
+    "^S_DOOR": {"label": "stone doorway", "category": "structure", "scale": 1.0},
+    "^S_ROOF_M": {"label": "stone roof", "category": "structure", "scale": 1.0},
+    "^S_RAMP": {"label": "stone ramp", "category": "structure", "scale": 1.0},
+    "^M_FLOOR": {"label": "alloy floor", "category": "structure", "scale": 1.0},
+    "^M_WALL": {"label": "alloy wall", "category": "structure", "scale": 1.0},
+    "^M_DOOR": {"label": "alloy doorway", "category": "structure", "scale": 1.0},
+    "^M_ROOF_M": {"label": "alloy roof", "category": "structure", "scale": 1.0},
+    "^M_RAMP": {"label": "alloy ramp", "category": "structure", "scale": 1.0},
+    "^B_FLOOR": {"label": "basic floor", "category": "structure", "scale": 1.0},
+    "^B_WALL": {"label": "basic wall", "category": "structure", "scale": 1.0},
+    "^B_DOOR": {"label": "basic doorway", "category": "structure", "scale": 1.0},
+    "^B_ROOF_M": {"label": "basic roof", "category": "structure", "scale": 1.0},
+    "^B_RAMP": {"label": "basic ramp", "category": "structure", "scale": 1.0},
+    "^BUILDFLATPANEL": {"label": "colorable flat panel", "category": "sign", "scale": 1.0},
     "^BUILDCHAIR4": {"label": "chair", "category": "seat", "scale": 1.0},
     "^BUILDSOFA2": {"label": "sofa", "category": "seat", "scale": 1.0},
     "^BUILDSOFA2L": {"label": "long sofa", "category": "seat", "scale": 1.0},
@@ -46,14 +74,43 @@ CURATED_PARTS: dict[str, dict[str, Any]] = {
     "^S_TABLELAMP0": {"label": "table lamp", "category": "light", "scale": 1.0},
     "^S_GLOWGLOBE": {"label": "glowing globe", "category": "light", "scale": 1.0},
     "^S_LIGHTSTRIP0": {"label": "white tube light", "category": "light", "scale": 1.0},
+    "^WALLLIGHTWHITE": {"label": "white wall light", "category": "sign light", "scale": 1.0},
+    "^WALLLIGHTYELLOW": {"label": "yellow wall light", "category": "sign light", "scale": 1.0},
     "^WALLLIGHTRED": {"label": "red wall light", "category": "light", "scale": 1.0},
+    "^WALLLIGHTGREEN": {"label": "green wall light", "category": "sign light", "scale": 1.0},
     "^WALLLIGHTBLUE": {"label": "blue wall light", "category": "light", "scale": 1.0},
+    "^WALLLIGHTPINK": {"label": "pink wall light", "category": "sign light", "scale": 1.0},
     "^CEILINGLIGHT": {"label": "ceiling light", "category": "light", "scale": 1.0},
     "^BASE_AQUARIUM": {"label": "aquarium", "category": "decoration", "scale": 1.0},
     "^BLD_MINI_BIOFRI": {"label": "mini bio-frigate", "category": "decoration", "scale": 1.0},
     "^BLD_PLANET_HOLO": {"label": "planet hologram", "category": "decoration", "scale": 1.0},
     "^HOLO_DISCO_0": {"label": "holographic display", "category": "decoration", "scale": 1.0},
     "^FRE_ROOM_SCAN": {"label": "planetary probe; giant freighter part", "category": "decoration", "scale": 0.1},
+}
+
+SIGN_FONT_3X5 = {
+    "A": "010/101/111/101/101", "B": "110/101/110/101/110", "C": "011/100/100/100/011",
+    "D": "110/101/101/101/110", "E": "111/100/110/100/111", "F": "111/100/110/100/100",
+    "G": "011/100/101/101/011", "H": "101/101/111/101/101", "I": "111/010/010/010/111",
+    "J": "001/001/001/101/010", "K": "101/101/110/101/101", "L": "100/100/100/100/111",
+    "M": "101/111/111/101/101", "N": "101/111/111/111/101", "O": "010/101/101/101/010",
+    "P": "110/101/110/100/100", "Q": "010/101/101/111/011", "R": "110/101/110/101/101",
+    "S": "011/100/010/001/110", "T": "111/010/010/010/010", "U": "101/101/101/101/111",
+    "V": "101/101/101/101/010", "W": "101/101/111/111/101", "X": "101/101/010/101/101",
+    "Y": "101/101/010/010/010", "Z": "111/001/010/100/111",
+    "0": "111/101/101/101/111", "1": "010/110/010/010/111", "2": "110/001/010/100/111",
+    "3": "110/001/010/001/110", "4": "101/101/111/001/001", "5": "111/100/110/001/110",
+    "6": "011/100/111/101/111", "7": "111/001/010/010/010", "8": "111/101/111/101/111",
+    "9": "111/101/111/001/110", "!": "010/010/010/000/010", "?": "110/001/010/000/010",
+    "-": "000/000/111/000/000", ".": "000/000/000/000/010", " ": "000/000/000/000/000",
+}
+SIGN_LIGHT_IDS = {
+    "white": "^WALLLIGHTWHITE",
+    "yellow": "^WALLLIGHTYELLOW",
+    "red": "^WALLLIGHTRED",
+    "green": "^WALLLIGHTGREEN",
+    "blue": "^WALLLIGHTBLUE",
+    "pink": "^WALLLIGHTPINK",
 }
 
 
@@ -92,6 +149,8 @@ class ParsedBuild:
     zip_object_member: str | None
     protected_id: str | None
     validation: dict[str, Any]
+    origin: str = "uploaded"
+    bootstrap: dict[str, Any] | None = None
 
 
 @dataclass
@@ -123,6 +182,95 @@ def versioned_filename(source_name: str, version: int) -> str:
         stem, extension = safe.rsplit(".", 1)
         return f"{stem}-Daedalus-Pass-{version}.{extension}"[:255]
     return f"{safe}-Daedalus-Pass-{version}.json"[:255]
+
+
+def _prompt_sign_text(instruction: str) -> str:
+    quoted = re.search(r'["“]([^"”]{1,80})["”]', instruction)
+    if quoted:
+        value = quoted.group(1)
+    else:
+        described = re.search(r"\b(?:says?|reading|text)\s+(.+?)(?:\s+with\b|$)", instruction, re.IGNORECASE)
+        value = described.group(1) if described else ""
+    cleaned = " ".join(value.upper().strip(" .").split())[:32]
+    return "".join(character if character in SIGN_FONT_3X5 else "?" for character in cleaned)
+
+
+def _sign_bootstrap(instruction: str, text: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    lowered = instruction.casefold()
+    light_color = next((color for color in SIGN_LIGHT_IDS if re.search(rf"\b{color}\b", lowered)), "white")
+    light_id = SIGN_LIGHT_IDS[light_color]
+    no_backdrop = bool(re.search(r"\b(?:no|without)\s+(?:a\s+)?backdrop\b", lowered))
+    cell = 0.42
+    glyph_width = 3
+    gap = 1
+    total_columns = max(1, len(text) * (glyph_width + gap) - gap)
+    text_width = total_columns * cell
+    wall_width = 5.333333
+    wall_height = 3.333333
+    wall_columns = 0 if no_backdrop else max(1, math.ceil((text_width + 1.4) / wall_width))
+    timestamp = 1_000_000_000 + int(hashlib.sha256(instruction.encode("utf-8")).hexdigest()[:8], 16) % 1_000_000_000
+    records: list[dict[str, Any]] = []
+
+    for column in range(wall_columns):
+        x = (column - (wall_columns - 1) / 2) * wall_width
+        records.append({
+            "Timestamp": timestamp + len(records),
+            "ObjectID": "^C_WALL",
+            "UserData": 1 if "black" in lowered else 0,
+            "Position": [round(x, 6), round(wall_height / 2, 6), 0.0],
+            "Up": [0.0, 1.0, 0.0],
+            "At": [0.0, 0.0, 1.0],
+            "Visible": "true",
+        })
+
+    left = -text_width / 2 + cell / 2
+    baseline = 0.82
+    for glyph_index, character in enumerate(text):
+        rows = SIGN_FONT_3X5.get(character, SIGN_FONT_3X5["?"]).split("/")
+        for row_index, row in enumerate(rows):
+            for column_index, active in enumerate(row):
+                if active != "1":
+                    continue
+                x = left + (glyph_index * (glyph_width + gap) + column_index) * cell
+                y = baseline + (4 - row_index) * cell
+                records.append({
+                    "Timestamp": timestamp + len(records),
+                    "ObjectID": light_id,
+                    "UserData": 0,
+                    "Position": [round(x, 6), round(y, 6), -0.18],
+                    "Up": [0.0, 0.0, -1.0],
+                    "At": [0.0, 1.0, 0.0],
+                    "Visible": "true",
+                })
+    return records, {
+        "origin": "prompt_bootstrap_sign",
+        "kind": "sign",
+        "text": text,
+        "letteringObjectId": light_id,
+        "letteringColor": light_color,
+        "backdrop": not no_backdrop,
+        "partCount": len(records),
+        "portablePrefab": True,
+    }
+
+
+def prompt_seed_build(instruction: str) -> tuple[bytes, str, dict[str, Any]]:
+    """Create a portable native-prefab canvas when the builder supplies no source file."""
+    text = _prompt_sign_text(instruction)
+    is_sign = bool(re.search(r"\b(?:sign|marquee|lettering|letters)\b", instruction, re.IGNORECASE))
+    if is_sign and text:
+        records, bootstrap = _sign_bootstrap(instruction, text)
+        stem = re.sub(r"[^A-Za-z0-9]+", "-", text).strip("-")[:80] or "Prompt-Sign"
+        root = {"Name": f"Daedalus Sign — {text}", "Prefab": records, "Tools": []}
+        return json.dumps(root, ensure_ascii=False, indent=2).encode("utf-8"), f"Daedalus-Sign-{stem}.nmsprefab", bootstrap
+    bootstrap = {
+        "origin": "prompt_blank_prefab",
+        "kind": "blank-prefab",
+        "partCount": 0,
+        "portablePrefab": True,
+    }
+    root = {"Name": "Daedalus Prompt Build", "Prefab": [], "Tools": []}
+    return json.dumps(root, ensure_ascii=False, indent=2).encode("utf-8"), "Daedalus-Prompt-Build.nmsprefab", bootstrap
 
 
 def _finite_vector(value: Any, *, label: str) -> list[float]:
@@ -329,6 +477,8 @@ def _provider_plan(
     context = {
         "request": instruction,
         "format": parsed.format,
+        "sourceOrigin": parsed.origin,
+        "promptBootstrap": parsed.bootstrap,
         "partLimit": MAX_PARTS,
         "operationLimit": settings.max_daedalus_operations,
         "currentPartCount": len(parsed.objects),
@@ -339,7 +489,7 @@ def _provider_plan(
         "releasedLessons": _compact_lessons(retrieval),
         "priorPasses": history[-6:],
     }
-    developer = """You are Daedalus, an expert No Man's Sky base and Corvette architect. Return exactly one submit_build_plan tool call. Treat source indices as immutable identifiers for this pass. Preserve every unmentioned record and all metadata. Never target the protected anchor. Use only Object IDs in allowedPartPalette. Seats and ramps must remain scale 1.0; ^FRE_ROOM_SCAN must be scale 0.1. Use add for new parts, move for existing transforms, recolor for UserData, and remove only when explicitly necessary. Keep doors, stairs, landings, and central walking lanes open. Place furnishings on supported floors. Prefer deliberate groups of seats, tables, lights, plants, and surfaces over scattered objects. Do not claim that visual collision checks are infallible. Empty operations are allowed only when no safe edit can satisfy the request."""
+    developer = """You are Daedalus, an expert No Man's Sky base and Corvette architect. Return exactly one submit_build_plan tool call. Treat source indices as immutable identifiers for this pass. Preserve every unmentioned record and all metadata. Never target the protected anchor. Use only Object IDs in allowedPartPalette. Seats and ramps must remain scale 1.0; ^FRE_ROOM_SCAN must be scale 0.1. Use add for new parts, move for existing transforms, recolor for UserData, and remove only when explicitly necessary. Keep doors, stairs, landings, and central walking lanes open. Place furnishings on supported floors. Prefer deliberate groups of seats, tables, lights, plants, and surfaces over scattered objects. When sourceOrigin is prompt_bootstrap_sign, the requested text, fixed-size colored wall lights, and optional backdrop are already constructed: refine that geometry without recreating or duplicating it. When sourceOrigin is prompt_blank_prefab, construct the request on the empty portable prefab canvas. Do not claim that visual collision checks are infallible. Empty operations are allowed when the prompt bootstrap already safely satisfies the request or when no safe edit can satisfy it."""
     content: list[dict[str, Any]] = [{"type": "input_text", "text": json.dumps(context, separators=(",", ":"), ensure_ascii=False)}]
     for mime, body in references:
         content.append({"type": "input_image", "image_url": f"data:{mime};base64,{base64.b64encode(body).decode('ascii')}", "detail": "low"})
@@ -520,6 +670,8 @@ def generate_build(
     else:
         plan, response_id = supplied_plan, "test-supplied-plan"
     objects, validation = apply_plan(parsed, plan, retrieval, maximum_operations=settings.max_daedalus_operations)
+    if not objects:
+        raise HTTPException(status_code=400, detail="Daedalus did not place any parts in this build pass.")
     body = _write_build(parsed, objects)
     reparsed = parse_build(body, versioned_filename(parsed.filename, version))
     if len(reparsed.objects) != len(objects):
@@ -543,6 +695,7 @@ def generate_build(
         "assistantMessage": plan.assistant_message,
         "operations": [item.model_dump(mode="json") for item in plan.operations],
         "warnings": plan.warnings,
+        "bootstrap": parsed.bootstrap,
         "corpusVersion": int(retrieval.get("corpus_version") or 0),
         "safety": {
             "maximumParts": MAX_PARTS,

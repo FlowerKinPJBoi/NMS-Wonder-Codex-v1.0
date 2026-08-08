@@ -3,6 +3,8 @@
 ## v1.29.0 — Daedalus Builder/Writer
 
 - Connected the guided chat workspace to a server-side OpenAI Responses planner using one forced, strict build-plan tool call.
+- Allowed a builder to begin with chat alone: source files and reference images are optional, and prompt-only sessions start from a portable native-prefab canvas.
+- Added a deterministic prompt bootstrap for fixed-scale, Object-ID-only illuminated signs, including letters, numbers, punctuation, colored wall lights, and an optional backdrop.
 - Added deterministic `add`, `move`, `remove`, and `recolor` execution for NMSBASE, native prefab, Corvette, and JSON builds.
 - Added private, versioned build sessions and immutable generated passes with hashes, model provenance, corpus version, operation plans, and validation reports.
 - Preserved `^BASE_FLAG`, `^U_PARAGON`, Corvette `so.json`, `ccd.json`, source metadata, and all unmentioned placed records.

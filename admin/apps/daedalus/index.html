@@ -32,10 +32,10 @@
       <div class="guided-heading">
         <div>
           <p class="eyebrow accent">Build with Daedalus</p>
-          <h2>Bring a build. Talk through the changes. Take the result with you.</h2>
-          <p>Add an NMSBASE, prefab, Corvette, or JSON file and tell Daedalus what you want to create, repair, or decorate.</p>
+          <h2>Describe a build. Refine it together. Take the result with you.</h2>
+          <p>Start with a chat prompt, or optionally add an existing NMSBASE, prefab, Corvette, JSON file, and reference pictures.</p>
         </div>
-        <span class="guided-status" id="guidedStatus"><span></span>Add a build to begin</span>
+        <span class="guided-status" id="guidedStatus"><span></span>Describe a build or add a file</span>
       </div>
 
       <div class="guided-layout">
@@ -45,11 +45,11 @@
             <span class="guided-session-step" id="guidedSessionStep">Step 1 of 4</span>
           </div>
           <div class="guided-conversation" id="guidedConversation" aria-live="polite">
-            <article class="guided-message assistant"><span>Daedalus</span><p>Hi! Add the build you want to work on. Reference pictures are optional, but they help me understand the look you want.</p></article>
+            <article class="guided-message assistant"><span>Daedalus</span><p>Hi! Describe what you want me to build, or add an existing build if you want me to change it. Files and reference pictures are optional.</p></article>
           </div>
           <form class="guided-composer" id="guidedComposer">
             <label for="guidedPrompt">What would you like Daedalus to do?</label>
-            <textarea id="guidedPrompt" rows="4" placeholder="Decorate the NMS 10 base. Keep the stairs clear, leave seats at normal size, and place furnishings along the room edges."></textarea>
+            <textarea id="guidedPrompt" rows="4" placeholder="Build a sign that says &quot;NMS 10 YEARS!&quot; with a black backdrop and yellow lettering."></textarea>
             <div class="guided-composer-actions">
               <small>Press Ctrl/⌘ + Enter to send</small>
               <button class="primary-button small" id="guidedSend" type="submit" disabled>Send to Daedalus</button>
@@ -65,20 +65,20 @@
           <div class="guided-preview-card">
             <div class="guided-card-heading">
               <div><p class="eyebrow">Preview</p><h3>Your build at a glance</h3></div>
-              <span id="guidedPreviewBadge">Waiting for a file</span>
+              <span id="guidedPreviewBadge">Ready for a prompt</span>
             </div>
             <div class="guided-preview-stage" id="guidedPreviewStage">
               <img id="guidedPreviewImage" alt="Selected Daedalus reference" hidden>
-              <div id="guidedPreviewEmpty"><span aria-hidden="true">◇</span><strong>Preview appears here</strong><p>Add screenshots or a Blender inspection model when you have one.</p></div>
+              <div id="guidedPreviewEmpty"><span aria-hidden="true">◇</span><strong>Preview appears here</strong><p>Your generated build or optional reference pictures will appear here.</p></div>
             </div>
             <div class="guided-build-facts" id="guidedBuildFacts"><span>Parts <strong>—</strong></span><span>Object IDs <strong>—</strong></span><span>Limit <strong>3,000</strong></span></div>
           </div>
 
           <div class="guided-file-grid">
             <article class="guided-file-card source">
-              <div><p class="eyebrow">Start here</p><h3>Add your build</h3><p>The original remains untouched. Daedalus stores private, versioned working copies and sends only normalized geometry plus your references to the configured planner.</p></div>
-              <label class="guided-file-button" for="guidedBuildInput">Choose NMSBASE, prefab, Corvette, or JSON<input id="guidedBuildInput" type="file" accept=".nmsship,.nmsprefab,.nmsbase,.json,application/json"></label>
-              <div class="guided-file-name" id="guidedBuildName">No build added</div>
+              <div><p class="eyebrow">Optional starting material</p><h3>Add an existing build</h3><p>Without a source, Daedalus starts a portable prefab from your prompt. Uploaded originals remain untouched in private, versioned working copies.</p></div>
+              <label class="guided-file-button" for="guidedBuildInput">Optional: choose NMSBASE, prefab, Corvette, or JSON<input id="guidedBuildInput" type="file" accept=".nmsship,.nmsprefab,.nmsbase,.json,application/json"></label>
+              <div class="guided-file-name" id="guidedBuildName">No source file — prompt-only build</div>
               <label class="guided-file-button secondary" for="guidedReferenceInput">Add up to four reference pictures<input id="guidedReferenceInput" type="file" multiple accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"></label>
               <div class="guided-reference-list" id="guidedReferenceList"></div>
             </article>
