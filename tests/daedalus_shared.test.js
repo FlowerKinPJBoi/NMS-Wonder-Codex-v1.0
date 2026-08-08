@@ -45,6 +45,8 @@ assert.match(shared, /submitReservedBuild\(path, form, requestContext\)/);
 assert.match(shared, /build-jobs\/\$\{encodeURIComponent\(jobId\)\}/);
 assert.match(shared, /job\.status === "completed"/);
 assert.match(shared, /job\.status === "failed"/);
+assert.match(shared, /onProgress/);
+assert.match(shared, /notifyBuildProgress/);
 assert.match(shared, /response\.status === 504.*waitForBuildJob/s);
 assert.match(shared, /reportBuildError/);
 assert.match(shared, /gateway_timeout/);

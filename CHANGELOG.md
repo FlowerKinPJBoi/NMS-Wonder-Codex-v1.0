@@ -1,5 +1,12 @@
 # Wonder Codex changelog
 
+## v1.31.4 — Live Daedalus progress and build schematics
+
+- Adds an animated in-chat thinking indicator that follows durable build phases from workspace reservation through model generation and portable-file completion.
+- Renders returned NMS build coordinates as a labeled browser schematic in the guided preview panel, including sign backdrops and colored light placements.
+- Previews uploaded source builds too, while keeping reference pictures available and preserving BBA or in-game inspection as the exact visual ground truth.
+- Exposes parsed attempt geometry only inside the browser so later Daedalus passes replace the preview without changing the protected source comparison.
+
 ## v1.31.3 — Daedalus parent-first reservation insert
 
 - Explicitly flushes a new private build-session row before adding its foreign-key build job.

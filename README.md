@@ -1,9 +1,9 @@
-# Wonder Codex v1.31.3
+# Wonder Codex v1.31.4
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
 
-v1.31.3 makes the v1.31.2 reservation handshake PostgreSQL-safe by explicitly flushing each new private session before inserting its foreign-key job. The browser still receives an acknowledgement only after both records commit, then submits or safely retries the build payload while polling the same durable job. The strict writer, background model responses, and safe diagnostics remain intact.
+v1.31.4 makes the generated-build wait visible and the result inspectable at a glance. The guided chat now shows Daedalus's live durable job phase with an animated thinking indicator, then renders the returned Object-ID placements as a browser schematic in the preview panel. The schematic is deliberately labeled as approximate; BBA or in-game inspection remains the exact ground-truth check before feedback or learning review.
 
 ## Repository contents
 

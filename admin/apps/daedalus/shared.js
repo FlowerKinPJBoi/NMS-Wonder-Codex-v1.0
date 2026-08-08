@@ -195,6 +195,13 @@
   const pendingJobKey = "wc_daedalus_pending_build_job";
   const wait = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 
+  function notifyBuildProgress(onProgress, job = {}) {
+    if (typeof onProgress !== "function") return;
+    const status = String(job.status || "preparing");
+    const phase = String(job.phase || (status === "completed" ? "completed" : "model_generation"));
+    try { onProgress({status, phase}); } catch {}
+  }
+
   function rememberPendingJob(jobId) {
     try { localStorage.setItem(pendingJobKey, jobId); } catch {}
   }
@@ -205,7 +212,7 @@
     } catch {}
   }
 
-  async function waitForBuildJob(jobId, requestContext) {
+  async function waitForBuildJob(jobId, requestContext, onProgress) {
     rememberPendingJob(jobId);
     const deadline = Date.now() + 6 * 60 * 1000;
     let missingChecks = 0;
@@ -240,6 +247,7 @@
         });
       }
       const job = data.job || {};
+      notifyBuildProgress(onProgress, job);
       if (job.status === "completed" && data.result) {
         forgetPendingJob(jobId);
         return data.result;
@@ -395,7 +403,7 @@
     return null;
   }
 
-  async function generateBuild({sourceFile = null, instruction, references = [], sessionId = null}) {
+  async function generateBuild({sourceFile = null, instruction, references = [], sessionId = null, onProgress = null}) {
     if (!state.permissions.submit) throw new Error("This operator cannot generate Daedalus builds.");
     if (state.generation.ready === false) {
       throw new Error(state.generation.setup_required || "Daedalus generation is not ready on the API service.");
@@ -427,20 +435,25 @@
       instructionLength: cleanedInstruction.length,
     };
     rememberPendingJob(jobId);
+    notifyBuildProgress(onProgress, {status: "preparing", phase: "job_reservation"});
+    let reservation;
     try {
-      await reserveBuildJob(jobId, cleanedInstruction, sessionId, requestContext);
+      reservation = await reserveBuildJob(jobId, cleanedInstruction, sessionId, requestContext);
+      notifyBuildProgress(onProgress, reservation?.job || {status: "preparing", phase: "request_reserved"});
     } catch (error) {
       forgetPendingJob(jobId);
       throw error;
     }
     let data;
     try {
+      notifyBuildProgress(onProgress, {status: "preparing", phase: "build_submission"});
       data = await submitReservedBuild(path, form, requestContext);
+      notifyBuildProgress(onProgress, data?.job || {status: "queued", phase: "model_generation"});
     } catch (error) {
       forgetPendingJob(jobId);
       throw error;
     }
-    return waitForBuildJob(data?.job?.id || jobId, requestContext);
+    return waitForBuildJob(data?.job?.id || jobId, requestContext, onProgress);
   }
 
   async function fetchGeneratedFile(filePath, filename) {

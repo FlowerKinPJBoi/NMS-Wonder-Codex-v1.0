@@ -112,13 +112,20 @@ vm.runInContext(source, sandbox, {filename: 'shared.js'});
 
 (async () => {
   await new Promise((resolve) => setImmediate(resolve));
-  const result = await sandbox.window.DaedalusShared.generateBuild({instruction: 'Build a portable sign.'});
+  const progress = [];
+  const result = await sandbox.window.DaedalusShared.generateBuild({
+    instruction: 'Build a portable sign.',
+    onProgress: (update) => progress.push(update)
+  });
   assert.equal(result.pass.version, 1);
   assert.equal(buildAttempts, 2);
   const reservationIndex = calls.findIndex((call) => call.url.endsWith('/build-jobs') && call.options.method === 'POST');
   const buildIndex = calls.findIndex((call) => call.url.endsWith('/build-sessions') && call.options.method === 'POST');
   assert.ok(reservationIndex >= 0 && reservationIndex < buildIndex);
   assert.equal(storage.has('wc_daedalus_pending_build_job'), false);
+  assert.ok(progress.some((update) => update.phase === 'job_reservation'));
+  assert.ok(progress.some((update) => update.phase === 'request_reserved'));
+  assert.ok(progress.some((update) => update.phase === 'completed'));
   console.log('Daedalus durable build handshake passed.');
 })().catch((error) => {
   console.error(error);

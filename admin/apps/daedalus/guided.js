@@ -64,6 +64,51 @@
     return message;
   }
 
+  const progressLabels = {
+    job_reservation: "Opening a private build workspace",
+    request_reserved: "Build workspace reserved",
+    build_submission: "Reading the prompt and starting materials",
+    source_parse: "Reading the build geometry",
+    reference_read: "Studying the reference pictures",
+    corpus_retrieval: "Reviewing released Daedalus lessons",
+    source_storage: "Saving a private working copy",
+    provider_submission: "Starting the design pass",
+    model_generation: "Designing the build",
+    plan_validation: "Validating the design plan",
+    plan_application: "Applying the validated changes",
+    artifact_storage: "Writing the portable build file",
+    generated_file_download: "Bringing the finished file into your browser",
+    preview_render: "Drawing the build schematic",
+    completed: "Build pass complete"
+  };
+
+  function startThinking() {
+    const message = appendMessage("assistant", "Opening a private build workspace");
+    message.classList.add("thinking");
+    const body = message.querySelector("p");
+    const label = document.createElement("span");
+    label.className = "guided-thinking-label";
+    label.textContent = body.textContent;
+    const dots = document.createElement("span");
+    dots.className = "guided-thinking-dots";
+    dots.setAttribute("aria-hidden", "true");
+    for (let index = 0; index < 3; index += 1) dots.appendChild(document.createElement("i"));
+    body.textContent = "";
+    body.append(label, dots);
+    return {message, label};
+  }
+
+  function updateThinking(thinking, progress = {}) {
+    if (!thinking?.label) return;
+    const phase = String(progress.phase || "model_generation");
+    thinking.label.textContent = progressLabels[phase] || "Daedalus is working on the build";
+    ui.conversation.scrollTop = ui.conversation.scrollHeight;
+  }
+
+  function stopThinking(thinking) {
+    thinking?.message?.remove?.();
+  }
+
   function attachDiagnostic(message, diagnostic) {
     if (!message || !diagnostic) return;
     const footer = document.createElement("div");
@@ -108,6 +153,18 @@
     });
   }
 
+  function showBuildPreview(source, label) {
+    const preview = window.DaedalusPreview?.buildSchematic?.(source, {label});
+    if (!preview) return false;
+    if (guided.previewUrl) URL.revokeObjectURL(guided.previewUrl);
+    guided.previewUrl = URL.createObjectURL(new Blob([preview.svg], {type: "image/svg+xml"}));
+    ui.previewImage.src = guided.previewUrl;
+    ui.previewImage.alt = `${label} browser schematic in ${preview.axes.join("/")} view`;
+    ui.previewImage.hidden = false;
+    ui.previewEmpty.hidden = true;
+    return true;
+  }
+
   async function loadSource(file) {
     if (!file || !window.DaedalusApp?.isBuildFile?.(file)) {
       appendMessage("assistant", "That file is not a supported NMSBASE, prefab, Corvette, or JSON export.");
@@ -133,6 +190,7 @@
       if (!source) throw new Error("Daedalus could not read that build file.");
       guided.sourceFile = file;
       ui.buildName.textContent = file.name;
+      showBuildPreview(source, "Source build");
       ui.previewBadge.textContent = `${source.objects.length.toLocaleString()} source records`;
       const report = await window.DaedalusApp.analyze();
       if (!report) throw new Error("Daedalus could not analyze that build file.");
@@ -198,6 +256,7 @@
     if (!instruction || guided.busy) return;
 
     appendMessage("user", instruction);
+    const thinking = startThinking();
     ui.prompt.value = "";
     setBusy(true, "Generating build…");
     setStatus("Daedalus is designing and validating this pass", "working");
@@ -218,10 +277,16 @@
         sourceFile: guided.sourceFile,
         instruction,
         references: guided.referenceFiles,
-        sessionId: guided.sessionId
+        sessionId: guided.sessionId,
+        onProgress: (progress) => updateThinking(thinking, progress)
       });
+      updateThinking(thinking, {phase: "generated_file_download"});
       const outputFile = await window.DaedalusShared.fetchGeneratedFile(result.file_path, result.pass.filename);
-      if (!await loadOutput(outputFile, {announce: false})) return;
+      updateThinking(thinking, {phase: "preview_render"});
+      if (!await loadOutput(outputFile, {announce: false})) {
+        stopThinking(thinking);
+        return;
+      }
       guided.sessionId = result.session.id;
       guided.sessionVersion = result.pass.version;
       guided.buildPlan = result.pass.plan;
@@ -230,6 +295,7 @@
       const operationCount = Number(result.pass.operation_count || 0);
       const objectCount = Number(result.pass.object_count || 0);
       const corpusVersion = Number(result.pass.corpus_version || 0);
+      stopThinking(thinking);
       appendMessage(
         "assistant",
         plan.assistantMessage || `Build Pass ${result.pass.version} is complete with ${objectCount.toLocaleString()} placed parts and ${operationCount.toLocaleString()} validated refinement${operationCount === 1 ? "" : "s"}. Inspect it in BBA or in game, then tell me what to revise.`
@@ -244,6 +310,7 @@
       setStep(3);
       setStatus(`Build Pass ${result.pass.version} ready`, "ready");
     } catch (error) {
+      stopThinking(thinking);
       setStatus("Build generation needs attention");
       let diagnostic = null;
       try {
@@ -283,8 +350,10 @@
         renderFacts(report);
       }
       await window.DaedalusLearning.loadAttempt(file);
-      const attempt = window.DaedalusLearning.getSnapshot().attemptFile;
+      const attemptSnapshot = window.DaedalusLearning.getSnapshot();
+      const attempt = attemptSnapshot.attemptFile;
       if (!attempt) throw new Error("The returned build could not be compared.");
+      showBuildPreview(attemptSnapshot.attemptGeometry, "Latest Daedalus result");
       guided.outputFile = file;
       ui.outputName.textContent = file.name;
       ui.outputHelp.textContent = promptOnly
