@@ -25,6 +25,7 @@ class FakeSession:
     def __init__(self):
         self.added = []
         self.committed = False
+        self.flushed = False
 
     def add(self, value):
         self.added.append(value)
@@ -39,8 +40,20 @@ class FakeSession:
     def commit(self):
         self.committed = True
 
+    def flush(self):
+        self.flushed = True
+
     def rollback(self):
         self.committed = False
+
+
+class ParentFirstSession(FakeSession):
+    """Match the production foreign key: a new session must flush before its job."""
+
+    def add(self, value):
+        if isinstance(value, DaedalusBuildJob) and not self.flushed:
+            raise AssertionError("DaedalusBuildSession must flush before DaedalusBuildJob is added")
+        super().add(value)
 
 
 def source_bytes():
@@ -71,7 +84,7 @@ def test_initial_job_reservation_is_durable_before_multipart_submission(monkeypa
     )
     monkeypatch.setattr(daedalus, "get_settings", lambda: configured)
     monkeypatch.setattr(daedalus, "_require_build_schema", lambda *args: None)
-    database = FakeSession()
+    database = ParentFirstSession()
 
     result = daedalus.reserve_build_job(
         request=reservation_request(),
@@ -95,6 +108,7 @@ def test_initial_job_reservation_is_durable_before_multipart_submission(monkeypa
     build_session = next(item for item in database.added if isinstance(item, DaedalusBuildSession))
     build_job = next(item for item in database.added if isinstance(item, DaedalusBuildJob))
     assert database.committed is True
+    assert database.flushed is True
     assert build_session.actor == "PJ"
     assert build_session.status == "preparing"
     assert build_job.phase == "request_reserved"
@@ -124,7 +138,7 @@ def test_multipart_submission_claims_reserved_job_without_replacing_it(monkeypat
         "start_provider_plan",
         lambda *args, **kwargs: SimpleNamespace(response_id="resp_reserved_job", status="queued"),
     )
-    database = FakeSession()
+    database = ParentFirstSession()
     daedalus.reserve_build_job(
         request=reservation_request(),
         reservation=daedalus.BuildJobReservation(
@@ -265,7 +279,7 @@ def test_create_build_session_acknowledges_durable_background_job(monkeypatch):
         "store_build_artifact",
         lambda key, body, filename, actor: (hashlib.sha256(body).hexdigest(), len(body)),
     )
-    database = FakeSession()
+    database = ParentFirstSession()
     upload = UploadFile(filename="Route Test.NMSBASE", file=io.BytesIO(raw))
     result = asyncio.run(daedalus.create_build_session(
         request=build_request(),
@@ -279,6 +293,7 @@ def test_create_build_session_acknowledges_durable_background_job(monkeypatch):
     build_session = next(item for item in database.added if isinstance(item, DaedalusBuildSession))
     build_job = next(item for item in database.added if isinstance(item, DaedalusBuildJob))
     assert database.committed is True
+    assert database.flushed is True
     assert build_session.actor == "PJ"
     assert build_session.latest_version == 0
     assert build_session.status == "generating"
