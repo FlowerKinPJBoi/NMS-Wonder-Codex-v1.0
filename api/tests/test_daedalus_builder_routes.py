@@ -29,7 +29,7 @@ class FakeSession:
     def add(self, value):
         self.added.append(value)
 
-    def get(self, model, value):
+    def get(self, model, value, **kwargs):
         return next((item for item in self.added if isinstance(item, model) and item.id == value), None)
 
     def scalar(self, statement):
@@ -53,6 +53,192 @@ def source_bytes():
 
 def build_request():
     return Request({"type": "http", "method": "POST", "path": "/admin/apps/daedalus/build-sessions", "headers": []})
+
+
+def reservation_request():
+    return Request({"type": "http", "method": "POST", "path": "/admin/apps/daedalus/build-jobs", "headers": []})
+
+
+def test_initial_job_reservation_is_durable_before_multipart_submission(monkeypatch):
+    configured = Settings(
+        _env_file=None,
+        openai_api_key="sk-test",
+        spaces_access_key="a",
+        spaces_secret_key="b",
+        spaces_region="nyc3",
+        spaces_bucket="private",
+        spaces_endpoint="https://example.invalid",
+    )
+    monkeypatch.setattr(daedalus, "get_settings", lambda: configured)
+    monkeypatch.setattr(daedalus, "_require_build_schema", lambda *args: None)
+    database = FakeSession()
+
+    result = daedalus.reserve_build_job(
+        request=reservation_request(),
+        reservation=daedalus.BuildJobReservation(
+            job_id="10101010-1010-4010-8010-101010101010",
+            instruction="Build a portable test sign.",
+        ),
+        operator=TRAINER,
+        session=database,
+    )
+    retry = daedalus.reserve_build_job(
+        request=reservation_request(),
+        reservation=daedalus.BuildJobReservation(
+            job_id="10101010-1010-4010-8010-101010101010",
+            instruction="Build a portable test sign.",
+        ),
+        operator=TRAINER,
+        session=database,
+    )
+
+    build_session = next(item for item in database.added if isinstance(item, DaedalusBuildSession))
+    build_job = next(item for item in database.added if isinstance(item, DaedalusBuildJob))
+    assert database.committed is True
+    assert build_session.actor == "PJ"
+    assert build_session.status == "preparing"
+    assert build_job.phase == "request_reserved"
+    assert build_job.instruction == "Build a portable test sign."
+    assert result["job"]["id"] == build_job.id
+    assert result["job"]["session_id"] == build_session.id
+    assert retry["job"]["id"] == build_job.id
+    assert len([item for item in database.added if isinstance(item, DaedalusBuildJob)]) == 1
+    assert len([item for item in database.added if isinstance(item, DaedalusBuildSession)]) == 1
+
+
+def test_multipart_submission_claims_reserved_job_without_replacing_it(monkeypatch):
+    configured = Settings(
+        _env_file=None,
+        openai_api_key="sk-test",
+        spaces_access_key="a",
+        spaces_secret_key="b",
+        spaces_region="nyc3",
+        spaces_bucket="private",
+        spaces_endpoint="https://example.invalid",
+    )
+    monkeypatch.setattr(daedalus, "get_settings", lambda: configured)
+    monkeypatch.setattr(daedalus, "_require_build_schema", lambda *args: None)
+    monkeypatch.setattr(daedalus, "_retrieve_for_build", lambda *args: {"corpus_version": 0, "items": []})
+    monkeypatch.setattr(
+        daedalus,
+        "start_provider_plan",
+        lambda *args, **kwargs: SimpleNamespace(response_id="resp_reserved_job", status="queued"),
+    )
+    database = FakeSession()
+    daedalus.reserve_build_job(
+        request=reservation_request(),
+        reservation=daedalus.BuildJobReservation(
+            job_id="20202020-2020-4020-8020-202020202020",
+            instruction="Build a portable test sign.",
+        ),
+        operator=TRAINER,
+        session=database,
+    )
+    reserved_job = next(item for item in database.added if isinstance(item, DaedalusBuildJob))
+    reserved_session = next(item for item in database.added if isinstance(item, DaedalusBuildSession))
+    observed = {}
+
+    def store_source(key, body, filename, actor):
+        observed["job_phase"] = reserved_job.phase
+        observed["session_id"] = reserved_session.id
+        return hashlib.sha256(body).hexdigest(), len(body)
+
+    monkeypatch.setattr(daedalus, "store_build_artifact", store_source)
+    result = asyncio.run(daedalus.create_build_session(
+        request=build_request(),
+        job_id=reserved_job.id,
+        instruction="Build a portable test sign.",
+        source=None,
+        references=None,
+        operator=TRAINER,
+        session=database,
+    ))
+
+    assert len([item for item in database.added if isinstance(item, DaedalusBuildJob)]) == 1
+    assert len([item for item in database.added if isinstance(item, DaedalusBuildSession)]) == 1
+    assert observed == {"job_phase": "source_storage", "session_id": reserved_session.id}
+    assert reserved_job.provider_response_id == "resp_reserved_job"
+    assert result["job"]["status"] == "queued"
+
+
+def test_revision_job_reservation_uses_the_current_immutable_pass(monkeypatch):
+    from app.models import DaedalusBuildPass
+
+    configured = Settings(
+        _env_file=None,
+        openai_api_key="sk-test",
+        spaces_access_key="a",
+        spaces_secret_key="b",
+        spaces_region="nyc3",
+        spaces_bucket="private",
+        spaces_endpoint="https://example.invalid",
+    )
+    raw = source_bytes()
+    build_session = DaedalusBuildSession(
+        id="30303030-3030-4030-8030-303030303030",
+        actor="PJ",
+        status="active",
+        source_filename="Route Test.NMSBASE",
+        source_format="nmsbase",
+        source_object_key="private/source",
+        source_sha256=hashlib.sha256(raw).hexdigest(),
+        source_size_bytes=len(raw),
+        source_validation={"passed": True},
+        latest_version=1,
+    )
+    prior = DaedalusBuildPass(
+        id="40404040-4040-4040-8040-404040404040",
+        session_id=build_session.id,
+        version=1,
+        instruction="Initial pass.",
+        output_filename="Route-Test-Daedalus-Pass-1.nmsbase",
+        output_object_key="private/pass-1",
+        output_sha256=hashlib.sha256(raw).hexdigest(),
+        output_size_bytes=len(raw),
+        object_count=2,
+        distinct_object_ids=2,
+        operation_count=0,
+        corpus_version=0,
+        model_name="gpt-5.6",
+        provider_response_id="resp_previous",
+        plan={"summary": "Initial"},
+        validation={"passed": True},
+    )
+
+    class RevisionReservationSession(FakeSession):
+        def __init__(self):
+            super().__init__()
+            self.scalar_calls = 0
+
+        def scalar(self, statement):
+            self.scalar_calls += 1
+            return None if self.scalar_calls == 1 else prior
+
+    database = RevisionReservationSession()
+    database.add(build_session)
+    database.add(prior)
+    monkeypatch.setattr(daedalus, "get_settings", lambda: configured)
+    monkeypatch.setattr(daedalus, "_require_build_schema", lambda *args: None)
+
+    result = daedalus.reserve_build_job(
+        request=reservation_request(),
+        reservation=daedalus.BuildJobReservation(
+            job_id="50505050-5050-4050-8050-505050505050",
+            instruction="Revise the table.",
+            session_id=build_session.id,
+        ),
+        operator=TRAINER,
+        session=database,
+    )
+
+    build_job = next(item for item in database.added if isinstance(item, DaedalusBuildJob))
+    assert database.committed is True
+    assert build_session.status == "generating"
+    assert build_job.session_id == build_session.id
+    assert build_job.base_version == 1
+    assert build_job.version == 2
+    assert build_job.phase == "request_reserved"
+    assert result["job"]["base_version"] == 1
 
 
 def test_create_build_session_acknowledges_durable_background_job(monkeypatch):

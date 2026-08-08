@@ -1,5 +1,13 @@
 # Wonder Codex changelog
 
+## v1.31.2 — Durable Daedalus request handshake
+
+- Added a lightweight authenticated reservation request that commits each browser-generated job UUID before the multipart build request begins.
+- Made the reservation idempotent so a lost acknowledgement can be retried without creating duplicate sessions or passes.
+- Made initial and revision build submissions claim their reservation under a database row lock before slow parsing, storage, retrieval, or provider work.
+- Added one automatic multipart retry; polling now always follows an acknowledged database job instead of assuming the gateway delivered the build request.
+- Kept legacy one-request clients compatible and added no new environment variables or database migration.
+
 ## v1.31.1 — Early Daedalus job registration
 
 - Registered prompt-only, uploaded-source, and revision jobs before private source storage or prior-pass artifact reads begin.

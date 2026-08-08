@@ -334,15 +334,77 @@
     };
   }
 
+  async function reserveBuildJob(jobId, instruction, sessionId, requestContext) {
+    let lastStatus = 0;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      let response;
+      try {
+        response = await fetch(`${API}/build-jobs`, {
+          method: "POST",
+          headers: {...headers(), "Content-Type": "application/json"},
+          body: JSON.stringify({job_id: jobId, instruction, session_id: sessionId || ""}),
+        });
+      } catch {
+        if (attempt === 0) continue;
+        break;
+      }
+      lastStatus = response.status;
+      let data = {};
+      try { data = await response.json(); } catch {}
+      if (response.ok) return data;
+      if (response.status === 504 && attempt === 0) continue;
+      throw buildRequestError(data.detail || `Build job reservation failed (${response.status})`, {
+        ...requestContext,
+        apiIncidentId: data.incident_id || response.headers.get("X-Incident-ID") || "",
+        phase: "job_reservation",
+        httpStatus: response.status,
+        elapsedMs: Date.now() - requestContext.startedAt,
+      });
+    }
+    throw buildRequestError("Daedalus could not reserve a durable build job before submission.", {
+      ...requestContext,
+      phase: "job_reservation",
+      httpStatus: lastStatus,
+      elapsedMs: Date.now() - requestContext.startedAt,
+    });
+  }
+
+  async function submitReservedBuild(path, form, requestContext) {
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      let response;
+      try {
+        response = await fetch(API + path, {method: "POST", headers: headers(), body: form});
+      } catch {
+        if (attempt === 0) continue;
+        return null;
+      }
+      let data = {};
+      try { data = await response.json(); } catch {}
+      if (response.ok) return data;
+      if (response.status === 504) {
+        if (attempt === 0) continue;
+        return null;
+      }
+      throw buildRequestError(data.detail || `Build generation failed (${response.status})`, {
+        ...requestContext,
+        apiIncidentId: data.incident_id || response.headers.get("X-Incident-ID") || "",
+        httpStatus: response.status,
+        elapsedMs: Date.now() - requestContext.startedAt,
+      });
+    }
+    return null;
+  }
+
   async function generateBuild({sourceFile = null, instruction, references = [], sessionId = null}) {
     if (!state.permissions.submit) throw new Error("This operator cannot generate Daedalus builds.");
     if (state.generation.ready === false) {
       throw new Error(state.generation.setup_required || "Daedalus generation is not ready on the API service.");
     }
+    const cleanedInstruction = String(instruction || "").trim();
     const form = new FormData();
     const jobId = newBuildJobId();
     form.append("job_id", jobId);
-    form.append("instruction", String(instruction || "").trim());
+    form.append("instruction", cleanedInstruction);
     if (!sessionId && sourceFile) {
       form.append("source", sourceFile, sourceFile.name);
     }
@@ -362,28 +424,23 @@
       passVersion: 0,
       sourceKind: sessionId ? "existing_session" : (sourceFile ? "uploaded_build" : "prompt_only"),
       referenceCount: references.length,
-      instructionLength: String(instruction || "").trim().length,
+      instructionLength: cleanedInstruction.length,
     };
     rememberPendingJob(jobId);
-    let response;
     try {
-      response = await fetch(API + path, {method: "POST", headers: headers(), body: form});
+      await reserveBuildJob(jobId, cleanedInstruction, sessionId, requestContext);
     } catch (error) {
-      return waitForBuildJob(jobId, requestContext);
-    }
-    let data = {};
-    try { data = await response.json(); } catch {}
-    if (!response.ok) {
-      if (response.status === 504) return waitForBuildJob(jobId, requestContext);
       forgetPendingJob(jobId);
-      throw buildRequestError(data.detail || `Build generation failed (${response.status})`, {
-        ...requestContext,
-        apiIncidentId: data.incident_id || response.headers.get("X-Incident-ID") || "",
-        httpStatus: response.status,
-        elapsedMs: Date.now() - startedAt,
-      });
+      throw error;
     }
-    return waitForBuildJob(data.job?.id || jobId, requestContext);
+    let data;
+    try {
+      data = await submitReservedBuild(path, form, requestContext);
+    } catch (error) {
+      forgetPendingJob(jobId);
+      throw error;
+    }
+    return waitForBuildJob(data?.job?.id || jobId, requestContext);
   }
 
   async function fetchGeneratedFile(filePath, filename) {

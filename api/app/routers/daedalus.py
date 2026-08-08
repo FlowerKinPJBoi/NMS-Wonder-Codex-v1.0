@@ -95,6 +95,16 @@ class DaedalusClientError(BaseModel):
     instruction_length: int = Field(default=0, ge=0, le=8000)
 
 
+class BuildJobReservation(BaseModel):
+    """Small, durable handshake completed before the multipart build request."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    job_id: str = Field(min_length=36, max_length=36)
+    instruction: str = Field(min_length=1, max_length=8000)
+    session_id: str = Field(default="", max_length=36)
+
+
 ALLOWED_REFERENCE_TYPES = {"image/png", "image/jpeg", "image/webp"}
 
 
@@ -250,6 +260,21 @@ def _validated_job_id(value: str) -> str:
     return normalized
 
 
+def _placeholder_build_session(actor: str) -> DaedalusBuildSession:
+    return DaedalusBuildSession(
+        id=str(uuid.uuid4()),
+        actor=actor,
+        status="preparing",
+        source_filename="pending",
+        source_format="pending",
+        source_object_key="pending",
+        source_sha256="",
+        source_size_bytes=0,
+        source_validation={"pending": True},
+        latest_version=0,
+    )
+
+
 @router.get("")
 def workspace(operator: OperatorSession = Depends(require_operator_key), session: Session = Depends(get_session)):
     _require(operator, "daedalus:submit")
@@ -390,6 +415,106 @@ def report_client_error(
     }
 
 
+@router.post("/build-jobs", status_code=201)
+def reserve_build_job(
+    request: Request,
+    reservation: BuildJobReservation,
+    operator: OperatorSession = Depends(require_operator_key),
+    session: Session = Depends(get_session),
+):
+    """Persist the browser's job UUID before it sends a multipart build request."""
+
+    request.state.diagnostic_phase = "job_reservation"
+    request.state.diagnostic_actor = operator.actor
+    _require(operator, "daedalus:submit")
+    _require_build_schema(session)
+    settings = get_settings()
+    if not settings.daedalus_generation_ready:
+        raise HTTPException(status_code=503, detail="Daedalus generation needs private storage and OPENAI_API_KEY.")
+    job_id = _validated_job_id(reservation.job_id)
+    cleaned_instruction = " ".join(reservation.instruction.split())
+    if not cleaned_instruction:
+        raise HTTPException(status_code=400, detail="Tell Daedalus what to build or change.")
+
+    existing_job = session.get(DaedalusBuildJob, job_id)
+    if existing_job is not None:
+        if existing_job.actor != operator.actor:
+            raise HTTPException(status_code=404, detail="Daedalus build job not found for this trainer.")
+        if existing_job.status == "preparing" and existing_job.phase == "request_reserved":
+            if existing_job.instruction != cleaned_instruction:
+                raise HTTPException(status_code=409, detail="This Daedalus job ID is already reserved for another instruction.")
+            if reservation.session_id and existing_job.session_id != reservation.session_id:
+                raise HTTPException(status_code=409, detail="This Daedalus job ID belongs to another build session.")
+            if not reservation.session_id and existing_job.base_version != 0:
+                raise HTTPException(status_code=409, detail="This Daedalus job ID belongs to a revision request.")
+        return _job_response(existing_job)
+
+    if reservation.session_id:
+        build_session = _owned_build_session(reservation.session_id, operator, session)
+        active_job = session.scalar(select(DaedalusBuildJob).where(
+            DaedalusBuildJob.session_id == reservation.session_id,
+            DaedalusBuildJob.status.in_(("preparing", "queued", "in_progress", "finalizing")),
+        ))
+        if active_job is not None:
+            raise HTTPException(status_code=409, detail="Daedalus is already generating a pass for this build session.")
+        previous = session.scalar(select(DaedalusBuildPass).where(
+            DaedalusBuildPass.session_id == reservation.session_id,
+            DaedalusBuildPass.version == build_session.latest_version,
+        ))
+        if previous is None:
+            raise HTTPException(status_code=409, detail="The prior Daedalus build pass is missing.")
+        version = build_session.latest_version + 1
+        base_version = build_session.latest_version
+        build_session.status = "generating"
+    else:
+        build_session = _placeholder_build_session(operator.actor)
+        version = 1
+        base_version = 0
+        session.add(build_session)
+
+    build_job = DaedalusBuildJob(
+        id=job_id,
+        actor=operator.actor,
+        session_id=build_session.id,
+        version=version,
+        base_version=base_version,
+        status="preparing",
+        phase="request_reserved",
+        instruction=cleaned_instruction,
+        retrieval_snapshot={},
+        reference_count=0,
+    )
+    session.add(build_job)
+    try:
+        session.commit()
+    except IntegrityError as exc:
+        session.rollback()
+        existing_job = session.get(DaedalusBuildJob, job_id)
+        if (
+            existing_job is not None
+            and existing_job.actor == operator.actor
+            and existing_job.instruction == cleaned_instruction
+            and (
+                (reservation.session_id and existing_job.session_id == reservation.session_id)
+                or (not reservation.session_id and existing_job.base_version == 0)
+            )
+        ):
+            return _job_response(existing_job)
+        logger.exception("Daedalus build job reservation conflicted for %s", job_id)
+        raise HTTPException(
+            status_code=409,
+            detail="Daedalus could not reserve this build job. Refresh the active job before retrying.",
+        ) from exc
+    except SQLAlchemyError as exc:
+        session.rollback()
+        logger.exception("Daedalus could not reserve build job %s", job_id)
+        raise HTTPException(
+            status_code=409,
+            detail="Daedalus could not reserve this build job. Refresh the active job before retrying.",
+        ) from exc
+    return _job_response(build_job)
+
+
 def _mark_starting_job_failed(
     build_job: DaedalusBuildJob,
     build_session: DaedalusBuildSession,
@@ -430,11 +555,6 @@ async def create_build_session(
     _require(operator, "daedalus:submit")
     _require_build_schema(session)
     job_id = _validated_job_id(job_id)
-    existing_job = session.get(DaedalusBuildJob, job_id)
-    if existing_job is not None:
-        if existing_job.actor != operator.actor:
-            raise HTTPException(status_code=404, detail="Daedalus build job not found for this trainer.")
-        return _job_response(existing_job)
     settings = get_settings()
     if not settings.spaces_private_ready:
         raise HTTPException(status_code=503, detail="Private Daedalus build storage is not configured yet.")
@@ -443,42 +563,46 @@ async def create_build_session(
     cleaned_instruction = " ".join(instruction.split())
     if not cleaned_instruction:
         raise HTTPException(status_code=400, detail="Tell Daedalus what to build or change.")
-    session_id = str(uuid.uuid4())
-    build_session = DaedalusBuildSession(
-        id=session_id,
-        actor=operator.actor,
-        status="preparing",
-        source_filename="pending",
-        source_format="pending",
-        source_object_key="pending",
-        source_sha256="",
-        source_size_bytes=0,
-        source_validation={"pending": True},
-        latest_version=0,
-    )
-    build_job = DaedalusBuildJob(
-        id=job_id,
-        actor=operator.actor,
-        session_id=session_id,
-        version=1,
-        base_version=0,
-        status="preparing",
-        phase="source_parse",
-        instruction=cleaned_instruction,
-        retrieval_snapshot={},
-        reference_count=0,
-    )
-    session.add(build_session)
-    session.add(build_job)
-    try:
+    existing_job = session.get(DaedalusBuildJob, job_id, with_for_update=True)
+    if existing_job is not None:
+        if existing_job.actor != operator.actor:
+            raise HTTPException(status_code=404, detail="Daedalus build job not found for this trainer.")
+        if existing_job.base_version != 0:
+            raise HTTPException(status_code=409, detail="This Daedalus job ID belongs to a revision request.")
+        if existing_job.phase != "request_reserved" or existing_job.status != "preparing":
+            return _job_response(existing_job)
+        if existing_job.instruction != cleaned_instruction:
+            raise HTTPException(status_code=409, detail="This Daedalus job ID is reserved for another instruction.")
+        build_session = _owned_build_session(existing_job.session_id, operator, session)
+        build_job = existing_job
+        build_job.phase = "source_parse"
         session.commit()
-    except SQLAlchemyError as exc:
-        session.rollback()
-        logger.exception("Daedalus could not persist its background build job")
-        raise HTTPException(
-            status_code=503,
-            detail="Daedalus could not record its background build job. Verify API database migration 0015 and retry.",
-        ) from exc
+    else:
+        build_session = _placeholder_build_session(operator.actor)
+        build_job = DaedalusBuildJob(
+            id=job_id,
+            actor=operator.actor,
+            session_id=build_session.id,
+            version=1,
+            base_version=0,
+            status="preparing",
+            phase="source_parse",
+            instruction=cleaned_instruction,
+            retrieval_snapshot={},
+            reference_count=0,
+        )
+        session.add(build_session)
+        session.add(build_job)
+        try:
+            session.commit()
+        except SQLAlchemyError as exc:
+            session.rollback()
+            logger.exception("Daedalus could not persist its background build job")
+            raise HTTPException(
+                status_code=503,
+                detail="Daedalus could not record its background build job. Verify API database migration 0015 and retry.",
+            ) from exc
+    session_id = build_session.id
 
     try:
         request.state.diagnostic_phase = "source_parse"
@@ -572,57 +696,72 @@ async def create_build_pass(
     _require(operator, "daedalus:submit")
     _require_build_schema(session)
     job_id = _validated_job_id(job_id)
-    existing_job = session.get(DaedalusBuildJob, job_id)
-    if existing_job is not None:
-        if existing_job.actor != operator.actor:
-            raise HTTPException(status_code=404, detail="Daedalus build job not found for this trainer.")
-        return _job_response(existing_job)
     settings = get_settings()
     if not settings.daedalus_generation_ready:
         raise HTTPException(status_code=503, detail="Daedalus generation needs private storage and OPENAI_API_KEY.")
     cleaned_instruction = " ".join(instruction.split())
     if not cleaned_instruction:
         raise HTTPException(status_code=400, detail="Tell Daedalus what to build or change.")
-    build_session = _owned_build_session(session_id, operator, session)
-    active_job = session.scalar(select(DaedalusBuildJob).where(
-        DaedalusBuildJob.session_id == session_id,
-        DaedalusBuildJob.status.in_(("preparing", "queued", "in_progress", "finalizing")),
-    ))
-    if active_job is not None:
-        raise HTTPException(status_code=409, detail="Daedalus is already generating a pass for this build session.")
-    starting_version = build_session.latest_version
-    previous = session.scalar(
-        select(DaedalusBuildPass).where(
+    existing_job = session.get(DaedalusBuildJob, job_id, with_for_update=True)
+    if existing_job is not None:
+        if existing_job.actor != operator.actor:
+            raise HTTPException(status_code=404, detail="Daedalus build job not found for this trainer.")
+        if existing_job.session_id != session_id or existing_job.base_version == 0:
+            raise HTTPException(status_code=409, detail="This Daedalus job ID belongs to another build request.")
+        if existing_job.phase != "request_reserved" or existing_job.status != "preparing":
+            return _job_response(existing_job)
+        if existing_job.instruction != cleaned_instruction:
+            raise HTTPException(status_code=409, detail="This Daedalus job ID is reserved for another instruction.")
+        build_session = _owned_build_session(session_id, operator, session)
+        previous = session.scalar(select(DaedalusBuildPass).where(
+            DaedalusBuildPass.session_id == session_id,
+            DaedalusBuildPass.version == existing_job.base_version,
+        ))
+        if previous is None:
+            raise HTTPException(status_code=409, detail="The prior Daedalus build pass is missing.")
+        build_job = existing_job
+        version = build_job.version
+        build_job.phase = "artifact_read"
+        session.commit()
+    else:
+        build_session = _owned_build_session(session_id, operator, session)
+        active_job = session.scalar(select(DaedalusBuildJob).where(
+            DaedalusBuildJob.session_id == session_id,
+            DaedalusBuildJob.status.in_(("preparing", "queued", "in_progress", "finalizing")),
+        ))
+        if active_job is not None:
+            raise HTTPException(status_code=409, detail="Daedalus is already generating a pass for this build session.")
+        starting_version = build_session.latest_version
+        previous = session.scalar(select(DaedalusBuildPass).where(
             DaedalusBuildPass.session_id == session_id,
             DaedalusBuildPass.version == build_session.latest_version,
+        ))
+        if previous is None:
+            raise HTTPException(status_code=409, detail="The prior Daedalus build pass is missing.")
+        version = starting_version + 1
+        build_job = DaedalusBuildJob(
+            id=job_id,
+            actor=operator.actor,
+            session_id=session_id,
+            version=version,
+            base_version=starting_version,
+            status="preparing",
+            phase="artifact_read",
+            instruction=cleaned_instruction,
+            retrieval_snapshot={},
+            reference_count=0,
         )
-    )
-    if previous is None:
-        raise HTTPException(status_code=409, detail="The prior Daedalus build pass is missing.")
-    version = starting_version + 1
-    build_job = DaedalusBuildJob(
-        id=job_id,
-        actor=operator.actor,
-        session_id=session_id,
-        version=version,
-        base_version=starting_version,
-        status="preparing",
-        phase="artifact_read",
-        instruction=cleaned_instruction,
-        retrieval_snapshot={},
-        reference_count=0,
-    )
-    build_session.status = "generating"
-    session.add(build_job)
-    try:
-        session.commit()
-    except (IntegrityError, SQLAlchemyError) as exc:
-        session.rollback()
-        logger.exception("Daedalus could not persist its revision build job")
-        raise HTTPException(
-            status_code=409,
-            detail="A Daedalus revision job already exists for this pass. Refresh the current job before retrying.",
-        ) from exc
+        build_session.status = "generating"
+        session.add(build_job)
+        try:
+            session.commit()
+        except (IntegrityError, SQLAlchemyError) as exc:
+            session.rollback()
+            logger.exception("Daedalus could not persist its revision build job")
+            raise HTTPException(
+                status_code=409,
+                detail="A Daedalus revision job already exists for this pass. Refresh the current job before retrying.",
+            ) from exc
 
     try:
         request.state.diagnostic_phase = "artifact_read"
