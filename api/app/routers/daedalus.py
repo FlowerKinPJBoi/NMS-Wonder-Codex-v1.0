@@ -6,8 +6,8 @@ import uuid
 from datetime import datetime, timezone
 from typing import Literal
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, Response, UploadFile
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, inspect, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -37,6 +37,7 @@ from ..services.daedalus_corpus import (
 )
 from ..services.daedalus_build_storage import read_build_artifact, signed_build_url, store_build_artifact
 from ..services.daedalus_builder import generate_build, parse_build, prompt_seed_build, safe_build_filename
+from ..services.error_incidents import create_incident, incident_public
 from ..services.security import OperatorSession, require_operator_key
 
 router = APIRouter(prefix="/admin/apps/daedalus", tags=["daedalus-builder"])
@@ -63,6 +64,24 @@ class CorpusQuery(BaseModel):
     object_ids: list[str] = Field(default_factory=list, max_length=250)
     part_count: int | None = Field(default=None, ge=1, le=3000)
     limit: int = Field(default=8, ge=1, le=20)
+
+
+class DaedalusClientError(BaseModel):
+    """Allowlisted client context; prompts, filenames, keys, and uploaded bytes are excluded."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    client_incident_id: str = Field(min_length=8, max_length=64, pattern=r"^[A-Za-z0-9-]+$")
+    api_incident_id: str = Field(default="", max_length=64, pattern=r"^[A-Za-z0-9-]*$")
+    phase: str = Field(default="generation_request", min_length=1, max_length=60, pattern=r"^[A-Za-z0-9_-]+$")
+    http_status: int | None = Field(default=None, ge=0, le=599)
+    elapsed_ms: int = Field(default=0, ge=0, le=900_000)
+    message: str = Field(min_length=1, max_length=1200)
+    session_id: str = Field(default="", max_length=64, pattern=r"^[A-Za-z0-9-]*$")
+    pass_version: int = Field(default=0, ge=0, le=10_000)
+    source_kind: Literal["prompt_only", "uploaded_build", "existing_session"] = "prompt_only"
+    reference_count: int = Field(default=0, ge=0, le=20)
+    instruction_length: int = Field(default=0, ge=0, le=8000)
 
 
 ALLOWED_REFERENCE_TYPES = {"image/png", "image/jpeg", "image/webp"}
@@ -281,14 +300,56 @@ def _generated_response(build_session: DaedalusBuildSession, build_pass: Daedalu
     }
 
 
+@router.post("/errors", status_code=201)
+def report_client_error(
+    report: DaedalusClientError,
+    operator: OperatorSession = Depends(require_operator_key),
+    session: Session = Depends(get_session),
+):
+    _require(operator, "daedalus:submit")
+    row = create_incident(
+        session,
+        area="daedalus",
+        source="daedalus_client",
+        message=report.message,
+        status_code=report.http_status,
+        actor=operator.actor,
+        method="POST",
+        path="/admin/apps/daedalus/build-sessions",
+        phase=report.phase,
+        detail={
+            "clientIncidentId": report.client_incident_id,
+            "apiIncidentId": report.api_incident_id or None,
+            "elapsedMs": report.elapsed_ms,
+            "sessionId": report.session_id or None,
+            "passVersion": report.pass_version,
+            "sourceKind": report.source_kind,
+            "referenceCount": report.reference_count,
+            "instructionLength": report.instruction_length,
+            "promptStored": False,
+            "filenamesStored": False,
+            "uploadedBytesStored": False,
+        },
+    )
+    session.commit()
+    return {
+        "ok": True,
+        "incident_id": row.id,
+        "incident": incident_public(row),
+    }
+
+
 @router.post("/build-sessions")
 async def create_build_session(
+    request: Request,
     instruction: str = Form(..., min_length=1, max_length=8000),
     source: UploadFile | None = File(default=None),
     references: list[UploadFile] | None = File(default=None),
     operator: OperatorSession = Depends(require_operator_key),
     session: Session = Depends(get_session),
 ):
+    request.state.diagnostic_phase = "preflight"
+    request.state.diagnostic_actor = operator.actor
     _require(operator, "daedalus:submit")
     _require_build_schema(session)
     settings = get_settings()
@@ -296,6 +357,7 @@ async def create_build_session(
         raise HTTPException(status_code=503, detail="Private Daedalus build storage is not configured yet.")
     if not settings.openai_api_key.strip():
         raise HTTPException(status_code=503, detail="Daedalus generation needs OPENAI_API_KEY in the API service's encrypted environment settings.")
+    request.state.diagnostic_phase = "source_parse"
     if source is None:
         raw, source_filename, bootstrap = prompt_seed_build(instruction)
         parsed = parse_build(raw, source_filename)
@@ -311,7 +373,9 @@ async def create_build_session(
             raise HTTPException(status_code=413, detail="The Daedalus source build exceeds the configured limit.")
         parsed = parse_build(raw, source.filename or "daedalus-build.json")
     reference_bodies = await _reference_bodies(references or [], settings)
+    request.state.diagnostic_phase = "corpus_retrieval"
     retrieval = _retrieve_for_build(session, parsed, instruction)
+    request.state.diagnostic_phase = "model_generation"
     generated = await run_in_threadpool(partial(
         generate_build,
         parsed,
@@ -326,6 +390,7 @@ async def create_build_session(
     session_id = str(uuid.uuid4())
     source_key = f"admin-apps/daedalus-builds/{session_id}/source/{parsed.filename}"
     output_key = f"admin-apps/daedalus-builds/{session_id}/passes/1/{generated.filename}"
+    request.state.diagnostic_phase = "artifact_storage"
     source_digest, source_size = await run_in_threadpool(store_build_artifact, source_key, raw, parsed.filename, operator.actor)
     output_digest, output_size = await run_in_threadpool(store_build_artifact, output_key, generated.body, generated.filename, operator.actor)
     build_session = DaedalusBuildSession(
@@ -366,6 +431,7 @@ async def create_build_session(
         batch_id=session_id,
         detail={"version": 1, "operations": generated.operation_count, "sha256": output_digest},
     ))
+    request.state.diagnostic_phase = "session_persistence"
     try:
         session.commit()
     except SQLAlchemyError as exc:
@@ -375,6 +441,7 @@ async def create_build_session(
             status_code=503,
             detail="Daedalus generated the build but could not record its session. Verify API database migration 0013 and retry.",
         ) from exc
+    request.state.diagnostic_phase = "completed"
     return _generated_response(build_session, build_pass)
 
 
@@ -387,12 +454,15 @@ def _owned_build_session(session_id: str, operator: OperatorSession, session: Se
 
 @router.post("/build-sessions/{session_id}/passes")
 async def create_build_pass(
+    request: Request,
     session_id: str,
     instruction: str = Form(..., min_length=1, max_length=8000),
     references: list[UploadFile] | None = File(default=None),
     operator: OperatorSession = Depends(require_operator_key),
     session: Session = Depends(get_session),
 ):
+    request.state.diagnostic_phase = "preflight"
+    request.state.diagnostic_actor = operator.actor
     _require(operator, "daedalus:submit")
     _require_build_schema(session)
     settings = get_settings()
@@ -408,6 +478,7 @@ async def create_build_pass(
     )
     if previous is None:
         raise HTTPException(status_code=409, detail="The prior Daedalus build pass is missing.")
+    request.state.diagnostic_phase = "artifact_read"
     raw = await run_in_threadpool(partial(
         read_build_artifact,
         previous.output_object_key,
@@ -418,6 +489,7 @@ async def create_build_pass(
     parsed = parse_build(raw, previous.output_filename)
     parsed.filename = build_session.source_filename
     reference_bodies = await _reference_bodies(references or [], settings)
+    request.state.diagnostic_phase = "corpus_retrieval"
     retrieval = _retrieve_for_build(session, parsed, instruction)
     prior_rows = session.scalars(
         select(DaedalusBuildPass).where(DaedalusBuildPass.session_id == session_id).order_by(DaedalusBuildPass.version)
@@ -429,6 +501,7 @@ async def create_build_pass(
         "warnings": (row.plan or {}).get("warnings") or [],
     } for row in prior_rows[-6:]]
     version = starting_version + 1
+    request.state.diagnostic_phase = "model_generation"
     generated = await run_in_threadpool(partial(
         generate_build,
         parsed,
@@ -441,7 +514,9 @@ async def create_build_pass(
     ))
     pass_id = str(uuid.uuid4())
     output_key = f"admin-apps/daedalus-builds/{session_id}/passes/{version}-{pass_id}/{generated.filename}"
+    request.state.diagnostic_phase = "artifact_storage"
     output_digest, output_size = await run_in_threadpool(store_build_artifact, output_key, generated.body, generated.filename, operator.actor)
+    request.state.diagnostic_phase = "session_lock"
     locked_session = session.scalar(
         select(DaedalusBuildSession)
         .where(DaedalusBuildSession.id == session_id, DaedalusBuildSession.actor == operator.actor)
@@ -477,6 +552,7 @@ async def create_build_pass(
         batch_id=session_id,
         detail={"version": version, "operations": generated.operation_count, "sha256": output_digest},
     ))
+    request.state.diagnostic_phase = "session_persistence"
     try:
         session.commit()
     except SQLAlchemyError as exc:
@@ -486,6 +562,7 @@ async def create_build_pass(
             status_code=503,
             detail="Daedalus generated the revision but could not record its pass. Verify API database migration 0013 and retry.",
         ) from exc
+    request.state.diagnostic_phase = "completed"
     return _generated_response(build_session, build_pass)
 
 

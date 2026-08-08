@@ -173,6 +173,86 @@
     });
   }
 
+  function newClientIncidentId() {
+    if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+    return `client-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  function buildRequestError(message, context) {
+    const error = new Error(message);
+    error.diagnostic = context;
+    return error;
+  }
+
+  async function reportBuildError(error) {
+    const context = error?.diagnostic || {};
+    const clientIncidentId = context.clientIncidentId || newClientIncidentId();
+    const payload = {
+      client_incident_id: clientIncidentId,
+      api_incident_id: context.apiIncidentId || "",
+      phase: context.phase || "generation_request",
+      http_status: Number.isFinite(context.httpStatus) ? context.httpStatus : null,
+      elapsed_ms: Math.max(0, Math.round(context.elapsedMs || 0)),
+      message: String(error?.message || "Daedalus build request failed.").slice(0, 1200),
+      session_id: context.sessionId || "",
+      pass_version: Number(context.passVersion || 0),
+      source_kind: context.sourceKind || "prompt_only",
+      reference_count: Number(context.referenceCount || 0),
+      instruction_length: Number(context.instructionLength || 0),
+    };
+    let stored = false;
+    let incidentId = payload.api_incident_id || clientIncidentId;
+    let occurredAt = new Date().toISOString();
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
+    try {
+      const response = await fetch(`${API}/errors`, {
+        method: "POST",
+        headers: {...headers(), "Content-Type": "application/json"},
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.ok) {
+        stored = true;
+        incidentId = data.incident_id || incidentId;
+        occurredAt = data.incident?.occurred_at || occurredAt;
+      }
+    } catch {}
+    finally { window.clearTimeout(timeout); }
+    return {
+      schema: "wonder-codex.daedalus-client-diagnostic.v1",
+      incidentId,
+      apiIncidentId: payload.api_incident_id || null,
+      clientIncidentId,
+      occurredAt,
+      storedInOwnerLedger: stored,
+      area: "daedalus",
+      phase: payload.phase,
+      category: payload.http_status === 504 ? "gateway_timeout" : "build_request_failure",
+      httpStatus: payload.http_status,
+      elapsedMs: payload.elapsed_ms,
+      message: payload.message,
+      model: state.generation.model || null,
+      session: {
+        id: payload.session_id || null,
+        passVersion: payload.pass_version,
+        sourceKind: payload.source_kind,
+        referenceCount: payload.reference_count,
+        instructionLength: payload.instruction_length,
+      },
+      privacy: {
+        promptIncluded: false,
+        apiKeysIncluded: false,
+        operatorKeysIncluded: false,
+        filenamesIncluded: false,
+        uploadedFileContentsIncluded: false,
+        referenceImagesIncluded: false,
+        rawUserAgentIncluded: false,
+      },
+    };
+  }
+
   async function generateBuild({sourceFile = null, instruction, references = [], sessionId = null}) {
     if (!state.permissions.submit) throw new Error("This operator cannot generate Daedalus builds.");
     if (state.generation.ready === false) {
@@ -189,19 +269,64 @@
     const path = sessionId
       ? `/build-sessions/${encodeURIComponent(sessionId)}/passes`
       : "/build-sessions";
-    const response = await fetch(API + path, {method: "POST", headers: headers(), body: form});
+    const startedAt = Date.now();
+    const requestContext = {
+      clientIncidentId: newClientIncidentId(),
+      phase: "generation_request",
+      sessionId: sessionId || "",
+      passVersion: 0,
+      sourceKind: sessionId ? "existing_session" : (sourceFile ? "uploaded_build" : "prompt_only"),
+      referenceCount: references.length,
+      instructionLength: String(instruction || "").trim().length,
+    };
+    let response;
+    try {
+      response = await fetch(API + path, {method: "POST", headers: headers(), body: form});
+    } catch (error) {
+      throw buildRequestError(error?.message || "Daedalus build request could not reach the API.", {
+        ...requestContext,
+        httpStatus: 0,
+        elapsedMs: Date.now() - startedAt,
+      });
+    }
     let data = {};
     try { data = await response.json(); } catch {}
-    if (!response.ok) throw new Error(data.detail || `Build generation failed (${response.status})`);
+    if (!response.ok) {
+      throw buildRequestError(data.detail || `Build generation failed (${response.status})`, {
+        ...requestContext,
+        apiIncidentId: data.incident_id || response.headers.get("X-Incident-ID") || "",
+        httpStatus: response.status,
+        elapsedMs: Date.now() - startedAt,
+      });
+    }
     return data;
   }
 
   async function fetchGeneratedFile(filePath, filename) {
-    const response = await fetch(filePath, {headers: headers()});
+    const startedAt = Date.now();
+    let response;
+    try {
+      response = await fetch(filePath, {headers: headers()});
+    } catch (error) {
+      throw buildRequestError(error?.message || "The generated build file could not reach this browser.", {
+        clientIncidentId: newClientIncidentId(),
+        phase: "generated_file_download",
+        httpStatus: 0,
+        elapsedMs: Date.now() - startedAt,
+        sourceKind: "existing_session",
+      });
+    }
     if (!response.ok) {
       let data = {};
       try { data = await response.json(); } catch {}
-      throw new Error(data.detail || `Generated file download failed (${response.status})`);
+      throw buildRequestError(data.detail || `Generated file download failed (${response.status})`, {
+        clientIncidentId: newClientIncidentId(),
+        apiIncidentId: data.incident_id || response.headers.get("X-Incident-ID") || "",
+        phase: "generated_file_download",
+        httpStatus: response.status,
+        elapsedMs: Date.now() - startedAt,
+        sourceKind: "existing_session",
+      });
     }
     const blob = await response.blob();
     return new File([blob], filename || "daedalus-build.nmsbase", {type: "application/octet-stream"});
@@ -267,6 +392,7 @@
     submitLearningBlob,
     retrieveLessons,
     generateBuild,
+    reportBuildError,
     fetchGeneratedFile,
     generationStatus: () => ({...state.generation}),
     refreshQueue: connect

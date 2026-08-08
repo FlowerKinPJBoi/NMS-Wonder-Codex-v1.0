@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css?v=1.18.0">
   <link rel="stylesheet" href="/admin.css?v=1.9.1">
-  <link rel="stylesheet" href="/admin/analytics/analytics.css?v=1.13.0">
+  <link rel="stylesheet" href="/admin/analytics/analytics.css?v=1.30.0">
 </head>
 <body class="admin-body">
   <div class="cosmos" aria-hidden="true"><div class="aurora aurora-one"></div><div class="aurora aurora-two"></div><div class="stars stars-a"></div><div class="stars stars-b"></div></div>
@@ -61,12 +61,14 @@
 
       <section class="analytics-panel"><div class="analytics-heading"><div><p class="kicker">CATALOG & MAP</p><h2>What explorers are seeking</h2></div><p>No raw search text is stored.</p></div><div id="filterBreakdowns" class="filter-breakdowns"></div></section>
 
+      <section class="analytics-panel error-ledger-panel"><div class="analytics-heading"><div><p class="kicker">OPERATIONAL DIAGNOSTICS</p><h2>Error ledger</h2></div><p>Sanitized server and Daedalus failures. Download an incident when we need to investigate it together.</p></div><div id="errorSummary" class="error-summary"></div><div id="errorLedger" class="error-ledger"></div></section>
+
       <section class="analytics-panel"><div class="analytics-heading"><div><p class="kicker">ANONYMOUS JOURNEYS</p><h2>Recent paths through the Codex</h2></div><p>Detailed paths automatically expire after 90 days.</p></div><div id="journeys" class="journey-list"></div></section>
 
-      <section class="privacy-panel"><strong>Privacy boundary</strong><span>Anonymous analytics stores no raw IP addresses, raw browser user-agent strings, cookies, account identities, uploaded filenames, admin activity, or form text. Deliberate questionnaire answers are kept separately in the owner-only feedback console. Do Not Track and Global Privacy Control are honored.</span></section>
+      <section class="privacy-panel"><strong>Privacy boundary</strong><span>Anonymous analytics stores no raw IP addresses, raw browser user-agent strings, cookies, account identities, uploaded filenames, admin activity, or form text. Operational diagnostics are stored separately and may identify the named operator involved, but never store API keys, prompts, uploaded file contents, filenames, or reference images. Deliberate questionnaire answers remain separate in the owner-only feedback console.</span></section>
     </section>
   </main>
   <div id="toast" class="toast" hidden></div>
-  <script src="/admin/analytics/analytics-admin.js?v=1.13.0"></script>
+  <script src="/admin/analytics/analytics-admin.js?v=1.30.0"></script>
 </body>
 </html>

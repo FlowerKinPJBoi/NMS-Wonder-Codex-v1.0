@@ -1,5 +1,14 @@
 # Wonder Codex changelog
 
+## v1.30.0 — Private operational diagnostics
+
+- Added an owner-only operational error ledger to Analytics, separate from anonymous visitor activity.
+- Added incident IDs to API 5xx responses and sanitized server traceback-frame metadata for PJ's downloadable diagnostics.
+- Added authenticated Daedalus client reporting for gateway and network failures that occur outside the API response body.
+- Added a **Download diagnostic** action inside failed Daedalus chat messages.
+- Excluded API keys, operator keys, prompts, filenames, uploaded file contents, reference images, raw IP addresses, and raw user-agent strings from diagnostics.
+- Added migration `0014_operational_errors` with 90-day retention by default.
+
 ## v1.29.0 — Daedalus Builder/Writer
 
 - Connected the guided chat workspace to a server-side OpenAI Responses planner using one forced, strict build-plan tool call.

@@ -5,13 +5,15 @@ from datetime import date, datetime, time, timedelta, timezone
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from sqlalchemy import delete, distinct, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from ..config import get_settings
 from ..database import get_session
-from ..models import AnalyticsDailyMetric, AnalyticsEvent
+from ..models import AnalyticsDailyMetric, AnalyticsEvent, ErrorIncident
 from ..schemas import AnalyticsEventPayload
 from ..services.analytics import (
     classify_user_agent,
@@ -20,6 +22,7 @@ from ..services.analytics import (
     sanitize_properties,
     session_hash,
 )
+from ..services.error_incidents import incident_public
 from ..services.rate_limit import enforce_analytics
 from ..services.security import require_owner_key
 
@@ -258,6 +261,35 @@ def _journeys(session: Session, *, days: int, limit: int = 20) -> list[dict[str,
     return journeys
 
 
+def _error_ledger(session: Session, *, days: int, limit: int = 50) -> dict[str, Any]:
+    condition = None if days <= 0 else (
+        ErrorIncident.occurred_at >= datetime.now(timezone.utc) - timedelta(days=days)
+    )
+    total_statement = select(func.count(ErrorIncident.id))
+    category_statement = select(
+        ErrorIncident.category,
+        func.count(ErrorIncident.id).label("count"),
+    )
+    item_statement = select(ErrorIncident).order_by(ErrorIncident.occurred_at.desc()).limit(limit)
+    if condition is not None:
+        total_statement = total_statement.where(condition)
+        category_statement = category_statement.where(condition)
+        item_statement = item_statement.where(condition)
+    categories = session.execute(
+        category_statement.group_by(ErrorIncident.category).order_by(
+            func.count(ErrorIncident.id).desc(), ErrorIncident.category.asc()
+        )
+    ).all()
+    return {
+        "total": int(session.scalar(total_statement) or 0),
+        "by_category": [
+            {"label": str(category), "count": int(count)} for category, count in categories
+        ],
+        "items": [incident_public(row) for row in session.scalars(item_statement).all()],
+        "retention_days": get_settings().error_retention_days,
+    }
+
+
 @owner_router.get("/summary")
 def owner_summary(
     days: int = Query(default=7, ge=0, le=3650),
@@ -303,11 +335,45 @@ def owner_summary(
             name: _top(session, metric="event_property", dimension=name, days=days, limit=12)
             for name in filter_dimensions
         },
+        "errors": _error_ledger(session, days=days),
         "journeys": _journeys(session, days=days),
         "privacy": {
             "raw_event_retention_days": get_settings().analytics_retention_days,
             "raw_ip_addresses_stored": False,
             "raw_user_agents_stored": False,
             "admin_pages_tracked": False,
+            "operational_errors_separate": True,
         },
     }
+
+
+@owner_router.get("/errors/{incident_id}/diagnostic")
+def download_error_diagnostic(
+    incident_id: str,
+    session: Session = Depends(get_session),
+):
+    row = session.get(ErrorIncident, incident_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Operational error incident not found.")
+    payload = {
+        "schema": "wonder-codex.operational-error.v1",
+        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "incident": incident_public(row),
+        "privacy": {
+            "api_keys_included": False,
+            "operator_keys_included": False,
+            "prompts_included": False,
+            "uploaded_filenames_included": False,
+            "uploaded_file_contents_included": False,
+            "reference_images_included": False,
+            "raw_ip_addresses_included": False,
+            "raw_user_agents_included": False,
+        },
+    }
+    return JSONResponse(
+        content=jsonable_encoder(payload),
+        headers={
+            "Content-Disposition": f'attachment; filename="wonder-codex-error-{row.id}.json"',
+            "Cache-Control": "private, no-store",
+        },
+    )

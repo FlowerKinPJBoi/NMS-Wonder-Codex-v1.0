@@ -25,6 +25,7 @@ variables. Never commit real values. The service currently recognizes:
 - `MAX_REQUESTS_PER_HOUR`
 - `ANALYTICS_ENABLED`, `ANALYTICS_OWNER_ACTOR`,
   `ANALYTICS_RETENTION_DAYS`, and `ANALYTICS_MAX_EVENTS_PER_MINUTE`
+- `ERROR_RETENTION_DAYS` for the private operational diagnostic ledger (default `90`)
 - `ADMIN_API_KEY_PJ` and `ADMIN_API_KEY_BOOTS`
 - `ADMIN_API_KEYS` as an optional JSON-object alternative
 - `TESTER_API_KEY_MENOMOO`, `TESTER_API_KEY_FLOPPYDONKEY`,
@@ -148,3 +149,6 @@ Migration `0012_daedalus_corpus` adds released-lesson indexing and versioning.
 Migration `0013_daedalus_builder_writer` adds private iterative build sessions
 and immutable generated passes. With migrations enabled, both are applied by
 the API service during deployment.
+Migration `0014_operational_errors` adds PJ's private, sanitized operational
+error ledger and Daedalus incident downloads. It is separate from anonymous
+traffic analytics and defaults to 90-day retention.

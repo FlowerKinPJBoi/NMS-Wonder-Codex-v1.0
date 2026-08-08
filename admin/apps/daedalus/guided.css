@@ -173,6 +173,42 @@
   line-height: 1.48;
 }
 
+.guided-diagnostic {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.72rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(112, 223, 244, 0.16);
+}
+
+.guided-diagnostic code {
+  overflow: hidden;
+  color: #9cb9c5;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guided-diagnostic button {
+  border: 1px solid rgba(112, 223, 244, 0.32);
+  border-radius: 9px;
+  padding: 0.48rem 0.65rem;
+  color: #dff9ff;
+  background: rgba(19, 80, 101, 0.46);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.guided-diagnostic button:hover {
+  border-color: rgba(112, 223, 244, 0.68);
+  background: rgba(29, 104, 130, 0.62);
+}
+
 .guided-composer {
   margin-top: auto;
   padding-top: 0.9rem;

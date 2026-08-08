@@ -556,3 +556,25 @@ class AnalyticsDailyMetric(Base):
     dimension: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
     value: Mapped[str] = mapped_column(String(300), nullable=False)
     count: Mapped[int] = mapped_column(BigInteger, default=0, nullable=False)
+
+
+class ErrorIncident(Base):
+    """Private, sanitized operational failures kept separate from visitor analytics."""
+
+    __tablename__ = "error_incidents"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+    area: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    source: Mapped[str] = mapped_column(String(40), nullable=False, index=True)
+    severity: Mapped[str] = mapped_column(String(20), default="error", nullable=False, index=True)
+    actor: Mapped[str] = mapped_column(String(120), default="", nullable=False, index=True)
+    method: Mapped[str] = mapped_column(String(10), default="", nullable=False)
+    path: Mapped[str] = mapped_column(String(300), default="", nullable=False, index=True)
+    phase: Mapped[str] = mapped_column(String(60), default="request", nullable=False, index=True)
+    status_code: Mapped[int | None] = mapped_column(Integer, index=True)
+    category: Mapped[str] = mapped_column(String(60), nullable=False, index=True)
+    exception_type: Mapped[str] = mapped_column(String(160), default="", nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    fingerprint: Mapped[str] = mapped_column(String(64), nullable=False, index=True)
+    detail: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)

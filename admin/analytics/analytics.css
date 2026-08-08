@@ -54,6 +54,23 @@
 .journey-path span { max-width: 260px; overflow: hidden; padding: 7px 9px; border-radius: 9px; background: rgba(111,229,255,.08); color: #bfefff; font-size: .74rem; text-overflow: ellipsis; white-space: nowrap; }
 .journey-path i { color: #8e78d8; font-style: normal; }
 .journey-actions { margin-top: 9px; color: var(--muted); font-size: .72rem; }
+.error-ledger-panel { margin-top: 16px; border-color: rgba(255,158,170,.24); }
+.error-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+.error-summary > strong { color: #ffb5be; font-size: 1.08rem; }
+.error-category-list { display: flex; flex-wrap: wrap; gap: 7px; }
+.error-category-list span { padding: 6px 9px; border: 1px solid rgba(255,158,170,.18); border-radius: 999px; color: #ffc4cb; background: rgba(117,40,53,.13); font-size: .7rem; }
+.error-ledger { display: grid; gap: 10px; }
+.error-card { padding: 15px; border: 1px solid rgba(255,158,170,.16); border-radius: 15px; background: linear-gradient(120deg,rgba(117,40,53,.09),rgba(17,27,52,.38)); }
+.error-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.error-card-head > div { display: grid; gap: 4px; }
+.error-card-head strong { color: #ffd8dd; text-transform: capitalize; }
+.error-card-head span { color: var(--muted); font-size: .74rem; }
+.error-card-head button { border: 1px solid rgba(111,229,255,.25); border-radius: 9px; padding: 7px 10px; color: #bfefff; background: rgba(111,229,255,.06); cursor: pointer; font: inherit; font-size: .72rem; font-weight: 750; }
+.error-card-head button:hover { border-color: rgba(111,229,255,.55); background: rgba(111,229,255,.11); }
+.error-card p { margin: 12px 0; color: #d8e3ef; font-size: .82rem; line-height: 1.5; }
+.error-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.error-meta span, .error-meta code { padding: 5px 7px; border-radius: 7px; color: #9fb0c4; background: rgba(255,255,255,.035); font-size: .66rem; }
+.error-meta code { max-width: 290px; overflow: hidden; color: #91dff0; text-overflow: ellipsis; white-space: nowrap; }
 .privacy-panel { display: flex; gap: 16px; margin-top: 16px; padding: 17px 20px; border: 1px solid rgba(91,244,190,.32); border-radius: 16px; background: rgba(28,129,94,.08); }
 .privacy-panel strong { flex: 0 0 auto; color: #69f2c0; }
 .privacy-panel span { color: #b8c8d8; font-size: .82rem; line-height: 1.55; }

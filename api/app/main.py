@@ -6,12 +6,15 @@ from contextlib import asynccontextmanager
 from alembic import command
 from alembic.config import Config
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .config import get_settings
 from .database import check_database, mark_database
 from .routers import accounts, admin, admin_apps, analytics, assets, captures, daedalus, feedback, galactic_map, health, images, new_discoveries, operators, public, submissions, verifications
+from .services.error_incidents import record_request_error
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -98,7 +101,33 @@ async def request_size_limit(request: Request, call_next):
 @app.exception_handler(Exception)
 async def unhandled_exception(request: Request, exc: Exception):
     logger.exception("Unhandled API error")
-    return JSONResponse(status_code=500, content={"detail": "Unexpected server error."})
+    incident_id = record_request_error(
+        request,
+        exc,
+        status_code=500,
+        message=str(exc) or "Unexpected server error.",
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Unexpected server error.", "incident_id": incident_id},
+        headers={"X-Incident-ID": incident_id},
+    )
+
+
+@app.exception_handler(StarletteHTTPException)
+async def operational_http_exception(request: Request, exc: StarletteHTTPException):
+    content = {"detail": jsonable_encoder(exc.detail)}
+    headers = dict(exc.headers or {})
+    if exc.status_code >= 500:
+        incident_id = record_request_error(
+            request,
+            exc,
+            status_code=exc.status_code,
+            message=exc.detail,
+        )
+        content["incident_id"] = incident_id
+        headers["X-Incident-ID"] = incident_id
+    return JSONResponse(status_code=exc.status_code, content=content, headers=headers)
 
 
 @app.get("/")
