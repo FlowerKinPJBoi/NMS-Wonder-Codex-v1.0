@@ -1,9 +1,9 @@
-# Wonder Codex v1.31.4
+# Wonder Codex v1.31.5
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
 
-v1.31.4 makes the generated-build wait visible and the result inspectable at a glance. The guided chat now shows Daedalus's live durable job phase with an animated thinking indicator, then renders the returned Object-ID placements as a browser schematic in the preview panel. The schematic is deliberately labeled as approximate; BBA or in-game inspection remains the exact ground-truth check before feedback or learning review.
+v1.31.5 makes visual corrections intentional and temporary. Builders can paste, drop, or attach screenshots of an incorrect result beside the next chat message; Daedalus treats those images as defect evidence for that pass only, while optional starting references remain limited to Pass 1. Deployments may also expose an owner-controlled HTTPS contribution page through `DAEDALUS_SUPPORT_URL` without sharing OpenAI billing access or credentials.
 
 ## Repository contents
 

@@ -338,10 +338,33 @@ def test_provider_connection_forces_one_strict_build_plan_tool_call(monkeypatch)
     assert captured["tools"][0]["parameters"]["additionalProperties"] is False
     assert captured["input"][1]["content"][1]["type"] == "input_image"
     provider_context = json.loads(captured["input"][1]["content"][0]["text"])
+    assert provider_context["referenceImageRole"] == "starting_visual_reference"
     assert "sourceFilename" not in provider_context
     assert "Owner" not in captured["input"][1]["content"][0]["text"]
     assert "private" not in captured["input"][1]["content"][0]["text"]
     assert generated.provider_response_id == "resp_test_123"
+
+
+def test_revision_reference_images_are_labeled_as_correction_evidence():
+    from app.services import daedalus_builder
+
+    configured = settings()
+    configured.openai_api_key = "sk-test"
+    parsed = parse_build(base_source(), "base.NMSBASE")
+    request = daedalus_builder._provider_request(
+        parsed,
+        "The right side is too low; use the screenshot only to identify the defect.",
+        empty_retrieval(),
+        [{"version": 1, "summary": "Initial pass"}],
+        [("image/png", b"incorrect-result")],
+        configured,
+    )
+    provider_context = json.loads(request["input"][1]["content"][0]["text"])
+    developer_prompt = request["input"][0]["content"]
+
+    assert provider_context["referenceImageRole"] == "correction_evidence_for_current_pass"
+    assert "never copy their distortions" in developer_prompt
+    assert "starting visual references" in developer_prompt
 
 
 def test_provider_background_job_returns_immediately_and_polls_strict_plan(monkeypatch):

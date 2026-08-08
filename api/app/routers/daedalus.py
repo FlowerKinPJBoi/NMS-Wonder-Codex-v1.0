@@ -6,6 +6,7 @@ import uuid
 from datetime import datetime, timezone
 from functools import partial
 from typing import Literal
+from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, Response, UploadFile
 from fastapi.encoders import jsonable_encoder
@@ -106,6 +107,17 @@ class BuildJobReservation(BaseModel):
 
 
 ALLOWED_REFERENCE_TYPES = {"image/png", "image/jpeg", "image/webp"}
+
+
+def _safe_support_url(value: str) -> str:
+    url = str(value or "").strip()
+    try:
+        parsed = urlsplit(url)
+    except ValueError:
+        return ""
+    if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
+        return ""
+    return url
 
 
 def _valid_reference_signature(content_type: str, body: bytes) -> bool:
@@ -311,6 +323,7 @@ def workspace(operator: OperatorSession = Depends(require_operator_key), session
             "model": settings.daedalus_model,
             "maximum_operations_per_pass": settings.max_daedalus_operations,
             "maximum_references": settings.max_daedalus_references,
+            "support_url": _safe_support_url(settings.daedalus_support_url),
             "build_schema_ready": build_schema_ready,
             "setup_required": setup_required,
         },

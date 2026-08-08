@@ -6,6 +6,7 @@
     sourceFile: null,
     outputFile: null,
     referenceFiles: [],
+    messageFiles: [],
     previewUrl: null,
     initialRequest: "",
     buildPlan: null,
@@ -21,6 +22,9 @@
     composer: $("#guidedComposer"),
     prompt: $("#guidedPrompt"),
     send: $("#guidedSend"),
+    messageInput: $("#guidedMessageImageInput"),
+    messageImages: $("#guidedMessageImages"),
+    messageEvidenceHint: $("#guidedMessageEvidenceHint"),
     plan: $("#guidedPlan"),
     planSummary: $("#guidedPlanSummary"),
     downloadPlan: $("#guidedDownloadPlan"),
@@ -28,6 +32,7 @@
     buildName: $("#guidedBuildName"),
     referenceInput: $("#guidedReferenceInput"),
     referenceList: $("#guidedReferenceList"),
+    referenceHelp: $("#guidedReferenceHelp"),
     outputInput: $("#guidedOutputInput"),
     outputName: $("#guidedOutputName"),
     outputHelp: $("#guidedOutputHelp"),
@@ -39,7 +44,8 @@
     previewBadge: $("#guidedPreviewBadge"),
     facts: $("#guidedBuildFacts"),
     truthConfirm: $("#guidedTruthConfirm"),
-    submitLearning: $("#guidedSubmitLearning")
+    submitLearning: $("#guidedSubmitLearning"),
+    support: $("#guidedSupport")
   };
 
   function setStatus(message, tone = "") {
@@ -62,6 +68,14 @@
     ui.conversation.appendChild(message);
     ui.conversation.scrollTop = ui.conversation.scrollHeight;
     return message;
+  }
+
+  function attachMessageEvidence(message, files) {
+    if (!message || !files.length) return;
+    const evidence = document.createElement("div");
+    evidence.className = "guided-message-evidence";
+    evidence.textContent = `📎 ${files.length} correction screenshot${files.length === 1 ? "" : "s"} attached to this pass only`;
+    message.appendChild(evidence);
   }
 
   const progressLabels = {
@@ -133,7 +147,8 @@
   function setBusy(busy, label = "") {
     guided.busy = busy;
     ui.buildInput.disabled = busy;
-    ui.referenceInput.disabled = busy;
+    ui.referenceInput.disabled = busy || Boolean(guided.sessionId);
+    ui.messageInput.disabled = busy;
     ui.send.disabled = busy;
     ui.send.textContent = busy ? (label || "Working…") : "Send to Daedalus";
   }
@@ -151,6 +166,19 @@
     [...ui.facts.querySelectorAll("strong")].forEach((element, index) => {
       element.textContent = values[index];
     });
+  }
+
+  function configureSupport(generation = {}) {
+    const url = String(generation.support_url || "").trim();
+    let parsed;
+    try { parsed = new URL(url); } catch {}
+    if (parsed?.protocol !== "https:" || parsed.username || parsed.password) {
+      ui.support.hidden = true;
+      ui.support.removeAttribute("href");
+      return;
+    }
+    ui.support.href = url;
+    ui.support.hidden = false;
   }
 
   function showBuildPreview(source, label) {
@@ -223,16 +251,77 @@
       tag.title = file.name;
       ui.referenceList.appendChild(tag);
     });
+    ui.referenceHelp.textContent = guided.sessionId
+      ? "Starting references were used for Pass 1 only. Attach correction screenshots beside the chat box for later passes."
+      : "Starting references guide the first pass only. They are not reused automatically for corrections.";
+  }
+
+  function maximumReferences() {
+    return Number(window.DaedalusShared?.generationStatus?.().maximum_references || 4);
+  }
+
+  function messageImageCapacity() {
+    const startingCount = guided.sessionId ? 0 : guided.referenceFiles.length;
+    return Math.max(0, maximumReferences() - startingCount);
+  }
+
+  function renderMessageImages() {
+    ui.messageImages.innerHTML = "";
+    guided.messageFiles.forEach((file, index) => {
+      const chip = document.createElement("span");
+      chip.className = "guided-chat-image";
+      const name = document.createElement("span");
+      name.textContent = file.name;
+      name.title = file.name;
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "×";
+      remove.setAttribute("aria-label", `Remove ${file.name}`);
+      remove.disabled = guided.busy;
+      remove.addEventListener("click", () => {
+        guided.messageFiles.splice(index, 1);
+        renderMessageImages();
+      });
+      chip.append(name, remove);
+      ui.messageImages.appendChild(chip);
+    });
+    ui.messageImages.hidden = !guided.messageFiles.length;
+    const remaining = Math.max(0, messageImageCapacity() - guided.messageFiles.length);
+    ui.messageEvidenceHint.textContent = guided.messageFiles.length
+      ? `${guided.messageFiles.length} attached for the next pass only · ${remaining} slot${remaining === 1 ? "" : "s"} remaining`
+      : "Paste, drop, or attach screenshots of the incorrect result. They are sent with the next message only.";
+  }
+
+  function addMessageImages(files) {
+    if (guided.busy) return;
+    const supported = files.filter((file) => /^image\/(png|jpeg|webp)$/i.test(file.type) || /\.(png|jpe?g|webp)$/i.test(file.name || ""));
+    const remaining = Math.max(0, messageImageCapacity() - guided.messageFiles.length);
+    guided.messageFiles.push(...supported.slice(0, remaining).map((file, index) => (
+      file.name ? file : new File([file], `correction-${Date.now()}-${index + 1}.png`, {type: file.type || "image/png"})
+    )));
+    ui.messageInput.value = "";
+    renderMessageImages();
+  }
+
+  function clearMessageImages() {
+    guided.messageFiles = [];
+    ui.messageInput.value = "";
+    renderMessageImages();
   }
 
   async function addReferences(files) {
+    if (guided.sessionId) {
+      appendMessage("assistant", "That build is already in progress. Attach correction screenshots beside the chat box so they apply only to your next message.");
+      ui.referenceInput.value = "";
+      return;
+    }
     const supported = files.filter((file) => /\.(png|jpe?g|webp)$/i.test(file.name));
     if (!supported.length) return;
-    const maximum = Number(window.DaedalusShared?.generationStatus?.().maximum_references || 4);
-    const accepted = supported.slice(0, Math.max(0, maximum - guided.referenceFiles.length));
+    const accepted = supported.slice(0, Math.max(0, maximumReferences() - guided.referenceFiles.length - guided.messageFiles.length));
     guided.referenceFiles.push(...accepted);
     window.DaedalusApp?.addReferenceImages?.(accepted);
     renderReferences();
+    renderMessageImages();
     const previewable = accepted.find((file) => /\.(png|jpe?g|webp)$/i.test(file.name));
     if (previewable) {
       if (guided.previewUrl) URL.revokeObjectURL(guided.previewUrl);
@@ -255,7 +344,9 @@
     const instruction = ui.prompt.value.trim();
     if (!instruction || guided.busy) return;
 
-    appendMessage("user", instruction);
+    const messageFiles = [...guided.messageFiles];
+    const userMessage = appendMessage("user", instruction);
+    attachMessageEvidence(userMessage, messageFiles);
     const thinking = startThinking();
     ui.prompt.value = "";
     setBusy(true, "Generating build…");
@@ -273,10 +364,11 @@
       if (!window.DaedalusShared?.generateBuild || !window.DaedalusShared?.fetchGeneratedFile) {
         throw new Error("The Daedalus generation service did not load. Refresh the page and try again.");
       }
+      const startingReferences = guided.sessionId ? [] : guided.referenceFiles;
       const result = await window.DaedalusShared.generateBuild({
         sourceFile: guided.sourceFile,
         instruction,
-        references: guided.referenceFiles,
+        references: [...startingReferences, ...messageFiles],
         sessionId: guided.sessionId,
         onProgress: (progress) => updateThinking(thinking, progress)
       });
@@ -290,6 +382,8 @@
       guided.sessionId = result.session.id;
       guided.sessionVersion = result.pass.version;
       guided.buildPlan = result.pass.plan;
+      clearMessageImages();
+      renderReferences();
 
       const plan = result.pass.plan || {};
       const operationCount = Number(result.pass.operation_count || 0);
@@ -421,10 +515,36 @@
 
   ui.buildInput.addEventListener("change", (event) => loadSource(event.target.files?.[0]));
   ui.referenceInput.addEventListener("change", (event) => addReferences([...event.target.files]));
+  ui.messageInput.addEventListener("change", (event) => addMessageImages([...event.target.files]));
   ui.outputInput.addEventListener("change", (event) => loadOutput(event.target.files?.[0]));
   ui.composer.addEventListener("submit", submitPrompt);
   ui.prompt.addEventListener("keydown", (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key === "Enter") submitPrompt(event);
+  });
+  ui.prompt.addEventListener("paste", (event) => {
+    const files = [...(event.clipboardData?.files || [])];
+    if (!files.length) {
+      files.push(...[...(event.clipboardData?.items || [])]
+        .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
+        .map((item) => item.getAsFile())
+        .filter(Boolean));
+    }
+    if (!files.some((file) => file.type.startsWith("image/"))) return;
+    addMessageImages(files);
+    if (!event.clipboardData?.getData("text/plain")) event.preventDefault();
+  });
+  ui.composer.addEventListener("dragover", (event) => {
+    if (![...(event.dataTransfer?.items || [])].some((item) => item.kind === "file" && item.type.startsWith("image/"))) return;
+    event.preventDefault();
+    ui.composer.classList.add("evidence-dragover");
+  });
+  ui.composer.addEventListener("dragleave", () => ui.composer.classList.remove("evidence-dragover"));
+  ui.composer.addEventListener("drop", (event) => {
+    ui.composer.classList.remove("evidence-dragover");
+    const files = [...(event.dataTransfer?.files || [])].filter((file) => file.type.startsWith("image/"));
+    if (!files.length) return;
+    event.preventDefault();
+    addMessageImages(files);
   });
   ui.downloadPlan.addEventListener("click", downloadPlan);
   ui.downloadOutput.addEventListener("click", () => downloadFile(guided.outputFile));
@@ -446,6 +566,10 @@
   window.addEventListener("beforeunload", () => {
     if (guided.previewUrl) URL.revokeObjectURL(guided.previewUrl);
   });
+  window.DaedalusShared?.onGenerationStatus?.(configureSupport);
+  configureSupport(window.DaedalusShared?.generationStatus?.() || {});
+  renderReferences();
+  renderMessageImages();
   setBusy(false);
   setStatus("Describe a build or add a file", "ready");
   ui.prompt.focus();

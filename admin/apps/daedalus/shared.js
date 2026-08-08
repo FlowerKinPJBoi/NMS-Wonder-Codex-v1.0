@@ -5,6 +5,7 @@
   const key = sessionStorage.getItem("wc_admin_key") || "";
   const actor = sessionStorage.getItem("wc_admin_actor") || "";
   const state = {permissions: {}, maxUploadBytes: 0, storageReady: false, corpus: {}, generation: {}, items: []};
+  const generationListeners = new Set();
   const $ = (selector) => document.querySelector(selector);
   const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
   const headers = () => ({"X-Admin-Key": key, "X-Admin-Actor": actor, Accept: "application/json"});
@@ -24,6 +25,22 @@
     $("#sharedUploadHelp").style.color = error ? "#ff9eaa" : "";
   }
 
+  function publishGenerationStatus() {
+    const snapshot = {...state.generation};
+    generationListeners.forEach((listener) => {
+      try { listener(snapshot); } catch {}
+    });
+  }
+
+  function onGenerationStatus(listener) {
+    if (typeof listener !== "function") return () => {};
+    generationListeners.add(listener);
+    if (Object.keys(state.generation).length) {
+      try { listener({...state.generation}); } catch {}
+    }
+    return () => generationListeners.delete(listener);
+  }
+
   async function connect() {
     if (!key || !actor) {
       window.location.replace("/admin/apps/");
@@ -36,6 +53,7 @@
       state.storageReady = Boolean(data.storage_ready);
       state.corpus = data.corpus || {};
       state.generation = data.generation || {};
+      publishGenerationStatus();
       $("#sharedStatus").textContent = data.storage_ready ? "Shared storage online" : "Storage setup required";
       $("#sharedOperator").textContent = `${data.operator} · ${state.permissions.review ? "reviewer" : "trainer"}`;
       $("#sharedArchive").disabled = !state.permissions.submit;
@@ -549,6 +567,7 @@
     reportBuildError,
     fetchGeneratedFile,
     generationStatus: () => ({...state.generation}),
+    onGenerationStatus,
     refreshQueue: connect
   };
   connect();

@@ -11,6 +11,21 @@ from app.database import REQUIRED_DATABASE_REVISION, check_database, state
 from app.routers import daedalus
 
 
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        ("https://paypal.me/Daedalus", "https://paypal.me/Daedalus"),
+        ("https://cash.app/example-payment-link", "https://cash.app/example-payment-link"),
+        ("http://paypal.me/Daedalus", ""),
+        ("https://user:secret@example.com/support", ""),
+        ("javascript:alert(1)", ""),
+        ("", ""),
+    ],
+)
+def test_daedalus_support_link_accepts_only_safe_https_urls(value, expected):
+    assert daedalus._safe_support_url(value) == expected
+
+
 def test_build_schema_preflight_reports_missing_tables():
     engine = create_engine("sqlite+pysqlite:///:memory:")
     with Session(engine) as session:
