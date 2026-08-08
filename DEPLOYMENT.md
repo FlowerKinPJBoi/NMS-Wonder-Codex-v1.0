@@ -43,6 +43,9 @@ variables. Never commit real values. The service currently recognizes:
   static site or commit it to GitHub
 - `DAEDALUS_MODEL` (default `gpt-5.6`), `DAEDALUS_REASONING_EFFORT` (default
   `medium`), and `DAEDALUS_GENERATION_TIMEOUT_SECONDS` (default `180`)
+- `DAEDALUS_SUPPORT_URL` as an optional HTTPS PayPal, Cash App, or other
+  owner-controlled contribution page. Leave it blank to hide the support button;
+  never put payment credentials or an OpenAI billing URL in this value
 - `MAX_DAEDALUS_BUILD_MB`, `MAX_DAEDALUS_REFERENCE_MB`,
   `MAX_DAEDALUS_REFERENCES`, and `MAX_DAEDALUS_OPERATIONS` for the 40 MB build,
   8 MB/image, four-image, and 400-operation defaults

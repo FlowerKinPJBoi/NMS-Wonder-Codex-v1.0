@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="styles.css?v=1.29.0">
   <link rel="stylesheet" href="shared.css">
   <link rel="stylesheet" href="corpus.css?v=1.29.0">
-  <link rel="stylesheet" href="guided.css?v=1.31.4">
+  <link rel="stylesheet" href="guided.css?v=1.31.5">
 </head>
 <body>
   <div class="space-backdrop" aria-hidden="true"></div>
@@ -21,7 +21,7 @@
       <div>
         <p class="eyebrow">Wonder Codex Workshop</p>
         <h1>Daedalus Builder</h1>
-        <p class="subtitle">Builder core <span class="version">v0.9.6</span> · Builder/Writer <span class="version">v1.31.4</span></p>
+        <p class="subtitle">Builder core <span class="version">v0.9.7</span> · Builder/Writer <span class="version">v1.31.5</span></p>
       </div>
     </div>
     <div class="hosted-actions"><a href="/admin/apps/">← Admin apps</a><div class="safety-pill"><span></span> Private builds · human-reviewed learning</div></div>
@@ -35,7 +35,7 @@
           <h2>Describe a build. Refine it together. Take the result with you.</h2>
           <p>Start with a chat prompt, or optionally add an existing NMSBASE, prefab, Corvette, JSON file, and reference pictures.</p>
         </div>
-        <span class="guided-status" id="guidedStatus"><span></span>Describe a build or add a file</span>
+        <div class="guided-heading-actions"><a class="guided-support" id="guidedSupport" target="_blank" rel="noopener noreferrer" hidden>Support Daedalus compute</a><span class="guided-status" id="guidedStatus"><span></span>Describe a build or add a file</span></div>
       </div>
 
       <div class="guided-layout">
@@ -50,6 +50,11 @@
           <form class="guided-composer" id="guidedComposer">
             <label for="guidedPrompt">What would you like Daedalus to do?</label>
             <textarea id="guidedPrompt" rows="4" placeholder="Build a sign that says &quot;NMS 10 YEARS!&quot; with a black backdrop and yellow lettering."></textarea>
+            <div class="guided-evidence-controls">
+              <label class="guided-chat-attach" for="guidedMessageImageInput">📎 Attach correction screenshot<input id="guidedMessageImageInput" type="file" multiple accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"></label>
+              <small id="guidedMessageEvidenceHint">Paste, drop, or attach screenshots of the incorrect result. They are sent with the next message only.</small>
+            </div>
+            <div class="guided-message-images" id="guidedMessageImages" hidden></div>
             <div class="guided-composer-actions">
               <small>Press Ctrl/⌘ + Enter to send</small>
               <button class="primary-button small" id="guidedSend" type="submit" disabled>Send to Daedalus</button>
@@ -79,7 +84,8 @@
               <div><p class="eyebrow">Optional starting material</p><h3>Add an existing build</h3><p>Without a source, Daedalus starts a portable prefab from your prompt. Uploaded originals remain untouched in private, versioned working copies.</p></div>
               <label class="guided-file-button" for="guidedBuildInput">Optional: choose NMSBASE, prefab, Corvette, or JSON<input id="guidedBuildInput" type="file" accept=".nmsship,.nmsprefab,.nmsbase,.json,application/json"></label>
               <div class="guided-file-name" id="guidedBuildName">No source file — prompt-only build</div>
-              <label class="guided-file-button secondary" for="guidedReferenceInput">Add up to four reference pictures<input id="guidedReferenceInput" type="file" multiple accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"></label>
+              <label class="guided-file-button secondary" for="guidedReferenceInput">Add starting reference pictures<input id="guidedReferenceInput" type="file" multiple accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"></label>
+              <small class="guided-reference-help" id="guidedReferenceHelp">Starting references guide the first pass only. They are not reused automatically for corrections.</small>
               <div class="guided-reference-list" id="guidedReferenceList"></div>
             </article>
 
@@ -727,9 +733,9 @@
   <script src="base-workflow.js"></script>
   <script src="sign-generator.js"></script>
   <script src="app.js?v=1.29.0"></script>
-  <script src="learning.js?v=1.31.4"></script>
-  <script src="preview.js?v=1.31.4"></script>
-  <script src="shared.js?v=1.31.4"></script>
-  <script src="guided.js?v=1.31.4"></script>
+  <script src="learning.js?v=1.31.5"></script>
+  <script src="preview.js?v=1.31.5"></script>
+  <script src="shared.js?v=1.31.5"></script>
+  <script src="guided.js?v=1.31.5"></script>
 </body>
 </html>

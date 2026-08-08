@@ -1,5 +1,14 @@
 # Wonder Codex changelog
 
+## v1.31.5 — One-pass visual corrections and community compute support
+
+- Lets builders paste, drop, or attach incorrect-result screenshots directly beside a Daedalus chat message.
+- Sends correction screenshots only with the next pass, while starting references now guide Pass 1 only instead of silently accumulating across revisions.
+- Labels revision images as defect evidence for the planner and explicitly prevents distorted results from becoming the next target design.
+- Adds a configurable **Support Daedalus compute** HTTPS link for a PayPal, Cash App, or other owner-controlled contribution page without exposing OpenAI billing or credentials.
+- Keeps the support action hidden until `DAEDALUS_SUPPORT_URL` is configured and rejects insecure or credential-bearing URLs.
+- Fixes hidden preview-state overlays so the generated schematic replaces the empty-state message cleanly.
+
 ## v1.31.4 — Live Daedalus progress and build schematics
 
 - Adds an animated in-chat thinking indicator that follows durable build phases from workspace reservation through model generation and portable-file completion.

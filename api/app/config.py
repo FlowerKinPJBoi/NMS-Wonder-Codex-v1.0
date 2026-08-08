@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Wonder Codex API"
-    app_version: str = "1.31.4"
+    app_version: str = "1.31.5"
     environment: str = "production"
     database_url: str = ""
     allowed_origins: List[str] = Field(
@@ -78,6 +78,7 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     daedalus_model: str = "gpt-5.6"
     daedalus_reasoning_effort: str = "medium"
+    daedalus_support_url: str = ""
     daedalus_generation_timeout_seconds: int = 180
     max_daedalus_build_mb: int = 40
     max_daedalus_reference_mb: int = 8
