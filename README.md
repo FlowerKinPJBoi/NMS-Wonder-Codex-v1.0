@@ -1,9 +1,9 @@
-# Wonder Codex v1.31.0
+# Wonder Codex v1.31.1
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
 
-v1.31.0 moves Daedalus model planning onto durable OpenAI background responses. The API acknowledges a private build job before model generation finishes, the workshop polls its recorded UUID, and the validated NMS file is written only after the strict plan reaches `completed`. A gateway 504 can no longer orphan a build that the provider already accepted: the browser follows the preassigned job ID until the result is ready. v1.30.0's private operational ledger and downloadable diagnostics remain in place.
+v1.31.1 registers the private Daedalus job and session before source storage or prior-pass reads begin, closing the remaining window where a slow private-storage call could produce a 504 before polling had a job to find. v1.31.0's background model responses, strict writer, job polling, and safe diagnostics remain intact.
 
 ## Repository contents
 

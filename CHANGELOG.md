@@ -1,5 +1,12 @@
 # Wonder Codex changelog
 
+## v1.31.1 — Early Daedalus job registration
+
+- Registered prompt-only, uploaded-source, and revision jobs before private source storage or prior-pass artifact reads begin.
+- Made preparation phases visible through authenticated job polling instead of returning a misleading 404 while slow storage work is still underway.
+- Preserved safe terminal failure records when parsing, storage, retrieval, or provider submission fails after registration.
+- Kept prompts and retrieval snapshots temporary and discarded them whenever preparation completes unsuccessfully.
+
 ## v1.31.0 — Durable Daedalus generation
 
 - Replaced the single long-running Daedalus generation request with OpenAI Responses background mode and authenticated job polling.

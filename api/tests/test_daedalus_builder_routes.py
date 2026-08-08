@@ -107,6 +107,152 @@ def test_reference_upload_rejects_declared_image_with_wrong_signature():
         asyncio.run(daedalus._reference_bodies([upload], Settings(_env_file=None)))
 
 
+def test_initial_job_exists_before_private_source_storage_failure(monkeypatch):
+    configured = Settings(
+        _env_file=None,
+        openai_api_key="sk-test",
+        spaces_access_key="a",
+        spaces_secret_key="b",
+        spaces_region="nyc3",
+        spaces_bucket="private",
+        spaces_endpoint="https://example.invalid",
+    )
+    database = FakeSession()
+    observed = {}
+
+    def fail_storage(*args, **kwargs):
+        job = next(item for item in database.added if isinstance(item, DaedalusBuildJob))
+        observed["job_id"] = job.id
+        observed["status_during_storage"] = job.status
+        observed["phase_during_storage"] = job.phase
+        observed["already_committed"] = database.committed
+        raise HTTPException(status_code=502, detail="Private storage test failure.")
+
+    monkeypatch.setattr(daedalus, "get_settings", lambda: configured)
+    monkeypatch.setattr(daedalus, "_require_build_schema", lambda *args: None)
+    monkeypatch.setattr(daedalus, "_retrieve_for_build", lambda *args: {"corpus_version": 0, "items": []})
+    monkeypatch.setattr(daedalus, "store_build_artifact", fail_storage)
+
+    with pytest.raises(HTTPException, match="Private storage test failure"):
+        asyncio.run(daedalus.create_build_session(
+            request=build_request(),
+            job_id="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+            instruction="Build a portable test sign.",
+            source=None,
+            references=None,
+            operator=TRAINER,
+            session=database,
+        ))
+
+    build_job = next(item for item in database.added if isinstance(item, DaedalusBuildJob))
+    build_session = next(item for item in database.added if isinstance(item, DaedalusBuildSession))
+    assert observed == {
+        "job_id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "status_during_storage": "preparing",
+        "phase_during_storage": "source_storage",
+        "already_committed": True,
+    }
+    assert build_job.status == "failed"
+    assert build_job.instruction == ""
+    assert build_job.retrieval_snapshot == {}
+    assert build_session.status == "failed"
+
+
+def test_revision_job_exists_before_prior_pass_storage_read_failure(monkeypatch):
+    from app.models import DaedalusBuildPass
+
+    configured = Settings(
+        _env_file=None,
+        openai_api_key="sk-test",
+        spaces_access_key="a",
+        spaces_secret_key="b",
+        spaces_region="nyc3",
+        spaces_bucket="private",
+        spaces_endpoint="https://example.invalid",
+    )
+    raw = source_bytes()
+    build_session = DaedalusBuildSession(
+        id="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        actor="PJ",
+        status="active",
+        source_filename="Route Test.NMSBASE",
+        source_format="nmsbase",
+        source_object_key="private/source",
+        source_sha256=hashlib.sha256(raw).hexdigest(),
+        source_size_bytes=len(raw),
+        source_validation={"passed": True},
+        latest_version=1,
+    )
+    prior = DaedalusBuildPass(
+        id="cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        session_id=build_session.id,
+        version=1,
+        instruction="Initial pass.",
+        output_filename="Route-Test-Daedalus-Pass-1.nmsbase",
+        output_object_key="private/pass-1",
+        output_sha256=hashlib.sha256(raw).hexdigest(),
+        output_size_bytes=len(raw),
+        object_count=2,
+        distinct_object_ids=2,
+        operation_count=0,
+        corpus_version=0,
+        model_name="gpt-5.6",
+        provider_response_id="resp_previous",
+        plan={"summary": "Initial"},
+        validation={"passed": True},
+    )
+
+    class RevisionSession(FakeSession):
+        def __init__(self):
+            super().__init__()
+            self.scalar_calls = 0
+
+        def scalar(self, statement):
+            self.scalar_calls += 1
+            return None if self.scalar_calls == 1 else prior
+
+        def scalars(self, statement):
+            return SimpleNamespace(all=lambda: [prior])
+
+    database = RevisionSession()
+    database.add(build_session)
+    database.add(prior)
+    observed = {}
+
+    def fail_read(*args, **kwargs):
+        job = next(item for item in database.added if isinstance(item, DaedalusBuildJob))
+        observed["job_id"] = job.id
+        observed["phase"] = job.phase
+        observed["committed"] = database.committed
+        raise HTTPException(status_code=502, detail="Prior pass storage test failure.")
+
+    monkeypatch.setattr(daedalus, "get_settings", lambda: configured)
+    monkeypatch.setattr(daedalus, "_require_build_schema", lambda *args: None)
+    monkeypatch.setattr(daedalus, "read_build_artifact", fail_read)
+    request = Request({"type": "http", "method": "POST", "path": f"/admin/apps/daedalus/build-sessions/{build_session.id}/passes", "headers": []})
+
+    with pytest.raises(HTTPException, match="Prior pass storage test failure"):
+        asyncio.run(daedalus.create_build_pass(
+            request=request,
+            session_id=build_session.id,
+            job_id="dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+            instruction="Revise the table.",
+            references=None,
+            operator=TRAINER,
+            session=database,
+        ))
+
+    build_job = next(item for item in database.added if isinstance(item, DaedalusBuildJob))
+    assert observed == {
+        "job_id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+        "phase": "artifact_read",
+        "committed": True,
+    }
+    assert build_job.status == "failed"
+    assert build_job.instruction == ""
+    assert build_session.status == "active"
+
+
 def test_create_build_session_accepts_prompt_without_source_or_references(monkeypatch):
     configured = Settings(
         _env_file=None,
