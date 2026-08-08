@@ -449,6 +449,7 @@ def reserve_build_job(
                 raise HTTPException(status_code=409, detail="This Daedalus job ID belongs to a revision request.")
         return _job_response(existing_job)
 
+    new_build_session = not bool(reservation.session_id)
     if reservation.session_id:
         build_session = _owned_build_session(reservation.session_id, operator, session)
         active_job = session.scalar(select(DaedalusBuildJob).where(
@@ -484,8 +485,12 @@ def reserve_build_job(
         retrieval_snapshot={},
         reference_count=0,
     )
-    session.add(build_job)
     try:
+        if new_build_session:
+            # No ORM relationship joins these models, so SQLAlchemy cannot infer
+            # that the parent must be inserted before the job's foreign key.
+            session.flush()
+        session.add(build_job)
         session.commit()
     except IntegrityError as exc:
         session.rollback()
@@ -592,8 +597,11 @@ async def create_build_session(
             reference_count=0,
         )
         session.add(build_session)
-        session.add(build_job)
         try:
+            # Persist the parent before adding its foreign-key child. Without an
+            # ORM relationship SQLAlchemy otherwise emits the job INSERT first.
+            session.flush()
+            session.add(build_job)
             session.commit()
         except SQLAlchemyError as exc:
             session.rollback()

@@ -1,5 +1,12 @@
 # Wonder Codex changelog
 
+## v1.31.3 — Daedalus parent-first reservation insert
+
+- Explicitly flushes a new private build-session row before adding its foreign-key build job.
+- Corrects PostgreSQL reservation failures caused by SQLAlchemy emitting the job INSERT before the parent session when no ORM relationship supplies insert ordering.
+- Applies the same parent-first ordering to both the v1.31.2 reservation handshake and backward-compatible one-request clients.
+- Adds regression coverage that refuses to add a job until the parent session has been flushed.
+
 ## v1.31.2 — Durable Daedalus request handshake
 
 - Added a lightweight authenticated reservation request that commits each browser-generated job UUID before the multipart build request begins.

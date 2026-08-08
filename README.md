@@ -1,9 +1,9 @@
-# Wonder Codex v1.31.2
+# Wonder Codex v1.31.3
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
 
-v1.31.2 separates Daedalus job reservation from the multipart build request. The browser now receives an acknowledgement only after the job UUID and private session are committed, then submits or safely retries the build payload while polling the same durable record. v1.31.1's early preparation commits, strict writer, background model responses, and safe diagnostics remain intact.
+v1.31.3 makes the v1.31.2 reservation handshake PostgreSQL-safe by explicitly flushing each new private session before inserting its foreign-key job. The browser still receives an acknowledgement only after both records commit, then submits or safely retries the build payload while polling the same durable job. The strict writer, background model responses, and safe diagnostics remain intact.
 
 ## Repository contents
 
