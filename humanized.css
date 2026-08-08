@@ -1,0 +1,522 @@
+/* Wonder Codex v1.28.0 — Explorer's field guide + galactic museum */
+
+:root {
+  --bg: #070b14;
+  --bg-2: #0a1220;
+  --panel: rgba(13, 24, 40, 0.9);
+  --panel-solid: #101d30;
+  --panel-soft: rgba(17, 32, 52, 0.76);
+  --text: #f3efe6;
+  --muted: #aebac8;
+  --line: rgba(126, 220, 224, 0.22);
+  --cyan: #79dfe0;
+  --cyan-2: #c4f4f1;
+  --violet: #a78bfa;
+  --pink: #f0a6c5;
+  --green: #79d7bd;
+  /* Legacy variable retained for older components; intentionally moonstone, not gold. */
+  --gold: #8fd7e8;
+  --danger: #ff8ca7;
+  --radius: 7px;
+  --shadow: 0 24px 65px rgba(0, 0, 0, 0.34);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body,
+button,
+input,
+textarea,
+select {
+  font-family: "Source Sans 3", "Segoe UI Variable", "Segoe UI", sans-serif;
+}
+
+h1,
+h2,
+h3,
+.brand-copy strong,
+.hero h1,
+.page-hero h1,
+.map-hero h1,
+.contributors-hero h1,
+.feedback-hero h1,
+.account-hero h1,
+.stellar-hero h1,
+.import-hero h1 {
+  font-family: Bitter, Rockwell, "Roboto Slab", Georgia, serif;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+}
+
+.eyebrow,
+.kicker,
+.status-pill,
+.project-status,
+.badge,
+.type-chip,
+.status-chip,
+.wc-id,
+.console-topline,
+.site-header nav,
+.button,
+.mini-link,
+.text-button,
+label,
+legend,
+th {
+  font-family: "Barlow Condensed", "Arial Narrow", "News Gothic MT", sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.035em;
+}
+
+.cosmos {
+  background:
+    radial-gradient(circle at 15% 4%, rgba(46, 135, 154, 0.2), transparent 32rem),
+    radial-gradient(circle at 86% 28%, rgba(103, 74, 175, 0.15), transparent 38rem),
+    linear-gradient(155deg, #08101b, #070b14 58%, #0a0d19);
+}
+
+.aurora {
+  filter: blur(125px);
+  opacity: 0.16;
+}
+
+.aurora-one {
+  background: #2c9eac;
+}
+
+.aurora-two {
+  background: #7b61c8;
+}
+
+.stars-a {
+  opacity: 0.46;
+  background-image:
+    radial-gradient(circle, rgba(227, 255, 255, 0.9) 0 1px, transparent 1.35px),
+    radial-gradient(circle, rgba(153, 232, 235, 0.62) 0 1.4px, transparent 1.8px),
+    radial-gradient(circle, rgba(192, 169, 255, 0.52) 0 0.8px, transparent 1.2px);
+  background-position: 3px 19px, 61px 93px, 117px 42px;
+  background-size: 137px 173px, 211px 257px, 293px 199px;
+}
+
+.stars-b {
+  opacity: 0.22;
+  background-size: 181px 223px;
+  transform: translate(37px, 23px) rotate(0.2deg);
+}
+
+.site-header {
+  width: min(calc(100% - 40px), 1280px);
+  min-height: 76px;
+  border-bottom-color: rgba(121, 223, 224, 0.25);
+  background: linear-gradient(180deg, rgba(7, 11, 20, 0.98), rgba(7, 11, 20, 0.86));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+}
+
+.brand-mark {
+  border-radius: 2px;
+  border-color: rgba(121, 223, 224, 0.56);
+  background: rgba(121, 223, 224, 0.055);
+  color: var(--cyan);
+}
+
+.brand-copy strong {
+  color: var(--text);
+  font-size: 1.02rem;
+  letter-spacing: -0.015em;
+}
+
+.brand-copy small {
+  color: var(--cyan);
+  font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+  letter-spacing: 0.045em;
+}
+
+.site-header nav {
+  gap: clamp(0.42rem, 0.9vw, 1rem);
+}
+
+.site-header nav a {
+  position: relative;
+  padding: 0.42rem 0.08rem;
+  color: #d7dce4;
+  font-size: 0.91rem;
+  letter-spacing: 0.025em;
+}
+
+.site-header nav a:not(.nav-cta):not(.nav-discord)::after {
+  content: "";
+  position: absolute;
+  right: 50%;
+  bottom: 0.06rem;
+  left: 50%;
+  height: 1px;
+  background: var(--cyan);
+  transition: 160ms ease;
+}
+
+.site-header nav a:hover::after,
+.site-header nav a[aria-current]::after {
+  right: 0;
+  left: 0;
+}
+
+.site-header nav .nav-cta,
+.site-header nav .nav-discord {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.38rem 0.67rem;
+  border-radius: 3px;
+}
+
+.site-header nav .nav-cta {
+  border: 1px solid rgba(121, 223, 224, 0.5);
+  background: rgba(121, 223, 224, 0.08);
+  color: var(--cyan-2);
+}
+
+.site-header nav .nav-discord {
+  gap: 0.38rem;
+  border: 1px solid rgba(135, 147, 255, 0.68);
+  background: rgba(88, 101, 242, 0.16);
+  color: #e7e9ff;
+  white-space: nowrap;
+}
+
+.site-header nav .nav-discord::before {
+  content: "";
+  width: 0.46rem;
+  height: 0.46rem;
+  border-radius: 50%;
+  background: #8793ff;
+  box-shadow: 0 0 0 3px rgba(135, 147, 255, 0.12), 0 0 13px rgba(135, 147, 255, 0.48);
+}
+
+.site-header nav .nav-discord:hover,
+.site-header nav .nav-discord:focus-visible {
+  border-color: #aeb6ff;
+  background: rgba(88, 101, 242, 0.3);
+  color: #fff;
+}
+
+.hero {
+  grid-template-columns: minmax(0, 1.22fr) minmax(360px, 0.78fr);
+  gap: clamp(2.2rem, 5vw, 5rem);
+}
+
+.hero h1,
+.page-hero h1,
+.map-hero h1,
+.contributors-hero h1,
+.feedback-hero h1,
+.account-hero h1,
+.stellar-hero h1,
+.import-hero h1 {
+  color: var(--text);
+  line-height: 1.04;
+}
+
+.hero h1 span,
+.page-hero h1 span,
+.map-hero h1 span,
+.contributors-hero h1 span,
+.feedback-hero h1 span,
+.account-hero h1 span,
+.stellar-hero h1 span,
+.import-hero h1 span {
+  color: var(--cyan);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+
+.eyebrow,
+.kicker {
+  color: #9de5e3;
+}
+
+.status-pill {
+  border-radius: 3px;
+  border-color: rgba(121, 223, 224, 0.34);
+  background: rgba(121, 223, 224, 0.07);
+}
+
+.pulse {
+  background: var(--green);
+  box-shadow: 0 0 0 4px rgba(121, 215, 189, 0.1), 0 0 14px rgba(121, 215, 189, 0.65);
+}
+
+.button {
+  border-radius: 3px;
+  box-shadow: none;
+  letter-spacing: 0.02em;
+}
+
+.button.primary,
+.mini-link.primary,
+.analyze,
+.submit-button {
+  border-color: var(--cyan);
+  background: var(--cyan-2);
+  color: #07131f;
+}
+
+.button.primary:hover,
+.mini-link.primary:hover,
+.analyze:hover,
+.submit-button:hover {
+  background: #e0fbf8;
+  box-shadow: 0 8px 24px rgba(94, 205, 208, 0.16);
+}
+
+.button.secondary {
+  border-color: rgba(155, 169, 190, 0.34);
+  background: rgba(8, 18, 31, 0.54);
+}
+
+.mission-console,
+.project-card,
+.research-card,
+.process-card,
+.roadmap-panel,
+.community-panel,
+.panel,
+.surface,
+.catalog-toolbar,
+.wonder-card,
+.record-main,
+.record-side,
+.contribution-section,
+.forge-tool-dock,
+.evidence-boundary article,
+.forge-builder,
+.forge-card,
+.map-trust,
+.galactic-map,
+.map-inspector,
+.hotspot-panel,
+.map-method,
+.mission-card,
+.leaderboard-section,
+.feedback-hero aside,
+.feedback-progress,
+.feedback-surface,
+.question-block,
+.rating-block,
+.decoder-console,
+.randomizer-console,
+.decoder-route,
+.decoder-transit-panel,
+.stellar-boundary,
+.stellar-family,
+.stellar-findings,
+.stellar-toolbar,
+.account-card,
+.importer-panel,
+.upload-box,
+.data-disclosure-grid section,
+.submission-panel {
+  border-radius: 4px;
+  border-color: rgba(126, 220, 224, 0.2);
+  background-color: rgba(13, 24, 40, 0.9);
+  box-shadow: none;
+}
+
+.mission-console,
+.roadmap-panel,
+.community-panel,
+.catalog-toolbar,
+.feedback-surface,
+.decoder-console,
+.importer-panel {
+  border-left: 3px solid rgba(121, 223, 224, 0.68);
+}
+
+.project-card,
+.research-card,
+.process-card,
+.wonder-card,
+.forge-card,
+.mission-card,
+.stellar-family,
+.account-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.project-card::before,
+.research-card::before,
+.process-card::before,
+.wonder-card::before,
+.forge-card::before,
+.mission-card::before,
+.stellar-family::after,
+.account-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 52px;
+  height: 1px;
+  background: var(--cyan);
+  opacity: 0.8;
+}
+
+.project-card:hover,
+.wonder-card:hover,
+.forge-card:hover,
+.selection-card:hover,
+.mission-card:hover {
+  border-color: rgba(121, 223, 224, 0.48);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.project-status,
+.badge,
+.type-chip,
+.status-chip,
+.forge-class,
+.tier-badge,
+.star-chip,
+.environment-chip,
+.evidence-chip {
+  border-radius: 2px;
+}
+
+.project-status.live,
+.badge.confirmed,
+.status-chip.verified,
+.evidence-chip {
+  border-color: rgba(121, 215, 189, 0.38);
+  background: rgba(121, 215, 189, 0.1);
+  color: #a8ead7;
+}
+
+.project-status.active,
+.badge.active,
+.status-chip.pending,
+.forge-class.synthetic {
+  border-color: rgba(167, 139, 250, 0.4);
+  background: rgba(167, 139, 250, 0.1);
+  color: #c9b9ff;
+}
+
+.milestone-band {
+  border-color: rgba(121, 223, 224, 0.16);
+  background: rgba(14, 27, 44, 0.72);
+}
+
+.section-heading {
+  border-bottom: 1px solid rgba(126, 220, 224, 0.16);
+  padding-bottom: 1.15rem;
+}
+
+.project-grid > :nth-child(3n + 2),
+.research-grid > :nth-child(3n + 2) {
+  margin-top: 8px;
+}
+
+.console-grid div,
+.type-meter div,
+.roadmap-item,
+.data-item,
+.location-facts div,
+.selection-card,
+.leader-row,
+.review-summary div,
+.decoder-facts div,
+.stellar-stats div,
+.stat,
+.finder-file {
+  border-radius: 2px;
+}
+
+input,
+textarea,
+select,
+.catalog-toolbar input,
+.catalog-toolbar select,
+.field input,
+.field select,
+.field textarea,
+.forge-toolbar input,
+.forge-toolbar select,
+.map-toolbar input,
+.map-toolbar select,
+.stellar-toolbar input {
+  border-radius: 3px;
+  border-color: rgba(139, 164, 190, 0.28);
+  background: rgba(6, 14, 25, 0.72);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: rgba(121, 223, 224, 0.72) !important;
+  box-shadow: 0 0 0 3px rgba(121, 223, 224, 0.09) !important;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #b9f4ef;
+  outline-offset: 3px;
+}
+
+footer {
+  border-top-color: rgba(121, 223, 224, 0.2);
+  background: rgba(5, 9, 17, 0.84);
+}
+
+@media (max-width: 1160px) {
+  .site-header nav {
+    gap: 0.52rem;
+  }
+
+  .site-header nav a {
+    font-size: 0.84rem;
+  }
+
+  .brand-copy small {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .brand-copy small {
+    display: block;
+  }
+
+  .site-header nav .nav-discord,
+  .site-header nav .nav-cta {
+    width: 100%;
+    margin-top: 0.2rem;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .project-grid > :nth-child(3n + 2),
+  .research-grid > :nth-child(3n + 2) {
+    margin-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header nav a::after,
+  .project-card,
+  .wonder-card,
+  .forge-card,
+  .selection-card,
+  .mission-card {
+    transition: none !important;
+  }
+}

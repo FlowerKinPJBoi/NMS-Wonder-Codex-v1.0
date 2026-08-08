@@ -1,7 +1,9 @@
-# Wonder Codex v1.27.0
+# Wonder Codex v1.28.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
+
+v1.28.0 gives the public Wonder Codex a more human-made explorer field-guide identity while preserving its galactic museum structure. Bitter, Source Sans 3, and Barlow Condensed replace the earlier generic interface pairing; moonstone cyan, amethyst, sea-glass blue, and ivory replace amber/gold accents. Every public header now also links directly to the Wonder Codex Discord. No catalog, Forge, map, contribution, Passport, evidence, or review behavior changes in this release.
 
 ## Repository contents
 
