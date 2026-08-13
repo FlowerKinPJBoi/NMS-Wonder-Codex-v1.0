@@ -1,7 +1,9 @@
-# Wonder Codex v1.31.5
+# Wonder Codex v1.32.0
 
 Production source for the public Wonder Codex website and API at
 `wondercodex.com`.
+
+v1.32.0 introduces the first Pegasus Live dispatch path. Admin and Tester Passports with explicit bot-connect consent can request a server-validated catalog route; a dedicated WonderCodex worker claims short-lived jobs through a separate secret, reports auditable progress, and never receives private friend-code data until it owns a valid lease.
 
 v1.31.5 makes visual corrections intentional and temporary. Builders can paste, drop, or attach screenshots of an incorrect result beside the next chat message; Daedalus treats those images as defect evidence for that pass only, while optional starting references remain limited to Pass 1. Deployments may also expose an owner-controlled HTTPS contribution page through `DAEDALUS_SUPPORT_URL` without sharing OpenAI billing access or credentials.
 

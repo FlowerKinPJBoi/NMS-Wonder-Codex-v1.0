@@ -39,6 +39,46 @@ class UserAccessUpdate(BaseModel):
     account_status: Literal["active", "suspended"] = "active"
 
 
+class PegasusDispatchCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    discovery_id: int = Field(ge=1)
+
+
+class PegasusWorkerClaim(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    worker_id: str = Field(min_length=2, max_length=120)
+
+    @field_validator("worker_id")
+    @classmethod
+    def clean_worker_id(cls, value: str) -> str:
+        return " ".join(value.replace("\x00", "").strip().split())
+
+
+class PegasusWorkerUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    worker_id: str = Field(min_length=2, max_length=120)
+    status: Literal[
+        "claimed",
+        "preparing",
+        "waiting_for_game_exit",
+        "save_written",
+        "launching",
+        "boarding",
+        "completed",
+        "failed",
+    ]
+    phase: str = Field(default="", max_length=60)
+    message: str = Field(default="", max_length=2000)
+
+    @field_validator("worker_id", "phase", "message")
+    @classmethod
+    def clean_worker_text(cls, value: str) -> str:
+        return " ".join(value.replace("\x00", "").strip().split())
+
+
 class SubmissionPayload(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
