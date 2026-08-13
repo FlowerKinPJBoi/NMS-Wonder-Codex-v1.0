@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     )
 
     app_name: str = "Wonder Codex API"
-    app_version: str = "1.32.0"
+    app_version: str = "1.32.1"
     environment: str = "production"
     database_url: str = ""
     allowed_origins: List[str] = Field(
@@ -61,6 +61,7 @@ class Settings(BaseSettings):
     auth_jwt_secret: str = ""
     profile_encryption_key: str = ""
     pegasus_worker_api_key: str = ""
+    pegasus_nms_friend_code: str = ""
     pegasus_dispatch_ttl_minutes: int = 30
     pegasus_active_dispatch_ttl_minutes: int = 180
     pegasus_worker_lease_minutes: int = 5
