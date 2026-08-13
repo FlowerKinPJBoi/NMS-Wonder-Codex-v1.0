@@ -5,6 +5,7 @@ from typing import Any
 
 from fastapi import HTTPException
 
+from ..config import get_settings
 from ..models import Discovery, PegasusDispatch, UserProfile
 from .accounts import decrypt_friend_code
 from .catalog import display_name, serialize_discovery, wc_id
@@ -76,6 +77,15 @@ def serialize_dispatch(dispatch: PegasusDispatch) -> dict[str, Any]:
             "universal_address": dispatch.universal_address,
         },
     }
+
+
+def serialize_requester_dispatch(dispatch: PegasusDispatch) -> dict[str, Any]:
+    payload = serialize_dispatch(dispatch)
+    payload["host"] = {
+        "name": "Pegasus",
+        "nms_friend_code": get_settings().pegasus_nms_friend_code.strip().upper(),
+    }
+    return payload
 
 
 def serialize_worker_dispatch(dispatch: PegasusDispatch, profile: UserProfile) -> dict[str, Any]:
