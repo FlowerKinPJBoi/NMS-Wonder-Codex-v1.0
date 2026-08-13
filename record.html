@@ -52,6 +52,12 @@
             <button id="pegasusTransit" class="button warp-button" type="button" disabled>PEGASUS LIVE — Checking Passport access…</button>
           </div>
           <div id="pegasusStatus" class="notice" style="margin-top:16px"><strong>Pegasus Live private alpha.</strong><br>Admin and Tester Passports can request the dedicated Steam host after adding an NMS friend code and granting bot-connect consent.</div>
+          <div id="pegasusFriendPanel" class="notice success" style="margin-top:16px" hidden>
+            <strong>Add Pegasus in No Man's Sky</strong><br>
+            Open Network → View No Man's Sky Friends List → Add No Man's Sky Friend, then enter:
+            <code id="pegasusFriendCode" class="pegasus-friend-code"></code>
+            <button id="copyPegasusFriendCode" class="text-button" type="button">Copy Pegasus friend code</button>
+          </div>
           <div class="notice" style="margin-top:16px"><strong>Travel responsibly.</strong><br>A route derived from saved discovery data may appear before that individual record has been revisited. Pegasus validates the catalog route again on the server before dispatch.</div>
         </aside>
       </div>
@@ -68,6 +74,6 @@
   <script src="locations.js?v=1.6.0"></script>
   <script src="archetypes.js?v=1.21.0"></script>
   <script src="expedition.js?v=1.24.0"></script>
-  <script src="record.js?v=1.32.0"></script>
+  <script src="record.js?v=1.32.1"></script>
 </body>
 </html>

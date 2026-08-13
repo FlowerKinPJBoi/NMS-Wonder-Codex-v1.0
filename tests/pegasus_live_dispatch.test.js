@@ -14,6 +14,8 @@ test('record page uses Passport identity for Pegasus Live', () => {
   assert.match(recordHtml, /account-session\.js/);
   assert.match(recordJs, /WCAccount\.session\.access_token/);
   assert.match(recordJs, /\/api\/pegasus\/dispatches/);
+  assert.match(recordJs, /pegasusFriendCode/);
+  assert.match(recordHtml, /Add Pegasus in No Man's Sky/);
   assert.doesNotMatch(recordJs, /wc_admin_key/);
   assert.doesNotMatch(recordJs, /\.wctransit/);
 });

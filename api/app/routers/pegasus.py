@@ -18,6 +18,7 @@ from ..services.pegasus import (
     destination_for,
     require_live_requester,
     serialize_dispatch,
+    serialize_requester_dispatch,
     serialize_worker_dispatch,
 )
 from ..services.security import require_pegasus_worker_key
@@ -74,7 +75,7 @@ def create_dispatch(
     )
     if existing:
         session.commit()
-        return {"dispatch": serialize_dispatch(existing), "reused": True}
+        return {"dispatch": serialize_requester_dispatch(existing), "reused": True}
 
     settings = get_settings()
     dispatch = PegasusDispatch(
@@ -103,7 +104,7 @@ def create_dispatch(
     ))
     session.commit()
     session.refresh(dispatch)
-    return {"dispatch": serialize_dispatch(dispatch), "reused": False}
+    return {"dispatch": serialize_requester_dispatch(dispatch), "reused": False}
 
 
 @router.get("/dispatches/active")
@@ -124,7 +125,7 @@ def active_dispatch(
         .order_by(PegasusDispatch.created_at.desc())
     )
     session.commit()
-    return {"dispatch": serialize_dispatch(dispatch) if dispatch else None}
+    return {"dispatch": serialize_requester_dispatch(dispatch) if dispatch else None}
 
 
 @router.get("/dispatches/{dispatch_id}")
@@ -139,7 +140,7 @@ def dispatch_status(
     dispatch = _requester_dispatch(session, dispatch_id, profile)
     session.commit()
     session.refresh(dispatch)
-    return {"dispatch": serialize_dispatch(dispatch)}
+    return {"dispatch": serialize_requester_dispatch(dispatch)}
 
 
 @router.post("/dispatches/{dispatch_id}/cancel")
@@ -151,7 +152,7 @@ def cancel_dispatch(
     profile = require_live_requester(profile_for_identity(session, identity))
     dispatch = _requester_dispatch(session, dispatch_id, profile)
     if dispatch.status in PEGASUS_TERMINAL_STATUSES:
-        return {"dispatch": serialize_dispatch(dispatch)}
+        return {"dispatch": serialize_requester_dispatch(dispatch)}
     if dispatch.status != "queued":
         raise HTTPException(status_code=409, detail="Pegasus has already claimed this departure and cannot cancel it safely.")
     dispatch.status = "cancelled"
@@ -167,7 +168,7 @@ def cancel_dispatch(
     ))
     session.commit()
     session.refresh(dispatch)
-    return {"dispatch": serialize_dispatch(dispatch)}
+    return {"dispatch": serialize_requester_dispatch(dispatch)}
 
 
 @router.post("/worker/claim")

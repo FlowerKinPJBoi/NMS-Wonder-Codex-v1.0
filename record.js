@@ -40,6 +40,18 @@
     );
   }
 
+  function renderPegasusHost(host) {
+    const panel = $('#pegasusFriendPanel');
+    const code = String(host?.nms_friend_code || '').trim();
+    if (!code) {
+      panel.hidden = true;
+      $('#pegasusFriendCode').textContent = '';
+      return;
+    }
+    $('#pegasusFriendCode').textContent = code;
+    panel.hidden = false;
+  }
+
   function dispatchLabel(status) {
     return ({
       queued: 'Route queued',
@@ -58,6 +70,7 @@
 
   function renderPegasusDispatch(dispatch) {
     pegasusDispatch = dispatch;
+    renderPegasusHost(dispatch.host);
     const button = $('#pegasusTransit');
     const terminal = ['completed', 'failed', 'cancelled', 'expired'].includes(dispatch.status);
     button.disabled = !terminal;
@@ -392,6 +405,12 @@
   $('#copyMessage').addEventListener('click', async () => { if (record?.message_id) { await navigator.clipboard.writeText(record.message_id); toast('Wonder Projector Message ID copied.'); } });
   $('#copyGlyphs').addEventListener('click', async () => { if (record?.portal_glyphs) { await WCGlyphs.copy(record.portal_glyphs); toast('Portal glyph code copied.'); } });
   $('#pegasusTransit').addEventListener('click', requestPegasusTransit);
+  $('#copyPegasusFriendCode').addEventListener('click', async () => {
+    const code = $('#pegasusFriendCode').textContent.trim();
+    if (!code) return;
+    await navigator.clipboard.writeText(code);
+    toast('Pegasus friend code copied.');
+  });
   window.addEventListener('wc-account-change', () => {
     if (record && !pegasusDispatch) configurePegasusTransit(record).catch(() => {});
   });

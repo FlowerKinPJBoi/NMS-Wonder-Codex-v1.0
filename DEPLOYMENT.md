@@ -59,6 +59,8 @@ variables. Never commit real values. The service currently recognizes:
 - `PEGASUS_WORKER_API_KEY`, a dedicated long random secret used only by the
   WonderCodex Pegasus background worker. Do not reuse an administrator or
   tester credential.
+- `PEGASUS_NMS_FRIEND_CODE`, the dedicated host's public in-game friend code,
+  shown only inside authenticated Admin/Tester dispatch responses.
 - `PEGASUS_DISPATCH_TTL_MINUTES` (default `30`),
   `PEGASUS_ACTIVE_DISPATCH_TTL_MINUTES` (default `180`), and
   `PEGASUS_WORKER_LEASE_MINUTES` (default `5`) when private-alpha operations

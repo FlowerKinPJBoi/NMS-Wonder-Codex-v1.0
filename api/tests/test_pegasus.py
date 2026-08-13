@@ -4,9 +4,9 @@ import pytest
 from fastapi import HTTPException
 
 from app.config import get_settings
-from app.models import Discovery, UserProfile
+from app.models import Discovery, PegasusDispatch, UserProfile
 from app.schemas import PegasusDispatchCreate, PegasusWorkerClaim, PegasusWorkerUpdate
-from app.services.pegasus import destination_for, require_live_requester
+from app.services.pegasus import destination_for, require_live_requester, serialize_dispatch, serialize_requester_dispatch
 from app.services.security import require_pegasus_worker_key
 
 
@@ -95,3 +95,28 @@ def test_pegasus_request_and_worker_payloads_are_bounded():
     )
     assert update.status == "boarding"
     assert update.phase == "session open"
+
+
+def test_requester_dispatch_includes_pegasus_friend_code_only_in_requester_payload(monkeypatch):
+    monkeypatch.setenv("PEGASUS_NMS_FRIEND_CODE", "TEST-CODE-12345")
+    get_settings.cache_clear()
+    row = PegasusDispatch(
+        id="dispatch-1",
+        requester_profile_id="profile-1",
+        requester_name="PJ",
+        requester_tier="admin",
+        discovery_id=3084,
+        wc_record_id="WC-A-003084",
+        destination_name="Test route",
+        galaxy_number=170,
+        galaxy_name="Ezdaranit",
+        portal_glyphs="1081FC250959",
+        universal_address="0x1081A9FC250959",
+        status="queued",
+        phase="awaiting_worker",
+        status_message="Waiting for Pegasus.",
+        expires_at=datetime.now(timezone.utc),
+    )
+    assert "host" not in serialize_dispatch(row)
+    assert serialize_requester_dispatch(row)["host"]["nms_friend_code"] == "TEST-CODE-12345"
+    get_settings.cache_clear()
