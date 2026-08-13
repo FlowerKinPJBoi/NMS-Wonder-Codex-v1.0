@@ -5,6 +5,8 @@
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const number = (value) => Number(value || 0).toLocaleString();
   let record = null;
+  let pegasusDispatch = null;
+  let pegasusPollTimer = null;
 
   function toast(message) {
     const element = $('#toast');
@@ -23,37 +25,152 @@
     return `<div class="data-item"><span>${escapeHtml(label)}</span>${code ? `<code>${escapeHtml(safe)}</code>` : `<strong>${escapeHtml(safe)}</strong>`}</div>`;
   }
 
-  function configurePegasusTransit(data) {
-    const button = $('#pegasusTransit');
-    const authorized = Boolean(sessionStorage.getItem('wc_admin_key') && sessionStorage.getItem('wc_admin_actor'));
-    const ready = Boolean(data.has_travel_address && data.galaxy_number && data.portal_glyphs);
-    button.disabled = !(authorized && ready);
-    button.textContent = authorized
-      ? ready ? 'PEGASUS TRANSIT — Download admin route' : 'PEGASUS TRANSIT — Route unavailable'
-      : 'PEGASUS TRANSIT — Authorized operators only';
+  function pegasusStatus(message, heading = 'Pegasus Live private alpha.') {
+    const panel = $('#pegasusStatus');
+    panel.innerHTML = `<strong>${escapeHtml(heading)}</strong><br>${escapeHtml(message)}`;
   }
 
-  function downloadPegasusTicket() {
-    if (!record?.has_travel_address) return;
-    const ticket = {
-      format: 'wonder-codex-transit/0.1',
-      wc_record_id: record.wc_id,
-      galaxy_number: record.galaxy_number,
-      galaxy_name: record.galaxy_name || '',
-      portal_glyphs: record.portal_glyphs,
-      universal_address: record.ua_normalized ? `0x${record.ua_normalized}` : record.ua || '',
-      generated_utc: new Date().toISOString(),
-    };
-    const blob = new Blob([JSON.stringify(ticket, null, 2)], {type:'application/vnd.wonder-codex.transit+json'});
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${record.wc_id}.wctransit`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(link.href), 0);
-    window.WonderAnalytics?.track('transit_ticket_download', {entity_type:'discovery', entity_id:record.wc_id, download_type:'wctransit'});
-    toast('Pegasus Transit route downloaded.');
+  function pegasusProfileReady() {
+    const profile = window.WCAccount?.profile;
+    return Boolean(
+      window.WCAccount?.session?.access_token
+      && ['admin', 'tester'].includes(profile?.access_tier)
+      && profile?.has_nms_friend_code
+      && profile?.bot_connect_consent
+    );
+  }
+
+  function dispatchLabel(status) {
+    return ({
+      queued: 'Route queued',
+      claimed: 'Pegasus acknowledged the route',
+      preparing: 'Pegasus is preparing',
+      waiting_for_game_exit: 'Waiting for a safe game exit',
+      save_written: 'Destination written and verified',
+      launching: 'Pegasus is launching',
+      boarding: 'Pegasus is ready for boarding',
+      completed: 'Transit completed',
+      failed: 'Transit stopped safely',
+      cancelled: 'Transit cancelled',
+      expired: 'Request expired',
+    })[status] || 'Dispatch update';
+  }
+
+  function renderPegasusDispatch(dispatch) {
+    pegasusDispatch = dispatch;
+    const button = $('#pegasusTransit');
+    const terminal = ['completed', 'failed', 'cancelled', 'expired'].includes(dispatch.status);
+    button.disabled = !terminal;
+    button.textContent = terminal
+      ? 'REQUEST PEGASUS LIVE AGAIN'
+      : `PEGASUS LIVE — ${dispatchLabel(dispatch.status)}`;
+    pegasusStatus(
+      dispatch.message || 'Pegasus is processing this dispatch.',
+      `${dispatchLabel(dispatch.status)} · ${dispatch.route.wc_record_id}`,
+    );
+    if (!terminal) schedulePegasusPoll(dispatch.id);
+  }
+
+  function schedulePegasusPoll(dispatchId) {
+    clearTimeout(pegasusPollTimer);
+    pegasusPollTimer = setTimeout(() => pollPegasusDispatch(dispatchId), 4000);
+  }
+
+  async function pegasusResponse(response) {
+    let data = {};
+    try { data = await response.json(); } catch {}
+    if (!response.ok) throw new Error(data.detail || `Pegasus request failed (${response.status})`);
+    return data;
+  }
+
+  async function pollPegasusDispatch(dispatchId) {
+    const token = window.WCAccount?.session?.access_token;
+    if (!token || !dispatchId) return;
+    try {
+      const data = await pegasusResponse(await fetch(`/api/pegasus/dispatches/${dispatchId}`, {
+        headers: {Authorization: `Bearer ${token}`},
+      }));
+      renderPegasusDispatch(data.dispatch);
+    } catch (error) {
+      pegasusStatus(error.message, 'Pegasus status unavailable');
+      schedulePegasusPoll(dispatchId);
+    }
+  }
+
+  async function configurePegasusTransit(data) {
+    const button = $('#pegasusTransit');
+    const ready = Boolean(data.has_travel_address && data.galaxy_number && data.portal_glyphs);
+    const account = await window.WCAccount?.ready;
+    const profile = window.WCAccount?.profile;
+    if (!ready) {
+      button.disabled = true;
+      button.textContent = 'PEGASUS LIVE — Route unavailable';
+      pegasusStatus('This record needs a complete catalog travel address before Pegasus can depart.');
+      return;
+    }
+    if (!account?.enabled || !window.WCAccount?.session) {
+      button.disabled = true;
+      button.textContent = 'PEGASUS LIVE — Passport sign-in required';
+      pegasusStatus('Sign in through Passport to request this private-alpha service.');
+      return;
+    }
+    if (!['admin', 'tester'].includes(profile?.access_tier)) {
+      button.disabled = true;
+      button.textContent = 'PEGASUS LIVE — Admin or Tester only';
+      pegasusStatus('Your Passport is active, but Pegasus Live is currently restricted to Admin and Tester roles.');
+      return;
+    }
+    if (!profile.has_nms_friend_code || !profile.bot_connect_consent) {
+      button.disabled = true;
+      button.textContent = 'PEGASUS LIVE — Complete Passport setup';
+      pegasusStatus('Add your NMS friend code and enable bot-connect consent in Passport before requesting Pegasus.');
+      return;
+    }
+    try {
+      const active = await pegasusResponse(await fetch('/api/pegasus/dispatches/active', {
+        headers: {Authorization: `Bearer ${window.WCAccount.session.access_token}`},
+      }));
+      if (active.dispatch) {
+        renderPegasusDispatch(active.dispatch);
+        return;
+      }
+    } catch (error) {
+      pegasusStatus(error.message, 'Pegasus access check failed');
+      button.disabled = true;
+      return;
+    }
+    button.disabled = false;
+    button.textContent = 'REQUEST PEGASUS LIVE TRANSIT';
+    pegasusStatus(`Ready to dispatch Pegasus to ${data.wc_id}. The catalog route will be verified again before it enters the queue.`);
+  }
+
+  async function requestPegasusTransit() {
+    if (!record || !pegasusProfileReady()) return;
+    const button = $('#pegasusTransit');
+    button.disabled = true;
+    button.textContent = 'PEGASUS LIVE — Sending route…';
+    pegasusStatus('Submitting this route to the private dispatch queue.');
+    try {
+      const data = await pegasusResponse(await fetch('/api/pegasus/dispatches', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${window.WCAccount.session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({discovery_id: record.id}),
+      }));
+      renderPegasusDispatch(data.dispatch);
+      window.WonderAnalytics?.track('pegasus_live_requested', {
+        entity_type: 'discovery',
+        entity_id: record.wc_id,
+        requester_tier: window.WCAccount.profile.access_tier,
+      });
+      toast(data.reused ? 'Your active Pegasus dispatch is still in progress.' : 'Pegasus Live dispatch requested.');
+    } catch (error) {
+      pegasusStatus(error.message, 'Pegasus request stopped');
+      button.disabled = false;
+      button.textContent = 'REQUEST PEGASUS LIVE TRANSIT';
+    }
   }
 
   function renderWonderIdentity(data) {
@@ -242,7 +359,7 @@
       $('#copyGlyphs').hidden = true;
     }
     $('#evidenceLink').href = `contribute.html?mode=image&record=${data.id}`;
-    configurePegasusTransit(data);
+    configurePegasusTransit(data).catch((error) => pegasusStatus(error.message, 'Pegasus access check failed'));
     $('#recordLayout').hidden = false;
     window.WonderAnalytics?.track('record_view', {
       entity_type: 'discovery',
@@ -274,8 +391,13 @@
 
   $('#copyMessage').addEventListener('click', async () => { if (record?.message_id) { await navigator.clipboard.writeText(record.message_id); toast('Wonder Projector Message ID copied.'); } });
   $('#copyGlyphs').addEventListener('click', async () => { if (record?.portal_glyphs) { await WCGlyphs.copy(record.portal_glyphs); toast('Portal glyph code copied.'); } });
-  $('#pegasusTransit').addEventListener('click', downloadPegasusTicket);
-  Promise.resolve(window.WCExpedition?.load())
-    .catch(() => null)
+  $('#pegasusTransit').addEventListener('click', requestPegasusTransit);
+  window.addEventListener('wc-account-change', () => {
+    if (record && !pegasusDispatch) configurePegasusTransit(record).catch(() => {});
+  });
+  Promise.all([
+    Promise.resolve(window.WCExpedition?.load()).catch(() => null),
+    Promise.resolve(window.WCAccount?.ready).catch(() => null),
+  ])
     .finally(load);
 })();

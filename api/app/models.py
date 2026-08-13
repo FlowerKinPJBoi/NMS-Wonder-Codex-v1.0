@@ -165,6 +165,41 @@ class Discovery(Base):
     images: Mapped[list["ImageContribution"]] = relationship(cascade="all, delete-orphan")
 
 
+class PegasusDispatch(Base):
+    """A durable, role-gated request for the WonderCodex Pegasus host."""
+
+    __tablename__ = "pegasus_dispatches"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    claimed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    requester_profile_id: Mapped[str] = mapped_column(
+        ForeignKey("user_profiles.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    requester_name: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    requester_tier: Mapped[str] = mapped_column(String(30), nullable=False, index=True)
+    discovery_id: Mapped[int] = mapped_column(
+        ForeignKey("discoveries.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    wc_record_id: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
+    destination_name: Mapped[str] = mapped_column(String(200), default="", nullable=False)
+    galaxy_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    galaxy_name: Mapped[str] = mapped_column(String(120), default="", nullable=False)
+    portal_glyphs: Mapped[str] = mapped_column(String(12), nullable=False)
+    universal_address: Mapped[str] = mapped_column(String(32), nullable=False)
+    status: Mapped[str] = mapped_column(String(30), default="queued", nullable=False, index=True)
+    phase: Mapped[str] = mapped_column(String(60), default="awaiting_worker", nullable=False, index=True)
+    status_message: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    worker_id: Mapped[str] = mapped_column(String(120), default="", nullable=False, index=True)
+    attempt_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+
 class PetDiscoveryMatch(Base):
     __tablename__ = "pet_discovery_matches"
     __table_args__ = (UniqueConstraint("record_hash", name="uq_pet_match_hash"),)

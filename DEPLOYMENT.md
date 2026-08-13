@@ -56,6 +56,13 @@ variables. Never commit real values. The service currently recognizes:
   with HS256; asymmetric signing keys are discovered through the project's JWKS
 - `PROFILE_ENCRYPTION_KEY`, a Fernet key generated once with
   `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`
+- `PEGASUS_WORKER_API_KEY`, a dedicated long random secret used only by the
+  WonderCodex Pegasus background worker. Do not reuse an administrator or
+  tester credential.
+- `PEGASUS_DISPATCH_TTL_MINUTES` (default `30`),
+  `PEGASUS_ACTIVE_DISPATCH_TTL_MINUTES` (default `180`), and
+  `PEGASUS_WORKER_LEASE_MINUTES` (default `5`) when private-alpha operations
+  need different queue, active-trip, or heartbeat windows.
 
 Accounts remain safely disabled unless both Supabase values are present. Add
 Wonder Codex's production and local account-page callback URLs to the Supabase
@@ -128,6 +135,11 @@ After both components are healthy:
 16. Open `/account.html`, test Discord and email magic-link sign-in, save a
     contributor profile, and confirm `/contribute.html?mode=image` fills that
     contributor name and attribution preference.
+17. Set one Passport to Tester, add an NMS friend code, grant bot-connect
+    consent, and request Pegasus from a catalog record with a complete route.
+    Confirm a Regular Passport is refused by the API, the configured worker can
+    claim the job, and the requesting Passport receives phase updates. Remove
+    or expire the test dispatch before declaring the deployment healthy.
 17. In the admin console's **Users** lane, change the test account from Regular
     to Tester, refresh the account page, and confirm its tier updates. Return the
     test account to Regular afterward.

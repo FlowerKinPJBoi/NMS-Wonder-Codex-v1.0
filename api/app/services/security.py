@@ -100,6 +100,18 @@ def require_operator_key(
     return _authenticate(x_admin_key, x_admin_actor, include_testers=True)
 
 
+def require_pegasus_worker_key(
+    x_pegasus_worker_key: str | None = Header(default=None),
+) -> str:
+    """Authorize the single-purpose WonderCodex Pegasus background worker."""
+    expected = get_settings().pegasus_worker_api_key.strip()
+    if not expected:
+        raise HTTPException(status_code=503, detail="Pegasus Live worker access is not configured.")
+    if not x_pegasus_worker_key or not secrets.compare_digest(x_pegasus_worker_key, expected):
+        raise HTTPException(status_code=401, detail="Invalid Pegasus worker credentials.")
+    return "pegasus-worker"
+
+
 def require_owner_key(
     x_admin_key: str | None = Header(default=None),
     x_admin_actor: str | None = Header(default=None),

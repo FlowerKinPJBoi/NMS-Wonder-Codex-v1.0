@@ -13,7 +13,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .config import get_settings
 from .database import check_database, mark_database
-from .routers import accounts, admin, admin_apps, analytics, assets, captures, daedalus, feedback, galactic_map, health, images, new_discoveries, operators, public, submissions, verifications
+from .routers import accounts, admin, admin_apps, analytics, assets, captures, daedalus, feedback, galactic_map, health, images, new_discoveries, operators, pegasus, public, submissions, verifications
 from .services.error_incidents import record_request_error
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -59,7 +59,7 @@ app.add_middleware(
     allow_origins=settings.allowed_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Admin-Key", "X-Admin-Actor"],
+    allow_headers=["Authorization", "Content-Type", "X-Admin-Key", "X-Admin-Actor", "X-Pegasus-Worker-Key"],
 )
 
 
@@ -153,6 +153,7 @@ app.include_router(new_discoveries.router)
 app.include_router(captures.router)
 app.include_router(operators.router)
 app.include_router(accounts.router)
+app.include_router(pegasus.router)
 app.include_router(admin_apps.router)
 app.include_router(daedalus.router)
 app.include_router(assets.admin_router)
