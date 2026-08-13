@@ -59,9 +59,10 @@ variables. Never commit real values. The service currently recognizes:
 - `PEGASUS_WORKER_API_KEY`, a dedicated long random secret used only by the
   WonderCodex Pegasus background worker. Do not reuse an administrator or
   tester credential.
-- `PEGASUS_DISPATCH_TTL_MINUTES` (default `30`) and
+- `PEGASUS_DISPATCH_TTL_MINUTES` (default `30`),
+  `PEGASUS_ACTIVE_DISPATCH_TTL_MINUTES` (default `180`), and
   `PEGASUS_WORKER_LEASE_MINUTES` (default `5`) when private-alpha operations
-  need different expiry windows.
+  need different queue, active-trip, or heartbeat windows.
 
 Accounts remain safely disabled unless both Supabase values are present. Add
 Wonder Codex's production and local account-page callback URLs to the Supabase

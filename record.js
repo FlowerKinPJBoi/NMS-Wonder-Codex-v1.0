@@ -62,7 +62,7 @@
     const terminal = ['completed', 'failed', 'cancelled', 'expired'].includes(dispatch.status);
     button.disabled = !terminal;
     button.textContent = terminal
-      ? dispatch.status === 'completed' ? 'PEGASUS LIVE — Transit complete' : 'REQUEST PEGASUS LIVE TRANSIT'
+      ? 'REQUEST PEGASUS LIVE AGAIN'
       : `PEGASUS LIVE — ${dispatchLabel(dispatch.status)}`;
     pegasusStatus(
       dispatch.message || 'Pegasus is processing this dispatch.',

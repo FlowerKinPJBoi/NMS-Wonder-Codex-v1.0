@@ -152,8 +152,8 @@ def cancel_dispatch(
     dispatch = _requester_dispatch(session, dispatch_id, profile)
     if dispatch.status in PEGASUS_TERMINAL_STATUSES:
         return {"dispatch": serialize_dispatch(dispatch)}
-    if dispatch.status in {"save_written", "launching", "boarding"}:
-        raise HTTPException(status_code=409, detail="Pegasus has already committed this departure and cannot cancel it safely.")
+    if dispatch.status != "queued":
+        raise HTTPException(status_code=409, detail="Pegasus has already claimed this departure and cannot cancel it safely.")
     dispatch.status = "cancelled"
     dispatch.phase = "cancelled_by_requester"
     dispatch.status_message = "The requester cancelled this Pegasus dispatch."
@@ -208,7 +208,13 @@ def claim_dispatch(
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     profile = session.get(UserProfile, dispatch.requester_profile_id)
-    if not profile or profile.account_status != "active" or not profile.bot_connect_consent or not profile.nms_friend_code_encrypted:
+    if (
+        not profile
+        or profile.account_status != "active"
+        or profile.access_tier not in {"admin", "tester"}
+        or not profile.bot_connect_consent
+        or not profile.nms_friend_code_encrypted
+    ):
         dispatch.status = "failed"
         dispatch.phase = "requester_profile_unavailable"
         dispatch.status_message = "Pegasus could not verify the requester's active Passport connection settings."
@@ -222,6 +228,7 @@ def claim_dispatch(
     dispatch.status_message = "Pegasus claimed the route and is beginning preflight checks."
     dispatch.worker_id = claim.worker_id
     dispatch.claimed_at = now
+    dispatch.expires_at = now + timedelta(minutes=settings.pegasus_active_dispatch_ttl_minutes)
     dispatch.lease_expires_at = now + timedelta(minutes=settings.pegasus_worker_lease_minutes)
     dispatch.attempt_count += 1
     session.commit()
@@ -245,6 +252,8 @@ def update_dispatch(
         raise HTTPException(status_code=409, detail="This dispatch is leased to another Pegasus worker.")
 
     now = datetime.now(timezone.utc)
+    if dispatch.lease_expires_at and dispatch.lease_expires_at <= now:
+        raise HTTPException(status_code=409, detail="This Pegasus worker lease expired; the dispatch must be reclaimed.")
     dispatch.status = progress.status
     dispatch.phase = progress.phase or progress.status
     dispatch.status_message = progress.message or dispatch.status_message

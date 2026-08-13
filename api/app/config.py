@@ -62,6 +62,7 @@ class Settings(BaseSettings):
     profile_encryption_key: str = ""
     pegasus_worker_api_key: str = ""
     pegasus_dispatch_ttl_minutes: int = 30
+    pegasus_active_dispatch_ttl_minutes: int = 180
     pegasus_worker_lease_minutes: int = 5
 
     spaces_access_key: str = ""
