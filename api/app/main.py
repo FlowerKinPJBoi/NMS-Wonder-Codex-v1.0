@@ -15,6 +15,7 @@ from .config import get_settings
 from .database import check_database, mark_database
 from .routers import accounts, admin, admin_apps, analytics, assets, captures, daedalus, feedback, galactic_map, health, images, new_discoveries, operators, pegasus, public, submissions, verifications
 from .services.error_incidents import record_request_error
+from .routers import capture_auth
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -95,7 +96,11 @@ async def request_size_limit(request: Request, call_next):
         request_too_large = True
     if request_too_large:
         return JSONResponse(status_code=413, content={"detail": "Request body is too large."})
-    return await call_next(request)
+    response = await call_next(request)
+    if "/auth/capture/" in request_path:
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Pragma"] = "no-cache"
+    return response
 
 
 @app.exception_handler(Exception)
@@ -153,6 +158,7 @@ app.include_router(new_discoveries.router)
 app.include_router(captures.router)
 app.include_router(operators.router)
 app.include_router(accounts.router)
+app.include_router(capture_auth.router)
 app.include_router(pegasus.router)
 app.include_router(admin_apps.router)
 app.include_router(daedalus.router)

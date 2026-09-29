@@ -50,17 +50,21 @@
     get profile() { return profile; },
     async signInWithDiscord() {
       if (!client) throw new Error('Wonder Codex accounts are not enabled yet.');
-      return client.auth.signInWithOAuth({
+      const result = await client.auth.signInWithOAuth({
         provider: 'discord',
         options: {redirectTo: `${location.origin}/account.html`},
       });
+      if (result.error) throw result.error;
+      return result;
     },
     async sendMagicLink(email) {
       if (!client) throw new Error('Wonder Codex accounts are not enabled yet.');
-      return client.auth.signInWithOtp({
+      const result = await client.auth.signInWithOtp({
         email,
         options: {emailRedirectTo: `${location.origin}/account.html`},
       });
+      if (result.error) throw result.error;
+      return result;
     },
     async signOut() {
       if (client) await client.auth.signOut();

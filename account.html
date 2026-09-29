@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Sign in and manage your private Wonder Codex contributor profile.">
   <meta name="theme-color" content="#080b16">
+  <meta name="referrer" content="no-referrer">
   <title>Galactic Passport | Wonder Codex</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,6 +27,20 @@
 
     <section id="accountLoading" class="account-card"><p>Reading passport signal…</p></section>
     <section id="accountUnavailable" class="account-card" hidden><p class="kicker">FOUNDATION READY</p><h2>Account activation is awaiting configuration.</h2><p>The profile system is installed safely, but public sign-in remains off until its authentication keys are connected.</p></section>
+
+    <section id="captureConnect" class="account-card" hidden aria-labelledby="captureConnectTitle">
+      <p class="kicker">CAPTURE COMPANION</p><h2 id="captureConnectTitle">Connect your desktop app</h2>
+      <p>Use this only for Capture Companion you just opened on your own computer. Check that both screens show this code:</p>
+      <p><strong id="captureConnectCode"></strong></p>
+      <p id="captureConnectIdentity" aria-live="polite">Sign in below with your Galactic Passport to continue.</p>
+      <p>This connection lasts up to eight hours and allows you to send confirmed captures for owner review. You choose when to send each batch in the app.</p>
+      <label class="checkbox-row"><input id="captureCodeMatches" type="checkbox"><span>This code matches Capture Companion on my computer.</span></label>
+      <div class="profile-heading">
+        <button id="captureApprove" type="button" class="button primary" disabled>Connect Capture Companion</button>
+        <button id="captureDecline" type="button" class="button secondary" disabled>Decline</button>
+      </div>
+      <p id="captureConnectResult" role="status" aria-live="polite"></p>
+    </section>
 
     <section id="accountLogin" class="account-grid" hidden>
       <article class="account-card primary-card"><p class="kicker">RECOMMENDED</p><h2>Continue with Discord</h2><p>Connect the identity that will eventually work with Wonder Bot and the community server.</p><button id="discordLogin" class="button primary" type="button">Continue with Discord</button></article>
@@ -54,7 +69,8 @@
   <footer><div class="footer-main"><a class="brand footer-brand" href="index.html"><span class="brand-mark"><span>✦</span></span><span class="brand-copy"><strong>Wonder Codex</strong><small>Preserve the procedural universe</small></span></a><p>An interactive, user-contributed museum of the galaxies.</p></div><div class="footer-links"><a href="contribute.html">Contribute</a><a href="privacy.html">Privacy</a></div></footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js?v=1.18.1"></script>
-  <script src="account-session.js?v=1.19.0"></script>
+  <script src="account-session.js?v=1.32.2"></script>
+  <script src="capture-passport.js?v=1.0.0"></script>
   <script src="account.js?v=1.19.0"></script>
 </body>
 </html>

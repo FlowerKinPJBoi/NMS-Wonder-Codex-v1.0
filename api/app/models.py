@@ -35,6 +35,31 @@ class UserProfile(Base):
     friend_code_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class CaptureAppConnection(Base):
+    """Expiring browser approvals and capture-only sessions; secrets are hashed."""
+
+    __tablename__ = "capture_app_connections"
+
+    device_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_code_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    approval_expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+    profile_id: Mapped[str | None] = mapped_column(ForeignKey("user_profiles.id", ondelete="CASCADE"))
+    last_poll_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    token_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
+    token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class CaptureAuthRateWindow(Base):
+    """Shared, bounded authentication throttles across API workers."""
+
+    __tablename__ = "capture_auth_rate_windows"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    window: Mapped[int] = mapped_column(Integer, primary_key=True)
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
 class SubmissionBatch(Base):
     __tablename__ = "submission_batches"
 
@@ -312,6 +337,9 @@ class CaptureSubmission(Base):
     __tablename__ = "capture_submissions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    contributor_profile_id: Mapped[str | None] = mapped_column(
+        ForeignKey("user_profiles.id", ondelete="SET NULL"), index=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     status: Mapped[str] = mapped_column(String(30), default="pending", nullable=False, index=True)

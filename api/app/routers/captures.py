@@ -15,7 +15,7 @@ from ..models import CaptureSubmission
 from ..services.hashing import canonical_hash
 from ..services.rate_limit import client_ip
 from ..services.sanitization import clean_json, safe_text
-from ..services.security import OperatorSession, require_operator_key
+from ..services.capture_auth import CaptureSubmitter, require_capture_submitter
 from ..services.storage import prepare_upload, put_pending
 
 
@@ -72,7 +72,7 @@ async def submit_capture(
     permission_confirmed: bool = Form(...),
     public_attribution: bool = Form(default=True),
     image: UploadFile = File(...),
-    operator: OperatorSession = Depends(require_operator_key),
+    operator: CaptureSubmitter = Depends(require_capture_submitter),
     session: Session = Depends(get_session),
 ):
     if "capture:submit" not in operator.scopes:
@@ -118,10 +118,11 @@ async def submit_capture(
     row = CaptureSubmission(
         id=capture_id,
         contributor=operator.actor,
+        contributor_profile_id=operator.profile_id,
         save_name=" ".join(save_name.strip().split())[:200],
         platform=" ".join(platform.strip().split())[:40],
         client_version=client_version.strip()[:80],
-        public_attribution=public_attribution,
+        public_attribution=public_attribution and operator.public_attribution,
         discovery_type=normalized["DT"],
         ua=normalized["UA"],
         vp0=normalized["VP0"],
@@ -157,4 +158,3 @@ async def submit_capture(
         "contributor": operator.actor,
         "discovery_type": normalized["DT"],
     }
-

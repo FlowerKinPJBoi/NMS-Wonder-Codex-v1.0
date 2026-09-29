@@ -14,7 +14,7 @@ from .config import get_settings
 
 logger = logging.getLogger(__name__)
 
-REQUIRED_DATABASE_REVISION = "0016_pegasus_dispatches"
+REQUIRED_DATABASE_REVISION = "0017_capture_passport"
 
 
 class Base(DeclarativeBase):

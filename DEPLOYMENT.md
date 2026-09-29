@@ -174,3 +174,14 @@ Migration `0015_daedalus_build_jobs` adds durable private job state for OpenAI
 background responses. Daedalus now acknowledges generation before the model
 finishes and the browser polls the recorded job until the validated build file
 is ready. No additional worker service or environment variable is required.
+
+
+## Capture Companion Passport rollout (API v1.32.2)
+
+Deploy this revision to both components before distributing Capture Companion v0.3.8-alpha. The existing Supabase/Discord configuration and exact `/account.html` callback are reused; no new OAuth client, redirect URI, secret, or environment variable is required. Keep `RUN_MIGRATIONS_ON_START=true`; migration `0017_capture_passport` adds expiring connection records, shared rate counters, and a nullable private contributor-profile link on captures. The API health gate requires that revision.
+
+The desktop opens the existing Passport page with a short connection code. After normal sign-in, the user must compare the code and explicitly connect. Only active Tester/Admin profiles can connect. A name previously associated with a tester key is not an account grant: set the intended Passport's tier in the Users lane if needed. This preserves the private-alpha access policy without trusting Discord metadata for permissions.
+
+The desktop receives a random capture-only bearer session, not the user's Supabase access or refresh token. Only hashes are stored in the API database. Approval expires after ten minutes; app sessions after eight hours. Cancellation revokes even an exchange that races with the cancellation. Each submission checks the current profile tier/status and derives contributor name, stable private profile ID, and the maximum public-attribution preference from that profile. Sessions cannot access operator, admin, profile, Pegasus or other APIs. Older tester-key capture clients remain supported during the rollout; invalid Bearer credentials never fall back to a key.
+
+Before calling the rollout live, verify the health revision, then test **Sign in with Passport / Discord → matching code → Connect Capture Companion** with a real Tester Passport and explicitly send one confirmed pair. Confirm it is pending owner review and has the correct contributor. Also check Cancel, Decline, Sign out and a Regular Passport denial. Synthetic CI covers these contracts and PostgreSQL exchange races; it cannot authenticate a real Discord account or run NMS.
