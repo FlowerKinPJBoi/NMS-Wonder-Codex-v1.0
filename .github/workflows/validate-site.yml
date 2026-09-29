@@ -22,7 +22,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install API test dependencies
-        run: python -m pip install -r api/requirements.txt pytest
+        run: python -m pip install -r api/requirements.txt pytest httpx
 
       - name: Run API tests
         working-directory: api
@@ -48,3 +48,35 @@ jobs:
           node tests/expedition_gallery.test.js
           node tests/contribution_evidence.test.js
           node tests/feedback_questionnaire.test.js
+          node tests/capture_passport.test.js
+
+  capture-passport-postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: capture_passport_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/capture_passport_test
+      CAPTURE_AUTH_TEST_DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/capture_passport_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python -m pip install -r api/requirements.txt pytest httpx
+      - name: Apply migrations and exercise Passport sessions on PostgreSQL
+        working-directory: api
+        run: |
+          alembic upgrade head
+          python -m pytest -q tests/test_capture_passport.py
+          alembic downgrade 0016_pegasus_dispatches
+          alembic upgrade head

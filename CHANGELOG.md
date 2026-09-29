@@ -1,3 +1,10 @@
+## v1.32.2 — Capture Companion Passport connection
+
+- Add explicit browser-approved, expiring capture-only sessions through the existing Passport sign-in.
+- Preserve Tester/Admin access, account suspension checks, profile attribution/privacy and private owner review.
+- Add migration 0017, shared authentication throttles, one-time exchange, cancellation and revocation.
+- Keep v0.3.7 tester-key clients working during the coordinated v0.3.8 desktop rollout.
+
 # Wonder Codex changelog
 
 ## v1.31.5 — One-pass visual corrections and community compute support
