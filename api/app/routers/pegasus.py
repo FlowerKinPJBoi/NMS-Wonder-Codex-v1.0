@@ -9,13 +9,14 @@ from sqlalchemy.orm import Session
 
 from ..config import get_settings
 from ..database import get_session
-from ..models import AuditEvent, Discovery, PegasusDispatch, UserProfile
+from ..models import AuditEvent, Discovery, NMSProfile, PegasusDispatch, UserProfile
 from ..schemas import PegasusDispatchCreate, PegasusWorkerClaim, PegasusWorkerUpdate
-from ..services.accounts import AuthIdentity, profile_for_identity, require_identity
+from ..services.accounts import AuthIdentity, profile_for_identity, require_identity, selected_nms_profile
 from ..services.pegasus import (
     PEGASUS_ACTIVE_STATUSES,
     PEGASUS_TERMINAL_STATUSES,
     destination_for,
+    require_live_nms_profile,
     require_live_requester,
     serialize_dispatch,
     serialize_requester_dispatch,
@@ -58,6 +59,7 @@ def create_dispatch(
     session: Session = Depends(get_session),
 ):
     profile = require_live_requester(profile_for_identity(session, identity))
+    nms_profile = require_live_nms_profile(selected_nms_profile(session, profile.id, request.nms_profile_id))
     discovery = session.get(Discovery, request.discovery_id)
     if not discovery:
         raise HTTPException(status_code=404, detail="Wonder record not found.")
@@ -68,6 +70,7 @@ def create_dispatch(
         select(PegasusDispatch)
         .where(
             PegasusDispatch.requester_profile_id == profile.id,
+            PegasusDispatch.nms_profile_id == nms_profile.id,
             PegasusDispatch.status.in_(PEGASUS_ACTIVE_STATUSES),
             PegasusDispatch.expires_at > now,
         )
@@ -82,6 +85,7 @@ def create_dispatch(
         id=str(uuid4()),
         expires_at=now + timedelta(minutes=settings.pegasus_dispatch_ttl_minutes),
         requester_profile_id=profile.id,
+        nms_profile_id=nms_profile.id,
         requester_name=profile.contributor_name,
         requester_tier=profile.access_tier,
         discovery_id=discovery.id,
@@ -97,6 +101,7 @@ def create_dispatch(
         batch_id=dispatch.id,
         detail={
             "requester_profile_id": profile.id,
+            "nms_profile_id": nms_profile.id,
             "requester_tier": profile.access_tier,
             "discovery_id": discovery.id,
             "wc_record_id": dispatch.wc_record_id,
@@ -209,16 +214,20 @@ def claim_dispatch(
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     profile = session.get(UserProfile, dispatch.requester_profile_id)
+    nms_profile = session.get(NMSProfile, dispatch.nms_profile_id) if dispatch.nms_profile_id else None
     if (
         not profile
         or profile.account_status != "active"
         or profile.access_tier not in {"admin", "tester"}
-        or not profile.bot_connect_consent
-        or not profile.nms_friend_code_encrypted
+        or not nms_profile
+        or nms_profile.user_profile_id != profile.id
+        or not nms_profile.active
+        or not nms_profile.bot_connect_consent
+        or not nms_profile.friend_code_encrypted
     ):
         dispatch.status = "failed"
         dispatch.phase = "requester_profile_unavailable"
-        dispatch.status_message = "Pegasus could not verify the requester's active Passport connection settings."
+        dispatch.status_message = "Pegasus could not verify the selected NMS profile and its connection consent."
         dispatch.completed_at = now
         session.commit()
         return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -234,7 +243,7 @@ def claim_dispatch(
     dispatch.attempt_count += 1
     session.commit()
     session.refresh(dispatch)
-    return {"dispatch": serialize_worker_dispatch(dispatch, profile)}
+    return {"dispatch": serialize_worker_dispatch(dispatch, profile, nms_profile)}
 
 
 @router.patch("/worker/dispatches/{dispatch_id}")

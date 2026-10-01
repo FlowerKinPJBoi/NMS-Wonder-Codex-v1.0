@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from ..config import get_settings
-from ..models import UserProfile
+from ..models import NMSProfile, UserProfile
 
 
 @dataclass(frozen=True)
@@ -141,3 +141,47 @@ def serialize_profile(profile: UserProfile, *, include_private: bool = False) ->
     if include_private:
         payload["nms_friend_code"] = decrypt_friend_code(profile.nms_friend_code_encrypted)
     return payload
+
+
+def serialize_nms_profile(profile: NMSProfile, *, include_private: bool = False) -> dict[str, Any]:
+    payload = {
+        "id": profile.id,
+        "label": profile.label,
+        "platform": profile.platform,
+        "has_nms_friend_code": bool(profile.friend_code_encrypted),
+        "bot_connect_consent": profile.bot_connect_consent,
+        "friend_code_verified": bool(profile.friend_code_verified_at),
+        "native_owner_uid": profile.native_owner_uid if profile.native_owner_verified_at else "",
+        "native_owner_verified": bool(profile.native_owner_uid and profile.native_owner_verified_at),
+        "is_default": profile.is_default,
+        "active": profile.active,
+        "created_at": profile.created_at.isoformat() if profile.created_at else None,
+        "updated_at": profile.updated_at.isoformat() if profile.updated_at else None,
+    }
+    if include_private:
+        payload["nms_friend_code"] = decrypt_friend_code(profile.friend_code_encrypted)
+    return payload
+
+
+def nms_profiles_for_user(session: Session, user_profile_id: str, *, active_only: bool = False) -> list[NMSProfile]:
+    query = select(NMSProfile).where(NMSProfile.user_profile_id == user_profile_id)
+    if active_only:
+        query = query.where(NMSProfile.active.is_(True))
+    return list(session.scalars(query.order_by(NMSProfile.is_default.desc(), NMSProfile.created_at.asc())))
+
+
+def selected_nms_profile(session: Session, user_profile_id: str, requested_id: str | None) -> NMSProfile:
+    rows = nms_profiles_for_user(session, user_profile_id, active_only=True)
+    if requested_id:
+        chosen = next((row for row in rows if row.id == requested_id), None)
+        if chosen is None:
+            raise HTTPException(status_code=404, detail="That saved NMS profile is not available on this Passport.")
+        return chosen
+    if len(rows) == 1:
+        return rows[0]
+    defaults = [row for row in rows if row.is_default]
+    if len(defaults) == 1 and len(rows) == 1:
+        return defaults[0]
+    if not rows:
+        raise HTTPException(status_code=409, detail="Add an NMS profile to your Passport first.")
+    raise HTTPException(status_code=409, detail="Choose which saved NMS profile you are using for this service.")

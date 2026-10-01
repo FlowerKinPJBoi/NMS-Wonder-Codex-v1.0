@@ -83,8 +83,42 @@
         body: JSON.stringify(changes),
       }));
       profile = data.profile;
-      window.dispatchEvent(new CustomEvent('wc-account-change', {detail: {session, profile}}));
+      await loadProfile();
       return profile;
+    },
+    async listNmsProfiles() {
+      if (!session?.access_token) throw new Error('Sign in to view your NMS profiles.');
+      const data = await responseData(await fetch(`${API}/account/nms-profiles`, {
+        headers: {Authorization: `Bearer ${session.access_token}`},
+        cache: 'no-store',
+      }));
+      return data.profiles || [];
+    },
+    async createNmsProfile(changes) {
+      if (!session?.access_token) throw new Error('Sign in to add an NMS profile.');
+      const data = await responseData(await fetch(`${API}/account/nms-profiles`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(changes),
+      }));
+      await loadProfile();
+      return data.profile;
+    },
+    async updateNmsProfile(id, changes) {
+      if (!session?.access_token) throw new Error('Sign in to update an NMS profile.');
+      const data = await responseData(await fetch(`${API}/account/nms-profiles/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(changes),
+      }));
+      await loadProfile();
+      return data.profile;
     },
   };
 })();

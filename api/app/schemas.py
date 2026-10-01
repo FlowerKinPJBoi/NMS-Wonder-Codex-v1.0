@@ -12,7 +12,7 @@ class UserProfileUpdate(BaseModel):
 
     contributor_name: str = Field(min_length=2, max_length=120)
     public_attribution: bool = True
-    platform: Literal["", "steam", "xbox", "playstation", "switch"] = ""
+    platform: Literal["", "steam", "gog", "xbox", "playstation", "switch"] = ""
     nms_friend_code: str | None = Field(default=None, max_length=40)
     bot_connect_consent: bool = False
 
@@ -32,6 +32,47 @@ class UserProfileUpdate(BaseModel):
         return re.sub(r"\s+", "", value).upper()
 
 
+class NMSProfileCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    label: str = Field(min_length=1, max_length=120)
+    platform: Literal["", "steam", "gog", "xbox", "playstation", "switch"] = ""
+    nms_friend_code: str = Field(min_length=4, max_length=40)
+    bot_connect_consent: bool = False
+    is_default: bool = False
+
+    @field_validator("label")
+    @classmethod
+    def clean_nms_profile_label(cls, value: str) -> str:
+        return " ".join(value.replace("\x00", "").strip().split())
+
+    @field_validator("nms_friend_code")
+    @classmethod
+    def clean_nms_profile_friend_code(cls, value: str) -> str:
+        return re.sub(r"\s+", "", value).upper()
+
+
+class NMSProfileUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    label: str | None = Field(default=None, min_length=1, max_length=120)
+    platform: Literal["", "steam", "gog", "xbox", "playstation", "switch"] | None = None
+    nms_friend_code: str | None = Field(default=None, max_length=40)
+    bot_connect_consent: bool | None = None
+    is_default: bool | None = None
+    active: bool | None = None
+
+    @field_validator("label")
+    @classmethod
+    def clean_optional_nms_profile_label(cls, value: str | None) -> str | None:
+        return " ".join(value.replace("\x00", "").strip().split()) if value is not None else None
+
+    @field_validator("nms_friend_code")
+    @classmethod
+    def clean_optional_nms_profile_friend_code(cls, value: str | None) -> str | None:
+        return re.sub(r"\s+", "", value).upper() if value is not None else None
+
+
 class UserAccessUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -43,6 +84,7 @@ class PegasusDispatchCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     discovery_id: int = Field(ge=1)
+    nms_profile_id: str | None = Field(default=None, min_length=36, max_length=36)
 
 
 class PegasusWorkerClaim(BaseModel):
