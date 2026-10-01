@@ -2,7 +2,7 @@ from cryptography.fernet import Fernet
 from pydantic import ValidationError
 
 from app.config import get_settings
-from app.schemas import UserAccessUpdate, UserProfileUpdate
+from app.schemas import NMSProfileCreate, NMSProfileUpdate, UserAccessUpdate, UserProfileUpdate
 from app.services.accounts import decrypt_friend_code, encrypt_friend_code
 
 
@@ -34,3 +34,23 @@ def test_friend_code_round_trip(monkeypatch):
     assert "ABCD-EFGH-IJKL" not in encrypted
     assert decrypt_friend_code(encrypted) == "ABCD-EFGH-IJKL"
     get_settings.cache_clear()
+
+def test_nms_profile_normalizes_gog_label_and_friend_code():
+    saved = NMSProfileCreate(
+        label="  MSY   Nanobot Swarm  ",
+        platform="gog",
+        nms_friend_code="abcd efgh ijkl",
+        bot_connect_consent=True,
+        is_default=True,
+    )
+    assert saved.label == "MSY Nanobot Swarm"
+    assert saved.platform == "gog"
+    assert saved.nms_friend_code == "ABCDEFGHIJKL"
+    assert saved.is_default is True
+
+
+def test_nms_profile_update_allows_independent_account_state():
+    update = NMSProfileUpdate(active=False, is_default=False, platform="steam")
+    assert update.active is False
+    assert update.is_default is False
+    assert update.platform == "steam"

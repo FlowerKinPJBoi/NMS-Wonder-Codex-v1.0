@@ -83,7 +83,7 @@
         body: JSON.stringify(changes),
       }));
       profile = data.profile;
-      window.dispatchEvent(new CustomEvent('wc-account-change', {detail: {session, profile}}));
+      await loadProfile();
       return profile;
     },
     async listNmsProfiles() {

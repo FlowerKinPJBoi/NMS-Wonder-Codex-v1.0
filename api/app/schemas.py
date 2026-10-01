@@ -12,7 +12,7 @@ class UserProfileUpdate(BaseModel):
 
     contributor_name: str = Field(min_length=2, max_length=120)
     public_attribution: bool = True
-    platform: Literal["", "steam", "xbox", "playstation", "switch"] = ""
+    platform: Literal["", "steam", "gog", "xbox", "playstation", "switch"] = ""
     nms_friend_code: str | None = Field(default=None, max_length=40)
     bot_connect_consent: bool = False
 

@@ -30,13 +30,21 @@
     panel.innerHTML = `<strong>${escapeHtml(heading)}</strong><br>${escapeHtml(message)}`;
   }
 
+  function selectedNmsProfile() {
+    const profile = window.WCAccount?.profile;
+    const id = $('#pegasusNmsProfile')?.value || '';
+    return (profile?.nms_profiles || []).find((entry) => entry.id === id) || null;
+  }
+
   function pegasusProfileReady() {
     const profile = window.WCAccount?.profile;
+    const target = selectedNmsProfile();
     return Boolean(
       window.WCAccount?.session?.access_token
       && ['admin', 'tester'].includes(profile?.access_tier)
-      && profile?.has_nms_friend_code
-      && profile?.bot_connect_consent
+      && target?.active
+      && target?.has_nms_friend_code
+      && target?.bot_connect_consent
     );
   }
 
@@ -133,10 +141,28 @@
       pegasusStatus('Your Passport is active, but Pegasus Live is currently restricted to Admin and Tester roles.');
       return;
     }
-    if (!profile.has_nms_friend_code || !profile.bot_connect_consent) {
+    const profiles = (profile?.nms_profiles || []).filter((entry) => entry.active);
+    const field = $('#pegasusProfileField');
+    const select = $('#pegasusNmsProfile');
+    field.hidden = profiles.length === 0;
+    if (!profiles.length) {
       button.disabled = true;
-      button.textContent = 'PEGASUS LIVE — Complete Passport setup';
-      pegasusStatus('Add your NMS friend code and enable bot-connect consent in Passport before requesting Pegasus.');
+      button.textContent = 'PEGASUS LIVE — Add NMS profile';
+      pegasusStatus('Add at least one active NMS profile in Passport before requesting Pegasus.');
+      return;
+    }
+    const previous = select.value;
+    select.innerHTML = profiles.map((entry) =>
+      `<option value="${escapeHtml(entry.id)}">${escapeHtml(entry.label)} · ${escapeHtml(entry.platform || 'platform not selected')}${entry.is_default ? ' · default' : ''}</option>`
+    ).join('');
+    const preferred = profiles.find((entry) => entry.id === previous)
+      || profiles.find((entry) => entry.is_default)
+      || profiles[0];
+    select.value = preferred.id;
+    if (!preferred.has_nms_friend_code || !preferred.bot_connect_consent) {
+      button.disabled = true;
+      button.textContent = 'PEGASUS LIVE — Complete selected profile';
+      pegasusStatus('The selected NMS profile needs a stored Friend Code and bot-connect consent.');
       return;
     }
     try {
@@ -170,7 +196,10 @@
           Authorization: `Bearer ${window.WCAccount.session.access_token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({discovery_id: record.id}),
+        body: JSON.stringify({
+          discovery_id: record.id,
+          nms_profile_id: selectedNmsProfile()?.id || null,
+        }),
       }));
       renderPegasusDispatch(data.dispatch);
       window.WonderAnalytics?.track('pegasus_live_requested', {
@@ -405,6 +434,9 @@
   $('#copyMessage').addEventListener('click', async () => { if (record?.message_id) { await navigator.clipboard.writeText(record.message_id); toast('Wonder Projector Message ID copied.'); } });
   $('#copyGlyphs').addEventListener('click', async () => { if (record?.portal_glyphs) { await WCGlyphs.copy(record.portal_glyphs); toast('Portal glyph code copied.'); } });
   $('#pegasusTransit').addEventListener('click', requestPegasusTransit);
+  $('#pegasusNmsProfile').addEventListener('change', () => {
+    if (record && !pegasusDispatch) configurePegasusTransit(record).catch(() => {});
+  });
   $('#copyPegasusFriendCode').addEventListener('click', async () => {
     const code = $('#pegasusFriendCode').textContent.trim();
     if (!code) return;
