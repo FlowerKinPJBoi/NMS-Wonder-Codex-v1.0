@@ -35,6 +35,33 @@ class UserProfile(Base):
     friend_code_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class NMSProfile(Base):
+    """One saved No Man's Sky account/save target owned by a Passport user."""
+
+    __tablename__ = "nms_profiles"
+    __table_args__ = (
+        UniqueConstraint("user_profile_id", "label", name="uq_nms_profiles_user_label"),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_profile_id: Mapped[str] = mapped_column(
+        ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+    label: Mapped[str] = mapped_column(String(120), nullable=False)
+    platform: Mapped[str] = mapped_column(String(40), default="", nullable=False)
+    friend_code_encrypted: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    bot_connect_consent: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    friend_code_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    native_owner_uid: Mapped[str] = mapped_column(String(40), default="", nullable=False, index=True)
+    native_owner_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    is_default: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, index=True)
+    active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False, index=True)
+
+
 class CaptureAppConnection(Base):
     """Expiring browser approvals and capture-only sessions; secrets are hashed."""
 
@@ -206,6 +233,9 @@ class PegasusDispatch(Base):
     lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     requester_profile_id: Mapped[str] = mapped_column(
         ForeignKey("user_profiles.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    nms_profile_id: Mapped[str | None] = mapped_column(
+        ForeignKey("nms_profiles.id", ondelete="RESTRICT"), index=True
     )
     requester_name: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
     requester_tier: Mapped[str] = mapped_column(String(30), nullable=False, index=True)
