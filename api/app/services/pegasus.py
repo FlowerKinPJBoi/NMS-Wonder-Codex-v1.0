@@ -6,7 +6,7 @@ from typing import Any
 from fastapi import HTTPException
 
 from ..config import get_settings
-from ..models import Discovery, PegasusDispatch, UserProfile
+from ..models import Discovery, NMSProfile, PegasusDispatch, UserProfile
 from .accounts import decrypt_friend_code
 from .catalog import display_name, serialize_discovery, wc_id
 
@@ -27,10 +27,16 @@ PEGASUS_TERMINAL_STATUSES = frozenset({"completed", "failed", "cancelled", "expi
 def require_live_requester(profile: UserProfile) -> UserProfile:
     if profile.access_tier not in PEGASUS_REQUESTER_TIERS:
         raise HTTPException(status_code=403, detail="Pegasus Live is currently limited to Admin and Tester Passports.")
+    return profile
+
+
+def require_live_nms_profile(profile: NMSProfile) -> NMSProfile:
+    if not profile.active:
+        raise HTTPException(status_code=409, detail="That saved NMS profile is disabled.")
     if not profile.bot_connect_consent:
-        raise HTTPException(status_code=409, detail="Enable Wonder Bot connection consent in your Passport first.")
-    if not profile.nms_friend_code_encrypted:
-        raise HTTPException(status_code=409, detail="Add your NMS friend code to your Passport first.")
+        raise HTTPException(status_code=409, detail="Enable bot connection consent for the selected NMS profile first.")
+    if not profile.friend_code_encrypted:
+        raise HTTPException(status_code=409, detail="Add a Friend Code to the selected NMS profile first.")
     return profile
 
 
@@ -66,6 +72,7 @@ def serialize_dispatch(dispatch: PegasusDispatch) -> dict[str, Any]:
         "requester": {
             "name": dispatch.requester_name,
             "tier": dispatch.requester_tier,
+            "nms_profile_id": dispatch.nms_profile_id,
         },
         "route": {
             "discovery_id": dispatch.discovery_id,
@@ -88,14 +95,24 @@ def serialize_requester_dispatch(dispatch: PegasusDispatch) -> dict[str, Any]:
     return payload
 
 
-def serialize_worker_dispatch(dispatch: PegasusDispatch, profile: UserProfile) -> dict[str, Any]:
+def serialize_worker_dispatch(
+    dispatch: PegasusDispatch,
+    profile: UserProfile,
+    nms_profile: NMSProfile,
+) -> dict[str, Any]:
     payload = serialize_dispatch(dispatch)
     payload["requester"] = {
         **payload["requester"],
         "profile_id": profile.id,
-        "platform": profile.platform,
-        "nms_friend_code": decrypt_friend_code(profile.nms_friend_code_encrypted),
-        "bot_connect_consent": profile.bot_connect_consent,
+        "nms_profile": {
+            "id": nms_profile.id,
+            "label": nms_profile.label,
+            "platform": nms_profile.platform,
+            "nms_friend_code": decrypt_friend_code(nms_profile.friend_code_encrypted),
+            "bot_connect_consent": nms_profile.bot_connect_consent,
+            "native_owner_uid": nms_profile.native_owner_uid if nms_profile.native_owner_verified_at else "",
+            "native_owner_verified": bool(nms_profile.native_owner_uid and nms_profile.native_owner_verified_at),
+        },
     }
     payload["worker"] = {
         "id": dispatch.worker_id,
