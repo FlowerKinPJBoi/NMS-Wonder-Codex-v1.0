@@ -42,6 +42,20 @@
       <p id="captureConnectResult" role="status" aria-live="polite"></p>
     </section>
 
+    <section id="editorConnect" class="account-card" hidden aria-labelledby="editorConnectTitle">
+      <p class="kicker">WONDER CODEX EDITOR</p><h2 id="editorConnectTitle">Connect your desktop app</h2>
+      <p>Use this only for Wonder Codex Editor you just opened on your own computer. Check that both screens show this code:</p>
+      <p><strong id="editorConnectCode"></strong></p>
+      <p id="editorConnectIdentity" aria-live="polite">Sign in below with your Galactic Passport to continue.</p>
+      <p>This connection lasts up to eight hours and allows you to send selected discoveries and asset records for owner review. It cannot publish records or change your Passport or game saves. You choose when to send each batch in the app.</p>
+      <label class="checkbox-row"><input id="editorCodeMatches" type="checkbox"><span>This code matches Wonder Codex Editor on my computer.</span></label>
+      <div class="profile-heading">
+        <button id="editorApprove" type="button" class="button primary" disabled>Connect Wonder Codex Editor</button>
+        <button id="editorDecline" type="button" class="button secondary" disabled>Decline</button>
+      </div>
+      <p id="editorConnectResult" role="status" aria-live="polite"></p>
+    </section>
+
     <section id="accountLogin" class="account-grid" hidden>
       <article class="account-card primary-card"><p class="kicker">RECOMMENDED</p><h2>Continue with Discord</h2><p>Connect the identity that will eventually work with Wonder Bot and the community server.</p><button id="discordLogin" class="button primary" type="button">Continue with Discord</button></article>
       <article class="account-card"><p class="kicker">EMAIL FALLBACK</p><h2>Send a magic link</h2><p>No password required. We’ll send a single-use sign-in link to your inbox.</p><form id="magicForm" class="account-form"><label class="field">Email address<input id="magicEmail" type="email" autocomplete="email" required placeholder="explorer@example.com"></label><button class="button secondary" type="submit">Email my sign-in link</button></form></article>
@@ -81,6 +95,7 @@
   <script src="script.js?v=1.18.1"></script>
   <script src="account-session.js?v=1.33.0"></script>
   <script src="capture-passport.js?v=1.0.0"></script>
+  <script src="editor-passport.js?v=1.0.0"></script>
   <script src="account.js?v=1.20.0"></script>
 </body>
 </html>

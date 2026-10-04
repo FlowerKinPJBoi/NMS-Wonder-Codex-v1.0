@@ -87,6 +87,34 @@ class CaptureAuthRateWindow(Base):
     attempts: Mapped[int] = mapped_column(Integer, nullable=False)
 
 
+class EditorAppConnection(Base):
+    """Separate, import-only browser approvals; no Capture token gains import access."""
+
+    __tablename__ = "editor_app_connections"
+    device_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_code_hash: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    approval_expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, index=True)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+    profile_id: Mapped[str | None] = mapped_column(ForeignKey("user_profiles.id", ondelete="CASCADE"))
+    last_poll_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    token_hash: Mapped[str | None] = mapped_column(String(64), unique=True)
+    token_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class EditorImportReceipt(Base):
+    """One atomic import outcome per Passport and caller-generated request key."""
+
+    __tablename__ = "editor_import_receipts"
+    __table_args__ = (UniqueConstraint("profile_id", "idempotency_key", name="uq_editor_import_request"),)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    profile_id: Mapped[str] = mapped_column(ForeignKey("user_profiles.id", ondelete="CASCADE"), nullable=False)
+    idempotency_key: Mapped[str] = mapped_column(String(36), nullable=False)
+    request_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    response: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+
+
 class SubmissionBatch(Base):
     __tablename__ = "submission_batches"
 
