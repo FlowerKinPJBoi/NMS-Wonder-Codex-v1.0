@@ -14,7 +14,7 @@ from .config import get_settings
 
 logger = logging.getLogger(__name__)
 
-REQUIRED_DATABASE_REVISION = "0017_capture_passport"
+REQUIRED_DATABASE_REVISION = "0019_editor_imports"
 
 
 class Base(DeclarativeBase):

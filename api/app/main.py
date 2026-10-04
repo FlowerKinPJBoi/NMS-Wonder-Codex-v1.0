@@ -16,6 +16,7 @@ from .database import check_database, mark_database
 from .routers import accounts, admin, admin_apps, analytics, assets, captures, daedalus, feedback, galactic_map, health, images, new_discoveries, operators, pegasus, public, submissions, verifications
 from .services.error_incidents import record_request_error
 from .routers import capture_auth
+from .routers import editor_auth, editor_imports
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -60,7 +61,7 @@ app.add_middleware(
     allow_origins=settings.allowed_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-Admin-Key", "X-Admin-Actor", "X-Pegasus-Worker-Key"],
+    allow_headers=["Authorization", "Content-Type", "Idempotency-Key", "X-Admin-Key", "X-Admin-Actor", "X-Pegasus-Worker-Key"],
 )
 
 
@@ -96,8 +97,17 @@ async def request_size_limit(request: Request, call_next):
         request_too_large = True
     if request_too_large:
         return JSONResponse(status_code=413, content={"detail": "Request body is too large."})
+    if request.method == "POST" and request_path in {"/editor/imports", "/api/editor/imports"}:
+        # Bound chunked bodies too, before JSON parsing (Content-Length is optional).
+        parts, total = [], 0
+        async for part in request.stream():
+            total += len(part)
+            if total > 10_000_000:
+                return JSONResponse(status_code=413, content={"detail": "Editor import exceeds 10 MB. Select fewer records."})
+            parts.append(part)
+        request._body = b"".join(parts)
     response = await call_next(request)
-    if "/auth/capture/" in request_path:
+    if "/auth/capture/" in request_path or "/auth/editor/" in request_path or "/editor/" in request_path:
         response.headers["Cache-Control"] = "no-store"
         response.headers["Pragma"] = "no-cache"
     return response
@@ -159,6 +169,8 @@ app.include_router(captures.router)
 app.include_router(operators.router)
 app.include_router(accounts.router)
 app.include_router(capture_auth.router)
+app.include_router(editor_auth.router)
+app.include_router(editor_imports.router)
 app.include_router(pegasus.router)
 app.include_router(admin_apps.router)
 app.include_router(daedalus.router)
