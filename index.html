@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Bitter:ital,wght@0,500;0,600;0,700;1,600&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css?v=1.18.0">
-  <link rel="stylesheet" href="humanized.css?v=1.28.0">
+  <link rel="stylesheet" href="humanized.css?v=1.28.1">
 </head>
 <body>
   <div class="cosmos" aria-hidden="true">
@@ -33,8 +33,7 @@
       <a href="contributors.html">Contributors</a>
       <a href="contribute.html">Contribute</a>
       <a href="feedback.html">Feedback</a>
-      <a href="#research">Research</a>
-      <a href="#roadmap">Roadmap</a>
+      <a href="/api/downloads/editor" class="nav-cta nav-editor" title="Wonder Codex Editor 0.5.1 alpha · Windows 10/11 (64-bit) · ZIP">Download Editor</a>
       <a class="nav-discord" href="https://discord.gg/Xpn6Ep22Nu" target="_blank" rel="noopener noreferrer" aria-label="Join the Wonder Codex Discord server (opens in a new tab)">Discord <span aria-hidden="true">↗</span></a><a href="account.html" class="nav-cta">Passport</a>
     </nav>
   </header>
@@ -139,27 +138,6 @@
       </div>
     </section>
 
-    <section class="section research-section" id="research">
-      <div class="shell">
-        <div class="section-heading">
-          <div><p class="kicker">CURRENT RESEARCH</p><h2>What the evidence supports today.</h2></div>
-          <p>Confirmed findings are reproducible. Strong findings have controlled experimental support. Open questions remain clearly labeled.</p>
-        </div>
-        <div class="research-grid">
-          <article class="research-card confirmed"><span class="badge confirmed">Confirmed</span><h3>Animal projector encoding</h3><p>Animal DiscoveryData can produce repeatable Wonder Projector Message IDs using UA and the encoded VP sequence.</p></article>
-          <article class="research-card confirmed"><span class="badge confirmed">Confirmed</span><h3>Flora projector encoding</h3><p>Flora records reconstruct from UA, VP0, and VP1. Controlled tests separated visual variation from broad family changes.</p></article>
-          <article class="research-card confirmed"><span class="badge confirmed">Confirmed</span><h3>Mineral projector encoding</h3><p>Mineral DiscoveryData follows the compact two-VP projector structure and can be normalized by the importer.</p></article>
-          <article class="research-card active"><span class="badge active">Active</span><h3>Pet-only generation</h3><p>Known seed mappings are strong, but missing archetype VP values still block some egg-hatched companions such as LAND_JELLYFISH.</p></article>
-          <article class="research-card active"><span class="badge active">Active</span><h3>Archetype library</h3><p>Stable VP values are being mapped to creature, flora, and mineral families to power randomization and “One More Like This.”</p></article>
-          <article class="research-card confirmed"><span class="badge confirmed">Confirmed</span><h3>UA portal decoding</h3><p>The Universal Address format now yields the correct RealityIndex, galaxy number, galaxy name, and 12-glyph portal route. Controlled travel in Odyalutai confirmed the rule.</p></article>
-          <article class="research-card confirmed"><span class="badge confirmed">621 records</span><h3>Planet hologram bridge</h3><p>VP1 low values resolve sixteen planet families. Four exact Giant joins and one Gas Giant are size-confirmed; all other size treatments remain visibly representative.</p></article>
-          <article class="research-card confirmed"><span class="badge confirmed">50 / 50 verified</span><h3>Stellar color census</h3><p>A balanced Doshawchuc sample links Yellow to F/G, Red to K/M, Green to E, Blue to B/O, and Purple to X/Y. <a href="stars.html">Explore the census →</a></p></article>
-          <article class="research-card active"><span class="badge active">Active</span><h3>Procedural discovery names</h3><p>Flora and mineral screenshots are being matched to UA and VP seeds to identify which inputs drive the game’s deterministic naming grammar.</p></article>
-          <article class="research-card confirmed"><span class="badge confirmed">Live workflow</span><h3>Location verification</h3><p>UA-derived routes and community verification can now be displayed separately, submitted, reviewed, and preserved on catalog records.</p></article>
-        </div>
-      </div>
-    </section>
-
     <section class="section shell contribution-section">
       <div class="section-heading compact-heading"><div><p class="kicker">CONTRIBUTE SAFELY</p><h2>From save file to reviewed evidence.</h2></div></div>
       <div class="process-grid">
@@ -168,25 +146,6 @@
         <div class="process-card"><span>03</span><h3>Human verification</h3><p>Submissions enter a review queue, duplicates are skipped, and approved records become official.</p></div>
       </div>
       <div class="center-action"><a class="button primary" href="contribute.html">Open Contributions Hub</a></div>
-    </section>
-
-    <section class="section roadmap-section" id="roadmap">
-      <div class="shell roadmap-panel">
-        <div class="roadmap-intro"><p class="kicker">PUBLIC ROADMAP</p><h2>The universe is large. We are building in layers.</h2><p>Each milestone adds capability without sacrificing evidence, attribution, or reproducibility.</p></div>
-        <div class="roadmap-list">
-          <div class="roadmap-item done"><span>01</span><div><strong>Live platform foundation</strong><small>Website, API, PostgreSQL, migrations, importer, review queue</small></div><b>Complete</b></div>
-          <div class="roadmap-item done"><span>02</span><div><strong>Catalog and location verification</strong><small>Public records, WC IDs, galaxy and glyph display, admin verification queue</small></div><b>Complete</b></div>
-          <div class="roadmap-item done"><span>03</span><div><strong>Image contributions</strong><small>DigitalOcean Spaces, screenshot review, primary and alternate images</small></div><b>Complete</b></div>
-          <div class="roadmap-item done"><span>04</span><div><strong>Private contributor attribution</strong><small>Reviewer-visible identity with Anonymous Contributor on public records when selected</small></div><b>Complete</b></div>
-          <div class="roadmap-item current"><span>05</span><div><strong>Wonder JSON Importer</strong><small>Local decoded-JSON analysis with a normalized review preview</small></div><b>Live</b></div>
-          <div class="roadmap-item current"><span>06</span><div><strong>Dedicated Importer app testing</strong><small>Private Steam and Xbox compatibility testing before a public release</small></div><b>Private beta</b></div>
-          <div class="roadmap-item current"><span>07</span><div><strong>Pegasus Delivery Network</strong><small>Transit routes, Courier handoffs, Acquisition assistance, and the future Dispatch operator queue</small></div><b>Framework</b></div>
-          <div class="roadmap-item current"><span>08</span><div><strong>Pegasus asset collection beta</strong><small>Read-only local normalization for Xeno pets, eggs, starships, freighters, frigates, multitools, and optional inventory identifiers</small></div><b>Private beta</b></div>
-          <div class="roadmap-item current"><span>09</span><div><strong>Procedural discovery names</strong><small>Determine whether DT, UA, VP0, VP1, or a combined seed selects the generated flora and mineral names</small></div><b>Research</b></div>
-          <div class="roadmap-item current"><span>10</span><div><strong>Human-operated Pegasus pilots</strong><small>Capability matrix, controlled transfers, route tests, operator procedures, and delivery confirmation</small></div><b>Planned</b></div>
-          <div class="roadmap-item done"><span>11</span><div><strong>Galactic Cluster Map</strong><small>Filterable UA-backed coordinate map with catalog clusters and evidence-aware asset sightings</small></div><b>Beta live</b></div>
-        </div>
-      </div>
     </section>
 
     <section class="section shell" id="community">
@@ -199,7 +158,7 @@
 
   <footer>
     <div class="footer-main"><a class="brand footer-brand" href="#top"><span class="brand-mark">✦</span><span class="brand-copy"><strong>Wonder Codex</strong><small>Preserve the procedural universe.</small></span></a><p>Independent community research project. Not affiliated with Hello Games.</p></div>
-    <div class="footer-links"><a href="database.html">Database</a><a href="forge.html">Forge + Decoder</a><a href="map.html">Map</a><a href="contributors.html">Contributors</a><a href="contribute.html">Contribute</a><a href="feedback.html">Feedback</a><a href="account.html">Passport</a><a href="privacy.html">Privacy</a><a href="#research">Research</a><a href="#roadmap">Roadmap</a><span>Public Alpha • 2026</span></div>
+    <div class="footer-links"><a href="database.html">Database</a><a href="forge.html">Forge + Decoder</a><a href="map.html">Map</a><a href="contributors.html">Contributors</a><a href="contribute.html">Contribute</a><a href="feedback.html">Feedback</a><a href="account.html">Passport</a><a href="privacy.html">Privacy</a><span>Public Alpha • 2026</span></div>
   </footer>
   <script src="analytics.js?v=1.15.0"></script>
   <script src="script.js?v=1.21.0"></script>
