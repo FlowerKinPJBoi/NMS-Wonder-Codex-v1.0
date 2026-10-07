@@ -78,6 +78,7 @@ class Settings(BaseSettings):
     max_image_dimension: int = 7680
     max_admin_app_mb: int = 160
     admin_app_download_seconds: int = 600
+    editor_download_approved: bool = False
     max_daedalus_package_mb: int = 40
     daedalus_download_seconds: int = 900
     openai_api_key: str = ""

@@ -179,6 +179,10 @@ th {
   color: var(--cyan-2);
 }
 
+.site-header nav .nav-editor {
+  white-space: nowrap;
+}
+
 .site-header nav .nav-discord {
   gap: 0.38rem;
   border: 1px solid rgba(135, 147, 255, 0.68);
@@ -489,15 +493,49 @@ footer {
   }
 }
 
-@media (max-width: 900px) {
-  .brand-copy small {
+/* Keep all public links reachable as the header fills on tablets. */
+@media (max-width: 1100px) {
+  .menu-toggle {
     display: block;
+  }
+
+  .site-header nav {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% - 1px);
+    max-height: calc(100dvh - var(--header));
+    overflow-y: auto;
+    padding: 15px;
+    border: 1px solid var(--line);
+    border-radius: 0 0 3px 3px;
+    background: #0b1020;
+  }
+
+  .site-header nav.open {
+    display: grid;
+  }
+
+  .site-header nav a:not(.nav-cta) {
+    display: block;
+    padding: 0.6rem;
+  }
+
+  .site-header nav a.nav-discord {
+    display: inline-flex;
   }
 
   .site-header nav .nav-discord,
   .site-header nav .nav-cta {
     width: 100%;
     margin-top: 0.2rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .brand-copy small {
+    display: block;
   }
 
   .hero {

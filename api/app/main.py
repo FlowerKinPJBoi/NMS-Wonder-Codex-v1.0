@@ -16,7 +16,7 @@ from .database import check_database, mark_database
 from .routers import accounts, admin, admin_apps, analytics, assets, captures, daedalus, feedback, galactic_map, health, images, new_discoveries, operators, pegasus, public, submissions, verifications
 from .services.error_incidents import record_request_error
 from .routers import capture_auth
-from .routers import editor_auth, editor_imports
+from .routers import editor_auth, editor_imports, downloads
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -171,6 +171,7 @@ app.include_router(accounts.router)
 app.include_router(capture_auth.router)
 app.include_router(editor_auth.router)
 app.include_router(editor_imports.router)
+app.include_router(downloads.router)
 app.include_router(pegasus.router)
 app.include_router(admin_apps.router)
 app.include_router(daedalus.router)

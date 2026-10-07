@@ -24,7 +24,7 @@ const pages = [
 
 for (const page of pages) {
   const html = fs.readFileSync(path.join(root, page), 'utf8');
-  assert.match(html, /humanized\.css\?v=1\.28\.0/, `${page} must load the humanized theme last.`);
+  assert.match(html, /humanized\.css\?v=1\.28\.1/, `${page} must load the humanized theme last.`);
   assert.match(html, /class="nav-discord"/i, `${page} must expose the Discord button.`);
   assert.match(html, /https:\/\/discord\.gg\/Xpn6Ep22Nu/, `${page} must use the permanent Wonder Codex invite.`);
   assert.match(html, /target="_blank"/, `${page} must keep the external invite outside the site tab.`);
