@@ -28,7 +28,7 @@ def main() -> None:
             digest.update(chunk)
             size += len(chunk)
         if size != EDITOR_SIZE_BYTES or digest.hexdigest() != EDITOR_SHA256:
-            parser.error("Archive differs from the reviewed 0.5.1 Direct UI package; nothing uploaded.")
+            parser.error(f"Archive differs from the pinned {EDITOR_FILENAME}; nothing uploaded.")
         print(f"Verified {EDITOR_FILENAME} ({size:,} bytes)")
         if not args.upload:
             print("Verification only. No upload, configuration change, or deployment performed.")

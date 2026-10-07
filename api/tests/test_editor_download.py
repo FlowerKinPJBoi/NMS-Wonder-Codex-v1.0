@@ -48,7 +48,7 @@ def test_unapproved_download_never_reads_or_signs_storage(download):
     None,
     {"sha256": "0" * 64},
     {"size_bytes": downloads.EDITOR_SIZE_BYTES - 1},
-    {"version": "0.5.0-alpha"},
+    {"version": "1.0.1"},
 ])
 def test_missing_or_different_package_cannot_be_downloaded(download, change):
     client, settings, inspect, sign = download

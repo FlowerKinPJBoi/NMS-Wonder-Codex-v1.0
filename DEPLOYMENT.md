@@ -51,9 +51,9 @@ variables. Never commit real values. The service currently recognizes:
   8 MB/image, four-image, and 400-operation defaults
 - `SPACES_ACCESS_KEY`, `SPACES_SECRET_KEY`, `SPACES_REGION`,
   `SPACES_BUCKET`, `SPACES_ENDPOINT`, and `SPACES_CDN_URL`
-- `EDITOR_DOWNLOAD_APPROVED` defaults to `false`. Enable only after PJ confirms
-  TazMD's approval; see `EDITOR-DOWNLOAD-RELEASE.md` for the pinned package and
-  private upload procedure.
+- `EDITOR_DOWNLOAD_APPROVED` defaults to `false`. Enable after the pinned
+  Wonder Codex Editor 1.0.0 package is uploaded and verified; see
+  `EDITOR-DOWNLOAD-RELEASE.md` for the release and private upload procedure.
 - `AUTH_SUPABASE_URL` and the public `AUTH_SUPABASE_ANON_KEY`
 - `AUTH_JWT_SECRET` only when the Supabase project still signs access tokens
   with HS256; asymmetric signing keys are discovered through the project's JWKS

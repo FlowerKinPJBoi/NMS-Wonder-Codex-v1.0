@@ -1,4 +1,4 @@
-"""Public download for one reviewed Editor release; closed until PJ approves it."""
+"""Public download for the pinned Editor release, enabled through runtime configuration."""
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 
@@ -7,19 +7,19 @@ from ..services.admin_apps import AdminApplication, release_status, signed_relea
 
 router = APIRouter(prefix="/downloads", tags=["downloads"])
 
-# Pin the exact archive PJ supplied. It stays outside the public Git repository.
-EDITOR_FILENAME = "Wonder-Codex-Editor-v0.5.1-alpha-Direct-UI-Windows-Setup.zip"
-EDITOR_SHA256 = "f3e63f3c428db08069c7581f5f46bf2d805f798de4921b9154f790f5e920be9f"
-EDITOR_SIZE_BYTES = 132_300_865
+# Pin the exact release archive. It stays outside the public Git repository.
+EDITOR_FILENAME = "Wonder-Codex-Editor-v1.0.0-Direct-UI-Windows-Setup.zip"
+EDITOR_SHA256 = "26e3873c725f9510fcc51652835c33560a5b71efc1ad047722520e7b407aace9"
+EDITOR_SIZE_BYTES = 132_334_940
 EDITOR_RELEASE = AdminApplication(
     slug="wonder-codex-editor",
     title="Wonder Codex Editor",
-    channel="Alpha",
+    channel="Public release",
     platform="Windows 10/11 x64",
-    summary="Wonder Codex Editor 0.5.1 alpha, Direct UI edition.",
-    safety_note="TazMD's separate Optimizer remains creator-owned and separately downloaded.",
+    summary="Wonder Codex Editor 1.0.0, Direct UI edition.",
+    safety_note="TAZmd's separate Optimizer remains creator-owned and separately downloaded.",
     expected_executable="WonderCodexEditor.jar",
-    suggested_version="0.5.1-alpha",
+    suggested_version="1.0.0",
     object_key=f"editor-releases/{EDITOR_SHA256}/{EDITOR_FILENAME}",
 )
 NO_STORE = {"Cache-Control": "no-store", "Pragma": "no-cache"}

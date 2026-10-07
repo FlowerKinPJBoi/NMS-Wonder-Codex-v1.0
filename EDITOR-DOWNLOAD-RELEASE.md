@@ -1,55 +1,71 @@
-# Editor download — prepared, not released
+# Wonder Codex Editor 1.0.0 website download
 
-**Hold this draft and all website changes until PJ confirms TazMD's approval
-of the Optimizer integration. Do not merge, deploy, publish the ZIP, or enable
-the public download before then.**
-
-Prepared against `main` at `b0513d40fe222d52cd9d9d04ed95d7de7a3ddd6a`.
+PJ authorized the public Wonder Codex Editor v1 release on October 7, 2026.
+The steps below publish its website download. Preparing or merging this source
+does not upload the archive or enable the API download flag.
 
 The homepage's Research and Roadmap navigation, sections, and links back to
-those sections are removed. Public headers now offer **Download Editor**, using
+those sections are removed. Public headers offer **Download Editor**, using
 `/api/downloads/editor`. The existing site design and Passport remain in place.
 
 ## Exact package
 
-- Supplied archive: `Wonder-Codex-Editor-v0.5.1-alpha-Direct-UI-Windows-Setup(1).zip`
-- Download filename: `Wonder-Codex-Editor-v0.5.1-alpha-Direct-UI-Windows-Setup.zip`
-- Bytes: `132300865`
-- SHA-256: `f3e63f3c428db08069c7581f5f46bf2d805f798de4921b9154f790f5e920be9f`
-- Platform: Windows 10/11, 64-bit. Direct UI alpha edition.
+- Download filename: `Wonder-Codex-Editor-v1.0.0-Direct-UI-Windows-Setup.zip`
+- Version: `1.0.0`
+- Bytes: `132334940`
+- SHA-256: `26e3873c725f9510fcc51652835c33560a5b71efc1ad047722520e7b407aace9`
+- Platform: Windows 10/11, 64-bit. Direct UI edition.
 
-Only the download filename drops the duplicate `(1)` suffix. Archive bytes,
-notices, source, and creator credits remain unchanged. TazMD's Optimizer is a
-separate official application downloaded from its creator; this package contains
-the Wonder Codex adapter, not the Optimizer executable or implementation.
+The ZIP stays outside this public repository. It contains the Wonder Codex
+adapter; TAZmd's Optimizer remains a separate, creator-owned application
+downloaded from [TAZmd](https://www.tazmd.nl/corvettes). The editor retains
+credit and a link to [GoatFungus NMSSaveEditor](https://github.com/goatfungus/nmssaveeditor)
+for its underlying save editor engine.
 
-The ZIP is not committed to this public repository. Do not add it to a public
-release or static assets while approval is pending.
-
-## Release after approval
+## Publish the download
 
 Use the existing API Python dependencies and authorized Spaces credentials.
-The static site needs no build changes and the API needs no database migration.
+The static site needs no build changes and the API needs no database migration
+for this download route.
 
-1. Verify PJ has confirmed TazMD's approval. If TazMD requests a different
-   package, replace the pinned release filename, checksum, size, and version in
-   `api/app/routers/downloads.py` first, then rerun verification.
-2. Run `python scripts/stage_editor_release.py /path/to/supplied.zip` to verify
-   the local archive. This default mode does not upload or change any service.
-3. Run the same command with `--upload` to put the verified ZIP in the existing
-   Spaces bucket with a private ACL, attachment filename, and checksum metadata.
+1. Run `python scripts/stage_editor_release.py /path/to/release.zip` to verify
+   the archive against the pinned release's checksum and size. This default
+   mode does not upload or change any service.
+2. Run the same command with `--upload` to put the verified ZIP in the existing
+   Spaces bucket with a private ACL, attachment filename and checksum metadata.
    It uses a separate, version-pinned `editor-releases/` key and does not alter
    any private admin application.
-4. Set `EDITOR_DOWNLOAD_APPROVED=true` as an API runtime environment variable
-   and deploy the approved source revision for both site components. Merge and
-   deployment remain separate owner-authorized release actions.
-5. Click **Download Editor** on the live site. Confirm the downloaded ZIP's
+3. Set `EDITOR_DOWNLOAD_APPROVED=true` as an API runtime environment variable
+   and deploy the approved source revision for both site components.
+4. Click **Download Editor** on the live site. Confirm the downloaded ZIP's
    byte count and SHA-256 match above, and check the desktop/mobile menus.
 
-Until explicitly enabled, `/api/downloads/editor` returns a friendly unavailable
-page and never reads or signs a storage object. After approval it checks the
-pinned package's stored checksum, length, and version and issues a short-lived
-attachment link. Missing or mismatched storage fails closed. The approval flag
-defaults to false and download responses are not cached. Set it back to false
-to stop issuing new links; links already issued expire after the configured
+Until enabled, `/api/downloads/editor` returns an unavailable page and never
+reads or signs a storage object. When enabled it checks the pinned package's
+stored checksum, length and version, then issues a short-lived attachment link.
+Missing or mismatched storage fails closed. The flag defaults to false and
+download responses are not cached. Set it back to false to stop issuing new
+links; links already issued expire after the configured
 `ADMIN_APP_DOWNLOAD_SECONDS` (default 600 seconds).
+
+Local save editing does not require Passport. Site contributions retain the
+existing API requirement for an active Tester or Admin Passport; this release
+does not change account permissions.
+
+## Verification
+
+With the API dependencies installed, run:
+
+```sh
+cd api
+python -m pytest -q tests/test_editor_download.py tests/test_admin_apps.py
+cd ..
+node tests/site_invariants.test.js
+node tests/humanized-public-site.test.js
+python scripts/stage_editor_release.py /path/to/release.zip
+```
+
+The API checks cover the disabled flag, missing or mismatched packages,
+storage failures, the pinned signed redirect, and existing private app
+behavior. Archive verification uses the same opened file for hashing and
+upload and rejects any package with a different byte count or SHA-256.
