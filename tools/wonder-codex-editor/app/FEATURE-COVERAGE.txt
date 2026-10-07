@@ -1,0 +1,71 @@
+WONDER CODEX EDITOR 1.0.0 - FEATURE GUIDE
+
+SAVES AND NAVIGATION
+Automatic account discovery for Steam, GOG and Xbox / Game Pass on Windows;
+manual save file/folder opening; save slot and revision selection; reload,
+Save As, review of character/account changes, and backup checks.
+All original File, Edit, View and Help menu commands remain available.
+
+INVENTORIES AND CHARACTER
+Choose the owner and inventory: exosuit, multitool, starship, freighter, vehicle,
+storage container, cooking ingredients or Skiff cold storage, as present in the
+save. Edit items and slots; add, move, delete, repair, recharge and fill; resize,
+enable slots and manage supercharged slots. Global inventory tools remain under
+Tools & settings. Exosuit statistics and Units, Nanites and Quicksilver are editable.
+
+FLEET AND EQUIPMENT
+Starships and multitools: selection, names, supported types/classes/seeds,
+statistics, inventories and import/export.
+Corvettes: names and classes, linked-build information, and inventory access
+through Ships. Type conversion and deletions that would break linked builds are
+blocked. Base JSON includes TAZmd's separately installed Corvette Optimizer.
+Freighter: name, type, class, seeds, statistics, inventories, structure backup
+and restore. Frigates: names, types, traits, statistics, copy, delete and repair.
+Squadron: pilot and ship settings. Vehicles: supported exocraft and their inventories.
+
+BASES, COMPANIONS AND SETTLEMENTS
+Bases and storage: base selection, names, structure backup/restore, base-computer
+movement and hired NPC settings. Base JSON supports selected-base import, export,
+validation, editing and staging. Companions retain name/seed settings and
+import/export. Settlements retain statistics, perks and production item editing.
+
+PROGRESSION AND WARP
+Unlocks & knowledge: technology, products, words and individual portal glyphs.
+Milestones & reputation: journey milestones, counters, race and guild progress.
+Account rewards: season, Twitch and platform unlocks, plus account JSON editing.
+Missions: progression presets through the Atlantid Drive steps. Supported saves
+use Main context, save version 4737-4739 and mission version 40. Presets change
+mission state and relevant access/unlock data; they do not install equipment or
+grant physical quest items. Other versions or contexts are blocked.
+Warp: galaxy selection and portal/galactic/universal address entry, or clicking
+glyphs in sequence. Changes target a system, not a precise portal position.
+Expedition archive: original launch-date references. Expedition replay is not
+available; changing the PC date alone is not a verified replay method. The
+editor does not change the system clock or install expedition data.
+
+WONDER CODEX
+Local scanning and selected/all-eligible contribution of fauna, flora, minerals,
+planets and systems. Owned starships, freighters, frigates and multitools are
+listed separately from discoveries with an established origin. Exact-identity
+companion matches may enrich fauna records. Corvette assemblies, unmatched
+companions, eggs and inventory catalog signals are available for local review
+but cannot be submitted by this importer.
+Passport approval, site-granted import access and a compatible service are
+required for submission. The site may restrict who can approve this editor.
+Contributions go to the review queue, not directly to the public catalog.
+Only selected records are sent. Ariadne & Capture Companion downloads follow
+the site's separate authorization and availability; check the listed build.
+
+JSON AND SETTINGS
+Full-save and account JSON access remain alongside the selected-base tools,
+including tree/text views, validation, search and import/export. Tools & settings
+includes appearance, inventory scaling, global inventory actions, the original
+advanced Test Mode command and compatibility reports. Available controls depend
+on the selected save and its data.
+
+CREDITS
+Underlying No Man's Sky Save Editor: GoatFungus
+https://github.com/goatfungus/nmssaveeditor
+Independent Corvette Optimizer: TAZmd
+https://www.tazmd.nl/corvettes
+See THIRD-PARTY.txt for details and release-specific test records for validation.

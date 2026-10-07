@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "date": "2026-10-07",
+  "environment": "Linux Java 17, Java 8 production bytecode",
+  "automated_checks_passed": 698,
+  "tests": [
+    {
+      "test": "WCEditorTazRunPreferenceTest",
+      "exit_code": 0,
+      "stdout": "TAZ_RUN_PREFERENCE_TEST PASS 25 checks; isolated preferences; no optimizer launches or save writes."
+    },
+    {
+      "test": "WCEditorTazOptimizerTest",
+      "exit_code": 0,
+      "stdout": "TAZ_OPTIMIZER_TEST passed=90"
+    },
+    {
+      "test": "WCEditorTazToolTest",
+      "exit_code": 0,
+      "stdout": "TAZ_TOOL_TEST PASS 21 checks; no executable launched."
+    },
+    {
+      "test": "WCEditorBasesTest",
+      "exit_code": 0,
+      "stdout": "WCEditorBasesTest passed 32 checks; in-memory fixture only."
+    },
+    {
+      "test": "WCEditorInventoryActionsTest",
+      "exit_code": 0,
+      "stdout": "INVENTORY_ACTIONS_TEST passed=30 gui=false synthetic_only=true"
+    },
+    {
+      "test": "WCEditorCodexScanTest",
+      "exit_code": 0,
+      "stdout": "CODEX_SCAN_TEST PASS checks=242; exact integers, supported categories, contexts, joins, sanitization and no mutation"
+    },
+    {
+      "test": "WCEditorCodexClientTest",
+      "exit_code": 0,
+      "stdout": "CODEX_CLIENT_TEST passed=258; scripted transport only; zero external requests"
+    }
+  ],
+  "scope": "Public release labels, credits, documentation and packaging; editing behavior retained.",
+  "new_windows_gui_tested": false,
+  "windows_status": "Desktop Commander offline; no Windows installation or UI execution performed for v1.0.0.",
+  "game_save_writes": 0
+}

@@ -1,0 +1,31 @@
+REBUILDING THE WONDER CODEX ADDON
+
+Install a JDK with javac and jar. The bundled runtime runs the editor; it is not
+a compiler. Work in the installed editor folder after setup has provisioned
+CosmosBridge.jar and engine/NMSSaveEditor.jar. Close the editor before replacing
+any application JAR. Keep a copy of the existing addon.
+
+PowerShell:
+
+New-Item -ItemType Directory -Path build-classes -Force
+$sources = @(Get-ChildItem -LiteralPath source -Filter '*.java' | ForEach-Object FullName)
+& javac -source 8 -target 8 -encoding UTF-8 -cp 'CosmosBridge.jar;engine\NMSSaveEditor.jar' -d build-classes @sources
+if ($LASTEXITCODE -ne 0) { throw 'Compilation failed' }
+Copy-Item source\mission-profile.json build-classes\mission-profile.json
+Copy-Item assets build-classes\assets -Recurse
+Copy-Item integrations build-classes\integrations -Recurse
+Copy-Item optimizer-mode.properties build-classes\optimizer-mode.properties
+$manifest = @('Manifest-Version: 1.0','Main-Class: nomanssave.WCEditorLauncher','Implementation-Version: 1.0.0','Class-Path: CosmosBridge.jar engine/NMSSaveEditor.jar','','') -join "`r`n"
+[IO.File]::WriteAllText((Join-Path (Get-Location) 'addon-manifest.mf'),$manifest,[Text.Encoding]::ASCII)
+jar cfm WonderCodexEditor-rebuilt.jar addon-manifest.mf -C build-classes .
+if ($LASTEXITCODE -ne 0) { throw 'Packaging failed' }
+java -jar WonderCodexEditor-rebuilt.jar --verify
+
+The manifest Implementation-Version must equal WCEditorLauncher.VERSION. After
+verification, keep the old WonderCodexEditor.jar as a backup and put the rebuilt
+file under that name. Rebuild all classes after changing VERSION so constants
+are not left at an old value. Do not include Application.class in this addon.
+
+tests/ contains test sources and captured results. User save fixtures are not
+included. Run tests only against disposable copies/output folders. The setup
+scripts and manifest checks do not edit live game saves.

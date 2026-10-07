@@ -1,0 +1,33 @@
+WONDER CODEX EDITOR 1.0.0 - THIRD-PARTY CREDITS
+
+NO MAN'S SKY SAVE EDITOR BY GOATFUNGUS
+https://github.com/goatfungus/nmssaveeditor
+Wonder Codex Editor builds on GoatFungus's save editor and retains its original
+menus and data operations. The installer downloads the original 1.21.0 engine
+from a fixed repository revision and verifies its exact SHA-256 checksum.
+The author's original engine binary is not changed.
+
+CosmosBridge.jar supplies the Wonder Codex COSMOS compatibility overlay. It
+contains Wonder Codex additions and modified native editor classes and works
+with the original engine. Original engine attribution remains applicable.
+The Wonder Codex desktop extension source is included in source/.
+
+TAZmd NMS CORVETTE OPTIMIZER
+https://www.tazmd.nl/corvettes
+The Corvette Optimizer is created and owned by TAZmd and installed separately
+from its official download. This package does not include TAZmd's executable,
+assets, implementation or ship libraries. Wonder Codex supplies the handoff,
+result validation and update notices; it does not supply the optimization
+algorithm or claim ownership of TAZmd's software.
+Official update feed:
+https://raw.githubusercontent.com/TAZmd/TAZmd-NMS-Corvette-Optimizer-version-check/main/version.txt
+
+ECLIPSE TEMURIN OPENJDK
+The included Java runtime is unmodified Eclipse Temurin OpenJDK 8u504-b01 for
+Windows x64. Its original LICENSE, ASSEMBLY_EXCEPTION, NOTICE and
+THIRD_PARTY_README remain in runtime/. The corresponding upstream source archive
+is included in third-party/source/. See third-party/RUNTIME-PROVENANCE.json for
+upstream URLs and checksums.
+
+Wonder Codex Editor is an independent application. It is not an official
+Hello Games, GoatFungus or TAZmd release.

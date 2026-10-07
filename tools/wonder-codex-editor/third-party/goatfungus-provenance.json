@@ -1,0 +1,16 @@
+{
+  "checked_utc": "2026-10-04",
+  "dependency": "No Man's Sky Save Editor",
+  "author": "GoatFungus",
+  "version": "1.21.0",
+  "repository": "https://github.com/goatfungus/NMSSaveEditor",
+  "commit": "6047315f47321e2a8400d38bf8d904bcca88bb8d",
+  "url": "https://raw.githubusercontent.com/goatfungus/NMSSaveEditor/6047315f47321e2a8400d38bf8d904bcca88bb8d/NMSSaveEditor.jar",
+  "bytes": 70523384,
+  "sha256": "ef898af4e1c4c0c25a6c6529dfea52520cda243383544d8d358ad10aae3a178c",
+  "verified_download_matches_existing_engine": true,
+  "api_license": null,
+  "root_license_file_present": false,
+  "readme_contains_explicit_redistribution_terms": false,
+  "recommendation": "Fetch the original JAR from the pinned author-hosted URL during standalone setup and verify SHA256 before installing. No existing COSMOS folder is required. The retrieved pages do not establish a redistribution grant; do not present the package as a newly licensed fork."
+}

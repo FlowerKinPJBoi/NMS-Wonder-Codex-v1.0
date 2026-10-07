@@ -1,0 +1,270 @@
+[
+  {
+    "title": "Save library & file operations",
+    "view": "overview",
+    "features": [
+      "Open file or folder; select storage, game slot and save revision",
+      "Display path, modified time, save name and description",
+      "Reload, Save Changes, and Save As to another slot; Exit",
+      "Unified Steam, GOG and Xbox / Game Pass discovery; custom save folders",
+      "Keep platform, account, character and autosave / restore-point target visible"
+    ],
+    "kind": "mixed"
+  },
+  {
+    "title": "Exosuit & currencies",
+    "view": "overview",
+    "features": [
+      "Edit health, shield and energy",
+      "Edit Units, Nanites and Quicksilver"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Inventory selection",
+    "view": "inventory",
+    "features": [
+      "Exosuit, each multitool, each ship, freighter and each vehicle",
+      "Storage containers 0–9; cooking ingredients; Skiff cold storage",
+      "Cargo, technology and legacy general inventories where present",
+      "Central owner → object → inventory selector; Corvette inventory support"
+    ],
+    "kind": "mixed"
+  },
+  {
+    "title": "Inventory items & slots",
+    "view": "inventory",
+    "features": [
+      "Add or delete items / technology; item search and details",
+      "Edit stack quantity / charge; repair, recharge and fill stack",
+      "Drag to move; Ctrl-drag to clone; move to another inventory",
+      "Resize inventory; enable / disable slot or enable all slots",
+      "Repair selected slot or all slots; supercharge toggle or all slots"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Global inventory operations",
+    "view": "inventory",
+    "features": [
+      "Recharge all technology; refill all stacks",
+      "Recharge base planters",
+      "Expand all inventories; enable all slots",
+      "Repair all slots / technology"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Multitools",
+    "view": "inventory",
+    "features": [
+      "Select tool; name, type, class and seed",
+      "Damage, mining and scan base stats",
+      "Delete, export and import multitools; associated inventory"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Starships",
+    "view": "fleet",
+    "features": [
+      "Select ship; name, type, class, seed and old-colour option",
+      "Health, shield, damage, shield-strength, hyperdrive and maneuverability stats",
+      "Delete, export and import ships; cargo / technology inventory",
+      "Export option to include products / substances"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Corvettes",
+    "view": "fleet",
+    "features": [
+      "Dedicated Corvette fleet category, ship selection and inventories",
+      "Corvette build / save support is added COSMOS scope"
+    ],
+    "kind": "addition"
+  },
+  {
+    "title": "Squadron",
+    "view": "fleet",
+    "features": [
+      "Enable or disable each wingman",
+      "NPC race and seed; ship type and seed; pilot rank"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Freighter",
+    "view": "fleet",
+    "features": [
+      "Name, type, class, home seed and model seed",
+      "Hyperdrive and fleet coordination stats",
+      "Cargo / technology inventory and base item count",
+      "Freighter structure backup / restore; products / substances export option"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Frigates",
+    "view": "fleet",
+    "features": [
+      "Select frigate; delete or copy; damage repair",
+      "Name, type, class display, NPC race, home seed and model seed",
+      "Select traits; combat, exploration, industry and trading stats",
+      "Warp / expedition fuel cost, expedition duration, loot, repair, damage reduction and stealth",
+      "Expedition totals: undertaken, successful, failed and damaged"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Vehicles",
+    "view": "vehicles",
+    "features": [
+      "Roamer, Nomad, Colossus, Pilgrim, Nautilon and Minotaur",
+      "Skiff and cold storage",
+      "Select vehicle and edit its available inventories"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Companions / pets",
+    "view": "companions",
+    "features": [
+      "Select companion; edit name and creature, secondary, species and genus seeds",
+      "Predator, biome and creature type fields where editable",
+      "Delete, export and import companions"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Bases & storage",
+    "view": "bases",
+    "features": [
+      "Select base; name and part count",
+      "Base structure backup / restore; Move Base Computer",
+      "Hired base NPC selection, race and seed: overseer, scientist, armorer, technician and farmer",
+      "Storage containers 0–9 and cooking-ingredients inventory",
+      "Selected-base JSON export, import and editing"
+    ],
+    "kind": "mixed"
+  },
+  {
+    "title": "Settlements",
+    "view": "settlements",
+    "features": [
+      "Select settlement; name and seed",
+      "Population, happiness, production, upkeep and debt",
+      "Sentinels and alert stats; settlement perks",
+      "Production items: details, change item and move item"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Discoveries & unlocks",
+    "view": "unlocks",
+    "features": [
+      "Known technology: add and remove selected",
+      "Known products: add and remove selected",
+      "Known words by language; Learn All and Unlearn All",
+      "Individual switches for all 16 learned portal glyphs"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Milestones & reputation",
+    "view": "milestones",
+    "features": [
+      "On-foot exploration, alien encounters, words, units accrued, warps, extreme survival and zoology",
+      "Ships / sentinels destroyed; predator, drone, quad, walker, pirate and police kill counters",
+      "Gek, Vy’keen and Korvax standing, missions, words and systems visited",
+      "Traders, Warriors and Explorers standing, missions and associated milestone totals"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Account unlocks",
+    "view": "account",
+    "features": [
+      "Season / expedition reward unlocks",
+      "Twitch reward unlocks and platform reward unlocks",
+      "Edit account JSON separately from character JSON",
+      "Account reward unlocks are distinct from playing an expedition"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Warp & addresses",
+    "view": "warp",
+    "features": [
+      "Galaxy selection; portal and galactic address entry",
+      "Show equivalent addresses and 12 portal glyphs",
+      "Warp character and ship to the target system",
+      "Prominent Warp navigation and clickable glyph sequence entry",
+      "Universal-address entry exposes an existing parser capability in the interface"
+    ],
+    "kind": "mixed"
+  },
+  {
+    "title": "Raw JSON tools",
+    "view": "json",
+    "features": [
+      "Full-save JSON export, import and editing",
+      "Separate raw account JSON editing",
+      "JSON tree and text view; syntax validation",
+      "Find: forward / backward, case-sensitive and wrap search",
+      "Clipboard copy / paste; selected-base JSON tools"
+    ],
+    "kind": "mixed"
+  },
+  {
+    "title": "Backup & recovery",
+    "view": "backups",
+    "features": [
+      "Automatic save backup and recovery",
+      "Separate planetary-base and freighter structure backup / restore"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Appearance & advanced controls",
+    "view": "settings",
+    "features": [
+      "Light / dark and other look-and-feel themes; inventory scaling",
+      "Advanced Test Mode removes editor restrictions; retain its explicit caution",
+      "About screen, version and original author attribution"
+    ],
+    "kind": "inherited"
+  },
+  {
+    "title": "Missions / progression",
+    "view": "missions",
+    "features": [
+      "Select story completion presets with required prerequisites",
+      "Preview and stage progression through Atlantid Drive",
+      "Completion presets for supported Main-context saves (4737–4739, mission version 40)"
+    ],
+    "kind": "addition"
+  },
+  {
+    "title": "Expedition archive",
+    "view": "expeditions",
+    "features": [
+      "View reference dates for selected original expeditions",
+      "Expedition replay is unavailable in this release; changing the PC date alone does not enable it"
+    ],
+    "kind": "addition"
+  },
+  {
+    "title": "Wonder Codex contributions",
+    "view": "wonder-codex",
+    "features": [
+      "Read-only scan of the loaded save with category filters, exact contribution preview, and individual/all eligible selection",
+      "Passport browser device approval for active Tester/Admin accounts; import-only sessions kept in memory",
+      "Explicit review submissions for flora, fauna, minerals, planets, systems and supported procedural owned assets",
+      "Exact companion/discovery joins enrich fauna; unsupported assembly/egg/inventory evidence is marked local-only",
+      "Stable request IDs allow safe retry; server attribution, duplicate checks and owner review",
+      "Companion download portal; access and available builds are controlled by the site"
+    ],
+    "kind": "new"
+  }
+]

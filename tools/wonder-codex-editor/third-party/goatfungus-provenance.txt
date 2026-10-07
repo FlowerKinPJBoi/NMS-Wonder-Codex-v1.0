@@ -1,0 +1,15 @@
+Wonder Codex dependency provenance — checked 2026-10-04
+
+Official repository: https://github.com/goatfungus/NMSSaveEditor
+Pinned commit: 6047315f47321e2a8400d38bf8d904bcca88bb8d
+Pinned upstream JAR: https://raw.githubusercontent.com/goatfungus/NMSSaveEditor/6047315f47321e2a8400d38bf8d904bcca88bb8d/NMSSaveEditor.jar
+Downloaded size: 70523384 bytes
+SHA-256: ef898af4e1c4c0c25a6c6529dfea52520cda243383544d8d358ad10aae3a178c
+
+The pinned upstream JAR was downloaded and its SHA-256 exactly matches editor/lib/engine.jar. Its embedded manifest identifies GoatFungus, No Man's Sky Save Editor, version 1.21.0.
+
+At inspection, GitHub repository metadata reports license=null; the complete root listing has no LICENSE/COPYING file; the JAR has no named LICENSE/NOTICE entry. README makes the tool publicly available for free and describes installing from the author's own repository, but does not contain explicit redistribution terms. This is a factual inspection, not a determination that redistribution is forbidden.
+
+Recommended package mechanism: standalone setup obtains the pinned original JAR directly from the author's GitHub repository and verifies its exact SHA-256. Bundle Wonder Codex authored source/resources separately; apply needed compatibility patches locally during installation. An existing Cosmos Editor folder is unnecessary. Retain GoatFungus attribution and upstream link.
+
+Bridge note: CosmosBridge-original.jar contains 12 native editor replacement classes (including Application.class and ff.class) plus authored WCCosmos classes and mapping resources. It is not solely independent authored code. For a distributable bootstrapper, prefer patching the downloaded upstream classes locally, or obtain explicit upstream permission before distributing replacement native classes.

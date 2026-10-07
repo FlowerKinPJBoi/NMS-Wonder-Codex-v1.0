@@ -1,0 +1,38 @@
+WONDER CODEX EDITOR 1.0.0
+
+The first public Wonder Codex Editor release brings the existing editing tools
+into the Wonder Codex interface, with account/save navigation, the Inventory
+hub, Fleet sections, Base JSON, mission presets, Warp and local discovery review.
+
+Public-facing text and version labels now identify Wonder Codex Editor 1.0.0.
+About includes a direct link to GoatFungus's original No Man's Sky Save Editor:
+https://github.com/goatfungus/nmssaveeditor
+TAZmd's independent Corvette Optimizer remains credited and installed separately.
+https://www.tazmd.nl/corvettes
+
+The optimizer's first run opens setup. Run directly next time can remember the
+choice separately for each edition. The gear beside Run opens settings for
+updates, executable selection and this preference. Direct UI runs optimization
+through the official app; App Handoff leaves its Optimize button to the user.
+Both paths validate returned changes and require explicit staging and saving.
+
+The WC icon, clean startup, inventory dialog fix and existing save-editing
+sections are retained. The complete setup ZIP includes Java; installation
+obtains and verifies the pinned GoatFungus engine. No previous COSMOS editor
+installation is required. v1.0.0 installs alongside earlier versions.
+
+CURRENT LIMITS
+- Mission presets support Main-context saves 4737-4739 with mission version 40.
+- Expedition replay is unavailable; the archive is a date reference.
+- Wonder Codex submission needs Passport approval, site-granted access and a
+  compatible import service. Submissions enter the site review queue.
+- Ariadne & Capture Companion downloads follow the site's own access controls.
+- Optimizer automation depends on the official application's compatible Windows
+  controls. Manual copy/import remains available when automation cannot continue.
+
+VALIDATION RECORDS
+698 automated checks passed against this release for optimizer preferences and
+validation, base protection, inventory actions, and discovery scan/import.
+See tests/release-1.0.0-results.json. Packaged launcher and archive checks are
+performed during packaging. Windows UI testing was not repeated for v1.0.0;
+the Windows device was offline. Synthetic checks do not write game saves.

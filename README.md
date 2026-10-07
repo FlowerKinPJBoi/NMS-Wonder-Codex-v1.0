@@ -14,6 +14,10 @@ v1.31.5 makes visual corrections intentional and temporary. Builders can paste, 
 - `api/`: FastAPI service, migrations, and API tests.
 - `admin/`: browser-based private review and app-vault interfaces.
 - `research/`: curated public research fixtures used by the site.
+- [`tools/wonder-codex-editor/`](tools/wonder-codex-editor/): public Wonder Codex
+  Editor v1.0.0 source, build instructions and release-review evidence. The
+  desktop extension is buildable using the pinned CosmosBridge binary; the
+  original bridge source has not yet been recovered.
 
 The current release includes the Wonder and procedural-asset catalogs,
 contribution and verification workflows, private review tools, original

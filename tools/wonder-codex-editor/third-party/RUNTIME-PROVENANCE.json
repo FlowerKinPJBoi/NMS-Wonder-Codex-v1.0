@@ -1,0 +1,44 @@
+{
+  "distribution": "Eclipse Temurin",
+  "version": "1.8.0_504-b01",
+  "semver": "8.0.504+1",
+  "platform": "Windows",
+  "architecture": "x64",
+  "jvm": "HotSpot",
+  "package": "JRE",
+  "releaseUrl": "https://github.com/adoptium/temurin8-binaries/releases/tag/jdk8u504-b01",
+  "releaseTag": "jdk8u504-b01",
+  "license": "GPL-2.0 WITH Classpath-exception-2.0; see unmodified bundled license files",
+  "licenseFiles": [
+    "runtime/LICENSE",
+    "runtime/ASSEMBLY_EXCEPTION",
+    "runtime/NOTICE",
+    "runtime/THIRD_PARTY_README"
+  ],
+  "runtimeDirectory": "runtime",
+  "downloadedFiles": [
+    {
+      "name": "OpenJDK8U-jre_x64_windows_hotspot_8u504b01.zip",
+      "url": "https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u504-b01/OpenJDK8U-jre_x64_windows_hotspot_8u504b01.zip",
+      "bytes": 40104826,
+      "sha256": "82e2cdc6693737c5998445b31f69668fa0da77c7705121053f6508ac84961123"
+    },
+    {
+      "name": "OpenJDK8U-jdk-sources_8u504b01.tar.gz",
+      "url": "https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u504-b01/OpenJDK8U-jdk-sources_8u504b01.tar.gz",
+      "bytes": 94314011,
+      "sha256": "86cd14f299616dddca13268cc2fa794eb4d28fc732dedaad8c5b8a3078e5d3c9"
+    }
+  ],
+  "verification": [
+    "Archive byte count and SHA-256 match the official GitHub release asset digest.",
+    "JRE checksum also matches official Adoptium API metadata.",
+    "Extracted java.exe PE machine type is AMD64 (0x8664).",
+    "Runtime contains Swing/AWT and required MSVC DLLs.",
+    "Windows runtime has not been executed in this Linux environment."
+  ],
+  "sources": [
+    "https://api.adoptium.net/v3/assets/latest/8/hotspot?architecture=x64&image_type=jre&os=windows&vendor=eclipse",
+    "https://adoptium.net/docs/faq?variant=openjdk16"
+  ]
+}

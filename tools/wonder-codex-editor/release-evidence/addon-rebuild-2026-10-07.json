@@ -1,0 +1,85 @@
+{
+  "version": "1.0.0",
+  "scope": "addon build; prebuilt bridge and engine dependencies",
+  "production_classes": 77,
+  "java_class_version": 52,
+  "source_files": {
+    "app/source/WCEditorAddress.java": "7719bf38be52aec32efbf26a15b0c5c8467876a9e6cb91ac35aeca9a051675de",
+    "app/source/WCEditorBasesPanel.java": "ea6c03ff3c0f7f0dff78f67f51414011725592b65a845bf917b4e5fb0bd6ab53",
+    "app/source/WCEditorBranding.java": "ee89fb7a29fd6efb179a124dda69f76c49274a1a9a50f325006a6e73e58ae27c",
+    "app/source/WCEditorCodexClient.java": "7c6196d1a0cf2868d973fe78ec5aacd95a6a16242a12dd9b28dff4407b601047",
+    "app/source/WCEditorCodexPanel.java": "793a182c4f6a84e243d7abc8c162edfd667d520aa913d0310389c2d24613a83a",
+    "app/source/WCEditorCodexScan.java": "91792b5c3ff25139e9f9eec6598147477047f328344b31577b59d2ce3f2dd9df",
+    "app/source/WCEditorCorvettePanel.java": "3a5c558e4c4d0e0250fbe4a37e80d7e7959969fdf848f5eaff97b83b39341706",
+    "app/source/WCEditorCorvettes.java": "53912d43246281347bfda550e78f30142f24e17e6e2ac06e8b3e37edcf6092a4",
+    "app/source/WCEditorInventoryBinding.java": "34c0d90a2913b4c663fe3e45eacec56bb98d99de558c2221dd2770d0132d6e8b",
+    "app/source/WCEditorInventoryPanel.java": "0646733baa572c88c730a1ea561667ed08300bd4121a3b72b49521eeb1d8ebfa",
+    "app/source/WCEditorLauncher.java": "7e3f2e17df29243dec91a8a36f02c6361141956c0a87c8adb443718808d0fbb9",
+    "app/source/WCEditorReview.java": "2f9348e961772428c5701874ff717913dbbef6165ca56b91d5daf89c8bd0a63d",
+    "app/source/WCEditorSaveDiscovery.java": "7714ce1ed961cca83380aefa6849c9385140672ba672c0f94f75ddf0b9c19253",
+    "app/source/WCEditorShell.java": "512502a62be30b231f705937b9c8d6eac35cfde6fd35f64a9d3c0ddc1620a24e",
+    "app/source/WCEditorStartup.java": "edc9e852d19df7853fa24e3ed2d309fcfd2b505de7da6ef13de0d314d1f5b3bc",
+    "app/source/WCEditorStorage.java": "5c99dfd97f5b45fa80c8dc3cc2f593bbd493f323bcee84d69a33a847895b1d74",
+    "app/source/WCEditorTazBridge.java": "12c9b47e90ffc8969c226099c16ad7fdb7dc8d68c62698d591864ab00a19a11e",
+    "app/source/WCEditorTazDialog.java": "c0136f952b1b6eee1dc68caab01ce9c70780cdeac18926de815c99b65648bf98",
+    "app/source/WCEditorTazOptimizer.java": "de547b29bafdf7c4f628673ec4938c3be867c91349ef0ec47113e98be69056f3",
+    "app/source/WCEditorTazRunPreference.java": "472def6fe01af960fbe666dadf68c251a25f148ce300719dc8fa0e1fc2d03f69",
+    "app/source/WCEditorTazTool.java": "45a9cba694144f169d21c9bb5af7b469a4c6934648329297408af3219841e8c6",
+    "app/source/WCEditorWarpPanel.java": "4a046fbe0c00fed8fde755276262401e107a251e733f6fbce70392bd4846dc36",
+    "app/source/WCMissions.java": "11bc77d0ed553aa48ee6ad78057943c9f35375746df511a9b2a7f58ee91d121b",
+    "app/source/WCMissionsLauncher.java": "8cc036649ac848b7cdce965b958b0a9b643dcfba4766d6786c839c0efcf75855",
+    "app/source/WCMissionsPanel.java": "d943bfb6bb9fa69f8cfe6cd5c0a26f27a759c708549064c6d4cbf03f1140092f",
+    "app/source/v.java": "73619be3c80c3d752caf2e9d5941bf238300b98a4cff4d6bdfdb46516dd77ea8",
+    "app/source/x.java": "5bd84e43ca0c4b459de5f383f5fd307c6b31e54fe8626795df49562c645455f8"
+  },
+  "dependencies": {
+    "CosmosBridge.jar": "7cebd0ae928e571fd340543bbc2eb3c9fe3cf6cada4be6e1d4dbd5f9061889e8",
+    "NMSSaveEditor.jar": "ef898af4e1c4c0c25a6c6529dfea52520cda243383544d8d358ad10aae3a178c",
+    "ecj-3.40.0.jar": "05cc22a24e7982970f63a405fc6c820bc80b806f27f3c5a6236fc475f8f7152b"
+  },
+  "addon_sha256": "e355ca5a28de949fe3444313e9f47cffc4c86f3ad9c2ebe0e374d6f2fc66e250",
+  "launcher_verification": "[Cosmos Bridge] 2026-10-08T01:05:41.815+0200 START bridge=0.1.0 engine SHA256 verified; Java=17.0.20\nEngine and bridge classpath verified. No game save was opened or written.\nWonder Codex Editor 1.0.0 verified: addon version and mission profile, COSMOS bridge, engine and classpath. No game save was opened or written.",
+  "tests": [
+    {
+      "test": "WCEditorTazRunPreferenceTest",
+      "stdout": "Oct 08, 2026 1:05:43 AM java.util.prefs.FileSystemPreferences$1 run\nINFO: Created user preferences directory.\nTAZ_RUN_PREFERENCE_TEST PASS 25 checks; isolated preferences; no optimizer launches or save writes.",
+      "exit_code": 0
+    },
+    {
+      "test": "WCEditorTazOptimizerTest",
+      "stdout": "TAZ_OPTIMIZER_TEST passed=90",
+      "exit_code": 0
+    },
+    {
+      "test": "WCEditorTazToolTest",
+      "stdout": "TAZ_TOOL_TEST PASS 21 checks; no executable launched.",
+      "exit_code": 0
+    },
+    {
+      "test": "WCEditorBasesTest",
+      "stdout": "WCEditorBasesTest passed 32 checks; in-memory fixture only.",
+      "exit_code": 0
+    },
+    {
+      "test": "WCEditorInventoryActionsTest",
+      "stdout": "INVENTORY_ACTIONS_TEST passed=30 gui=false synthetic_only=true",
+      "exit_code": 0
+    },
+    {
+      "test": "WCEditorCodexScanTest",
+      "stdout": "CODEX_SCAN_TEST PASS checks=242; exact integers, supported categories, contexts, joins, sanitization and no mutation",
+      "exit_code": 0
+    },
+    {
+      "test": "WCEditorCodexClientTest",
+      "stdout": "CODEX_CLIENT_TEST passed=258; scripted transport only; zero external requests",
+      "exit_code": 0
+    }
+  ],
+  "release_comparison": {
+    "zip_sha256": "26e3873c725f9510fcc51652835c33560a5b71efc1ad047722520e7b407aace9",
+    "compared_addon_entries": 90,
+    "all_entry_contents_match": true,
+    "differing_entries": []
+  }
+}

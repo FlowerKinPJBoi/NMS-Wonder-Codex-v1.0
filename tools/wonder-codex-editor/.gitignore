@@ -1,0 +1,7 @@
+# Dependencies and generated builds are deliberately absent from source control.
+.build-cache/
+*.jar
+*.class
+__pycache__/
+build/
+dist/

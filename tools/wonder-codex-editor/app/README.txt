@@ -1,0 +1,82 @@
+WONDER CODEX EDITOR 1.0.0
+EDITION: Direct UI
+INSTALL FOLDER: %LOCALAPPDATA%\WonderCodexEditor\1.0.0-direct
+
+GET STARTED
+Open the Wonder Codex Editor 1.0.0 Direct UI Desktop shortcut, or double-click
+START-WONDER-CODEX-EDITOR.bat in this folder. Choose an account on the left, then
+a save slot and revision. Use Add save folder for other locations.
+
+To install on another PC, extract the complete setup ZIP and run SETUP.bat.
+
+Windows 10/11, 64-bit. Java is included. First setup needs an internet connection
+to download the pinned GoatFungus save engine and verify its SHA-256 checksum.
+No previous COSMOS editor folder or administrator installation is required.
+Each edition installs alongside earlier versions. Existing folders are not
+replaced. Share the complete ZIP so the installer has all required files.
+
+EDIT AND SAVE
+Browse Inventory, Fleet, Bases, Missions, Warp and the other sections using the
+main navigation. The original File, Edit, View and Help commands remain available.
+Inventory lets you choose its owner and inventory section. Warp accepts an
+address or a sequence of glyphs. Base JSON provides import, export and editing.
+See FEATURE-COVERAGE.txt for the complete feature guide and current limits.
+
+Close No Man's Sky before writing save changes. Use Review & Save to inspect
+character and account changes and choose what to write. Backup checks must
+succeed before writing. Staging an edit does not write the game save.
+
+TAZmd's Corvette Optimizer
+The Corvette Optimizer is independent software created and owned by TAZmd.
+Download the official app from https://www.tazmd.nl/corvette-optimizer and extract
+it to a permanent folder. It runs in its own visible window.
+
+In Bases > Base JSON, select a corvette and stage any unfinished text edit.
+Click Run TAZmd's Corvette Optimizer. First use opens settings; choose Use
+downloaded optimizer and select its executable. Leave Run directly next time
+selected to skip this setup on later runs. The choice is remembered when you
+choose Run and continue past the version check with a configured optimizer.
+Opening or cancelling first setup does not enable direct running.
+
+The gear beside Run reopens settings without running the optimizer. Use it to
+check for updates, select a newer executable, or change Run directly next time.
+Settings remain available without a selected corvette. A missing or invalid
+executable returns you to setup. Each edition remembers its own run preference.
+
+Direct UI: opens TAZmd, pastes and verifies the selected corvette, presses
+Optimize, and returns the result for your review and staging.
+App Handoff: opens TAZmd, pastes and verifies the selected corvette, then lets
+you press Optimize. Save the JSON from TAZmd and use Import optimized result in
+the editor's progress window or settings.
+
+The editor checks TAZmd's published version before running. An update notice
+opens the official download page; extract the update and select its executable
+in settings. Updates are user-controlled. If the check is unavailable, you can
+choose whether to continue using your selected local app.
+
+Only the selected corvette is passed to the external app. The adapter switches
+off automatic optimization and duplicate deletion before pasting. Keep those
+options off for this workflow. Results must preserve every object and value,
+including duplicate counts, transforms, wiring and ownership; only object order
+may change. You confirm staging, then use Review & Save to write the game save.
+
+Cancel stops the editor's handoff and leaves TAZmd and the working JSON available.
+The handoff briefly uses the clipboard and restores it if its contents have not
+been changed. If automation stops, use settings to copy the selected JSON, paste
+it into TAZmd, optimize, save, then import the result for the same validation.
+
+WONDER CODEX CONTRIBUTIONS
+Scan locally and select eligible discoveries to contribute. Sign in with
+Passport and approve the editor before submitting. Site authorization and a
+compatible import service are required. Contributions go to the site's review
+queue; they are not published immediately. Only the selected records are sent.
+Ariadne & Capture Companion downloads use the site's separate access controls.
+
+CREDITS AND DETAILS
+Based on No Man's Sky Save Editor by GoatFungus:
+https://github.com/goatfungus/nmssaveeditor
+TAZmd's Corvette Optimizer:
+https://www.tazmd.nl/corvettes
+
+See THIRD-PARTY.txt for attribution and runtime notices, and
+RELEASE-NOTES-1.0.0.txt for release details. Source and test records are included.

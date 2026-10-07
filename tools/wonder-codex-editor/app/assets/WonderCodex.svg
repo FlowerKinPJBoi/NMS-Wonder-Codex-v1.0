@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <title>Wonder Codex Editor</title>
+  <desc>Original WC monogram in cyan and ivory, beneath a gold guide star on deep navy.</desc>
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#173b57"/><stop offset="1" stop-color="#09182e"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#a5fff0"/><stop offset="1" stop-color="#47cfea"/>
+    </linearGradient>
+  </defs>
+  <rect x="5" y="5" width="246" height="246" rx="59" fill="url(#night)"/>
+  <rect x="9" y="9" width="238" height="238" rx="55" fill="none" stroke="#5bd4e0" stroke-opacity=".48" stroke-width="3"/>
+  <path d="M39 103 53 172 77 128 98 172 114 103" fill="none" stroke="url(#sea)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M214 115 C203 103 192 98 178 98 C153 98 136 116 136 137 C136 159 153 177 178 177 C193 177 205 171 214 159" fill="none" stroke="#f0f9fa" stroke-width="15" stroke-linecap="round"/>
+  <path d="M184 36 189 53 207 58 189 63 184 81 179 63 161 58 179 53Z" fill="#ffd477"/>
+  <path d="M57 208 C91 220 146 220 184 206" fill="none" stroke="#5cd3dd" stroke-opacity=".56" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="202" cy="198" r="5" fill="#ffd477"/>
+</svg>
