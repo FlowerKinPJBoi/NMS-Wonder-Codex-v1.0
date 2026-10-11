@@ -1,0 +1,21 @@
+WONDER CODEX EDITOR 1.0.1
+
+Blocked or failed writes reported by Cosmos Bridge now show an on-screen
+explanation when using Overview > Save Changes, the native save commands, or
+the save prompt when closing the editor. Previously, a blocked write could
+report its reason only in the startup log, making Save Changes appear unresponsive.
+
+The protection against writing while No Man's Sky is running remains enabled.
+If it blocks a save, keep the editor open, exit No Man's Sky normally, then
+retry Save Changes. Preview and staging do not write to the game save.
+
+This update installs alongside earlier versions. Finish saving any staged work
+in the running editor before closing it and opening the 1.0.1 shortcut.
+
+The game-save format, Cosmos Bridge, pinned GoatFungus engine, Java runtime,
+TAZmd integration and existing editing features are unchanged.
+
+The 722 headless regression checks passed. Build and regression results are
+included in tests/build-1.0.1-results.json.
+Synthetic test results do not establish in-game behavior or malware clearance.
+See RELEASE-NOTES-1.0.0.txt for the original feature list and current limits.

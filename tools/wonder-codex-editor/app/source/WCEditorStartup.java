@@ -50,6 +50,7 @@ public final class WCEditorStartup {
             // Initializes the installation's settings, log, paths and inventory scaling.
             // Native Application.main is intentionally not called: it shows the old UI.
             aH.init(true);
+            WCEditorSaveErrors.install();
             Constructor<Application> constructor = Application.class.getDeclaredConstructor(Boolean.TYPE);
             constructor.setAccessible(true);
             try {

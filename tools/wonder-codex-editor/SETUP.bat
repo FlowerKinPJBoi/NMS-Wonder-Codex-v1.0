@@ -1,7 +1,7 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-echo Wonder Codex Editor 0.4.0 - Standalone Windows Setup
+echo Wonder Codex Editor 1.0.1 - Standalone Windows Setup
 echo Extract the complete ZIP before running this file.
 echo First setup downloads and verifies the matching editor engine.
 echo.
@@ -13,6 +13,6 @@ if errorlevel 1 (
  exit /b 1
 )
 echo.
-echo Setup finished. Use the Wonder Codex Editor 0.4.0 Desktop shortcut next time.
+echo Setup finished. Use the Wonder Codex Editor 1.0.1 Desktop shortcut next time.
 pause
 endlocal

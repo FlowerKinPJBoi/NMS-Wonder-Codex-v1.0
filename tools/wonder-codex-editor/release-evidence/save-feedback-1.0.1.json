@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "release": "1.0.1",
+  "test_date": "2026-10-11",
+  "suite": "nomanssave.WCEditorSaveErrorsTest",
+  "tested_addon": {
+    "file": "WonderCodexEditor.jar",
+    "sha256": "2fa448eed63f9e77922c2d32db52dc8d5dc0791f097b51ef8c786a4d93894985",
+    "implementation_version": "1.0.1"
+  },
+  "test_source": {
+    "file": "app/tests/WCEditorSaveErrorsTest.java",
+    "sha256": "253ba73bf4610a793c32b04dbc8aaeb38077b18b69463e4efb7af03a8a0c90ae"
+  },
+  "dependencies": {
+    "CosmosBridge.jar": "7cebd0ae928e571fd340543bbc2eb3c9fe3cf6cada4be6e1d4dbd5f9061889e8",
+    "NMSSaveEditor.jar": "ef898af4e1c4c0c25a6c6529dfea52520cda243383544d8d358ad10aae3a178c"
+  },
+  "environment": {
+    "os": "Linux",
+    "java": "OpenJDK 17.0.20",
+    "gui": "Xvfb 1600x1000, authenticated TCP loopback display"
+  },
+  "results": {
+    "headless": {
+      "status": "PASS",
+      "checks": 24,
+      "exit_code": 0
+    },
+    "headful": {
+      "status": "PASS",
+      "checks": 42,
+      "exit_code": 0
+    },
+    "checks_overlap": true
+  },
+  "tested_behavior": [
+    "Recognize only bridge-origin IllegalStateException write failures; handle wrapped and cyclic causes safely.",
+    "Actual native Overview Save Changes button invokes the unchanged production bridge, whose blocked write appears in an actionable modal dialog.",
+    "Actual WINDOW_CLOSING event and native save confirmation show the same error and keep the editor window available.",
+    "Blocked writes preserve dirty state, root identity, staged JSON, selected revision and original fixture bytes; no native write is entered and no automatic retry occurs.",
+    "The event-dispatch thread remains responsive; unrelated runtime exceptions reach the normal uncaught handler.",
+    "After the controlled process-list block is removed, an explicit native Application.n retry creates a verified backup, writes exact staged synthetic JSON, and clears the dirty flag."
+  ],
+  "fixture_scope": {
+    "process_list": "A test-only ps script is prepended to PATH in an isolated child JVM and emits NMS.exe while a fixture flag exists, then java after the flag is removed. The production bridge detector and write guard are unchanged.",
+    "storage": "Synthetic fs/fq/ft adapter, minimal synthetic JSON and a disposable account/save.hg fixture. Native Application.n and production bridge guard/backup are exercised; the adapter writes JSON bytes instead of encoding a real game save.",
+    "user_saves_opened": false,
+    "user_saves_written": false,
+    "game_launched": false,
+    "full_game_format_roundtrip": false,
+    "in_game_validation": false,
+    "windows_gui_validation": false
+  },
+  "evidence": {
+    "headful_log": "save-feedback-1.0.1-headful.log",
+    "headful_log_sha256": "f2867186df83a672a96f5ca4751b1a0cdbedae7b2e9a77efd360323bbe93b015",
+    "headful_observed_output": "save-feedback-1.0.1-headful-observed.txt",
+    "headful_observed_output_sha256": "7327fc2cbde7eaa0bcabe23e4371a101b4bb7662ded9882f71659567f059e3dd",
+    "headless_log": "save-feedback-1.0.1-headless.log",
+    "headless_log_sha256": "1122e038a230aecd0b617cd4d5587ad19958dcf07fb1a838b73adb44eab4f49e",
+    "record_type": "Full headful process stdout/stderr; headless stdout retained from the final addon build report.",
+    "full_headful_raw_log_saved": true,
+    "screenshot_captured": false
+  }
+}

@@ -1,0 +1,47 @@
+Wonder Codex Editor 1.0.1 save-feedback regression
+PASS lines extracted from the complete final-release-candidate headful log, save-feedback-1.0.1-headful.log.
+
+PASS null is not a save failure
+PASS unrelated errors are not relabeled
+PASS message alone does not impersonate a bridge failure
+PASS wrong exception type is not relabeled
+PASS other bridge operations are not misclassified
+PASS recognized block retains actionable reason
+PASS message explains preserving unsaved edits
+PASS message explains retrying after resolution
+PASS nested reflection wrappers retain recognized bridge error
+PASS late write failures make no unwritten-data promise
+PASS empty bridge reason uses diagnostic fallback
+PASS cyclic causes terminate safely
+PASS bridge stack alone is not a save failure
+PASS production bridge detects test process-list input: No Man's Sky is running. Exit the game completely, then save again. Nothing was written by this operation.
+PASS actual native save reaches recognized production bridge guard
+PASS native save attempted exactly once
+PASS Blocked native save preserves dirty state
+PASS Blocked native save preserves staged JSON and root identity
+PASS Blocked native save preserves selected revision
+PASS Blocked native save never starts native disk write
+PASS real native Overview Save Changes button is present
+PASS Overview save shows useful error dialog
+PASS Overview save preserves dirty state
+PASS Overview save preserves staged JSON and root identity
+PASS Overview save preserves selected revision
+PASS Overview save never starts native disk write
+PASS Overview save keeps editor window available
+PASS Overview save does not retry the write automatically
+PASS Overview save leaves EDT responsive
+PASS Window-close save shows useful error dialog
+PASS Window-close save preserves dirty state
+PASS Window-close save preserves staged JSON and root identity
+PASS Window-close save preserves selected revision
+PASS Window-close save never starts native disk write
+PASS Window-close save keeps editor window available
+PASS Window-close save does not retry the write automatically
+PASS Window-close save leaves EDT responsive
+PASS unrelated EDT error reaches normal uncaught handler
+PASS explicit retry enters native write exactly once after guard clears
+PASS successful native retry clears dirty state
+PASS successful retry writes staged synthetic JSON
+PASS successful retry creates verified backup
+SAVE_ERRORS PASS 42 checks; headless=false
+Process exit code: 0

@@ -1,4 +1,4 @@
-WONDER CODEX EDITOR 1.0.0 - FEATURE GUIDE
+WONDER CODEX EDITOR 1.0.1 - FEATURE GUIDE
 
 SAVES AND NAVIGATION
 Automatic account discovery for Steam, GOG and Xbox / Game Pass on Windows;

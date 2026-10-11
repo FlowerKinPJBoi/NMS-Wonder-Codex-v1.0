@@ -1,0 +1,33 @@
+PASS null is not a save failure
+PASS unrelated errors are not relabeled
+PASS message alone does not impersonate a bridge failure
+PASS wrong exception type is not relabeled
+PASS other bridge operations are not misclassified
+PASS recognized block retains actionable reason
+PASS message explains preserving unsaved edits
+PASS message explains retrying after resolution
+PASS nested reflection wrappers retain recognized bridge error
+PASS late write failures make no unwritten-data promise
+PASS empty bridge reason uses diagnostic fallback
+PASS cyclic causes terminate safely
+PASS bridge stack alone is not a save failure
+PASS production bridge detects test process-list input: No Man's Sky is running. Exit the game completely, then save again. Nothing was written by this operation.
+Initializing environment...
+Formatting JSON...
+[Cosmos Bridge] 2026-10-11T12:55:30.936-0500 WRITE_FAILED_OR_BLOCKED nomanssave.WCEditorSaveErrorsTest$GuardedSave.wc$original$b : java.io.IOException: No Man's Sky is running. Exit the game completely, then save again. Nothing was written by this operation. (native operation not started)
+PASS actual native save reaches recognized production bridge guard
+PASS native save attempted exactly once
+PASS Blocked native save preserves dirty state
+PASS Blocked native save preserves staged JSON and root identity
+PASS Blocked native save preserves selected revision
+PASS Blocked native save never starts native disk write
+Formatting JSON...
+[Cosmos Bridge] 2026-10-11T12:55:30.951-0500 BACKUP_VERIFIED before-20261011-125530-943-b1fbf349.zip files=1 bytes=30
+[Cosmos Bridge] 2026-10-11T12:55:30.953-0500 WRITE_AUTHORISED nomanssave.WCEditorSaveErrorsTest$GuardedSave.wc$original$b backup=before-20261011-125530-943-b1fbf349.zip
+[Cosmos Bridge] 2026-10-11T12:55:30.953-0500 NATIVE_WRITE_RETURNED_OK nomanssave.WCEditorSaveErrorsTest$GuardedSave.wc$original$b; game-load validation still required
+Finished.
+PASS explicit retry enters native write exactly once after guard clears
+PASS successful native retry clears dirty state
+PASS successful retry writes staged synthetic JSON
+PASS successful retry creates verified backup
+SAVE_ERRORS PASS 24 checks; headless=true

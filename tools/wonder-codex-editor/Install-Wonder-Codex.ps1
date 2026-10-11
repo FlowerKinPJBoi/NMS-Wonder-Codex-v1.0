@@ -6,7 +6,7 @@ $ErrorActionPreference = 'Stop'
 $stage = $null
 try {
     if ([Environment]::OSVersion.Platform -ne [PlatformID]::Win32NT -or ![Environment]::Is64BitOperatingSystem) { throw 'This package requires 64-bit Windows 10 or later.' }
-    if ([string]::IsNullOrWhiteSpace($InstallRoot)) { $InstallRoot = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'WonderCodexEditor\1.0.0-direct' }
+    if ([string]::IsNullOrWhiteSpace($InstallRoot)) { $InstallRoot = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'WonderCodexEditor\1.0.1-direct' }
     $InstallRoot = [IO.Path]::GetFullPath($InstallRoot)
     $setupRoot = [IO.Path]::GetFullPath($PSScriptRoot).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
     if ($InstallRoot.StartsWith($setupRoot, [StringComparison]::OrdinalIgnoreCase)) { throw 'Choose an install folder outside the extracted setup folder.' }
@@ -27,17 +27,17 @@ try {
     Test-EditorStartup -AppRoot $stage
     [IO.Directory]::Move($stage, $InstallRoot)
     $stage = $null
-    $installInfo = @{ version='1.0.0-direct'; installed_at=[DateTime]::UtcNow.ToString('o'); location=$InstallRoot }
+    $installInfo = @{ version='1.0.1-direct'; installed_at=[DateTime]::UtcNow.ToString('o'); location=$InstallRoot }
     $installInfo | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $InstallRoot 'install-info.json') -Encoding UTF8
     try {
         $desktopDir = [Environment]::GetFolderPath('DesktopDirectory')
-        $shortcutPath = Join-Path $desktopDir 'Wonder Codex Editor 1.0.0 Direct UI.lnk'
+        $shortcutPath = Join-Path $desktopDir 'Wonder Codex Editor 1.0.1 Direct UI.lnk'
         $shell = New-Object -ComObject WScript.Shell
         $shortcut = $shell.CreateShortcut($shortcutPath)
         $shortcut.TargetPath = Join-Path ([Environment]::GetFolderPath('System')) 'WindowsPowerShell\v1.0\powershell.exe'
         $shortcut.Arguments = '-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "' + (Join-Path $InstallRoot 'Launch-Wonder-Codex.ps1') + '"'
         $shortcut.WorkingDirectory = $InstallRoot
-        $shortcut.Description = 'Wonder Codex Editor 1.0.0 Direct UI'
+        $shortcut.Description = 'Wonder Codex Editor 1.0.1 Direct UI'
         $shortcut.IconLocation = (Join-Path $InstallRoot 'assets\WonderCodex.ico') + ',0'
         $shortcut.Save()
         Write-Host ('Desktop shortcut: ' + $shortcutPath)

@@ -1,9 +1,9 @@
-WONDER CODEX EDITOR 1.0.0
+WONDER CODEX EDITOR 1.0.1
 EDITION: Direct UI
-INSTALL FOLDER: %LOCALAPPDATA%\WonderCodexEditor\1.0.0-direct
+INSTALL FOLDER: %LOCALAPPDATA%\WonderCodexEditor\1.0.1-direct
 
 GET STARTED
-Open the Wonder Codex Editor 1.0.0 Direct UI Desktop shortcut, or double-click
+Open the Wonder Codex Editor 1.0.1 Direct UI Desktop shortcut, or double-click
 START-WONDER-CODEX-EDITOR.bat in this folder. Choose an account on the left, then
 a save slot and revision. Use Add save folder for other locations.
 
@@ -25,6 +25,11 @@ See FEATURE-COVERAGE.txt for the complete feature guide and current limits.
 Close No Man's Sky before writing save changes. Use Review & Save to inspect
 character and account changes and choose what to write. Backup checks must
 succeed before writing. Staging an edit does not write the game save.
+
+If saving is blocked, the editor displays the reason. Keep staged work in the
+open editor, resolve the reported problem, then retry Save Changes. When the
+game-running message appears, exit No Man's Sky normally before retrying.
+Finish saving staged work before closing an older version to install an update.
 
 TAZmd's Corvette Optimizer
 The Corvette Optimizer is independent software created and owned by TAZmd.
@@ -79,4 +84,4 @@ TAZmd's Corvette Optimizer:
 https://www.tazmd.nl/corvettes
 
 See THIRD-PARTY.txt for attribution and runtime notices, and
-RELEASE-NOTES-1.0.0.txt for release details. Source and test records are included.
+RELEASE-NOTES-1.0.1.txt for release details. Source and test records are included.

@@ -15,7 +15,7 @@ Copy-Item source\mission-profile.json build-classes\mission-profile.json
 Copy-Item assets build-classes\assets -Recurse
 Copy-Item integrations build-classes\integrations -Recurse
 Copy-Item optimizer-mode.properties build-classes\optimizer-mode.properties
-$manifest = @('Manifest-Version: 1.0','Main-Class: nomanssave.WCEditorLauncher','Implementation-Version: 1.0.0','Class-Path: CosmosBridge.jar engine/NMSSaveEditor.jar','','') -join "`r`n"
+$manifest = @('Manifest-Version: 1.0','Main-Class: nomanssave.WCEditorLauncher','Implementation-Version: 1.0.1','Class-Path: CosmosBridge.jar engine/NMSSaveEditor.jar','','') -join "`r`n"
 [IO.File]::WriteAllText((Join-Path (Get-Location) 'addon-manifest.mf'),$manifest,[Text.Encoding]::ASCII)
 jar cfm WonderCodexEditor-rebuilt.jar addon-manifest.mf -C build-classes .
 if ($LASTEXITCODE -ne 0) { throw 'Packaging failed' }

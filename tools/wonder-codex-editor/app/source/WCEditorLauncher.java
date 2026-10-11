@@ -16,7 +16,7 @@ import javax.swing.JOptionPane;
 
 /** JDK-only preflight keeps incomplete installations from failing during linkage. */
 public final class WCEditorLauncher {
-    public static final String VERSION = "1.0.0";
+    public static final String VERSION = "1.0.1";
     private static final String BRIDGE_SHA256 = "7cebd0ae928e571fd340543bbc2eb3c9fe3cf6cada4be6e1d4dbd5f9061889e8";
     private static final String ENGINE_SHA256 = "ef898af4e1c4c0c25a6c6529dfea52520cda243383544d8d358ad10aae3a178c";
     private static final String PROFILE_SHA256 = "d9dfd5a95ed374d8e6f34e9697854701e44354d2e00323af7773271a5869afc0";
@@ -65,6 +65,7 @@ public final class WCEditorLauncher {
             for (String name : new String[] {
                 "nomanssave/WCEditorLauncher.class", "nomanssave/WCEditorStartup.class",
                 "nomanssave/WCEditorStartup$StartupFailure.class",
+                "nomanssave/WCEditorSaveErrors.class", "nomanssave/WCEditorSaveErrors$1.class",
                 "nomanssave/v.class", "nomanssave/x.class",
                 "nomanssave/WCEditorCodexPanel.class", "nomanssave/WCEditorCodexScan.class",
                 "nomanssave/WCEditorCodexClient.class", "nomanssave/WCEditorShell.class", "nomanssave/WCEditorStorage.class",
@@ -95,6 +96,7 @@ public final class WCEditorLauncher {
         }
         ClassLoader loader = WCEditorLauncher.class.getClassLoader();
         verifySource(loader, "nomanssave.WCEditorStartup", addon);
+        verifySource(loader, "nomanssave.WCEditorSaveErrors", addon);
         verifySource(loader, "nomanssave.v", addon);
         verifySource(loader, "nomanssave.x", addon);
         verifySource(loader, "nomanssave.WCMissionsLauncher", addon);

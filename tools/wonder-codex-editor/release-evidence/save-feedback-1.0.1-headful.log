@@ -1,0 +1,124 @@
+PASS null is not a save failure
+PASS unrelated errors are not relabeled
+PASS message alone does not impersonate a bridge failure
+PASS wrong exception type is not relabeled
+PASS other bridge operations are not misclassified
+PASS recognized block retains actionable reason
+PASS message explains preserving unsaved edits
+PASS message explains retrying after resolution
+PASS nested reflection wrappers retain recognized bridge error
+PASS late write failures make no unwritten-data promise
+PASS empty bridge reason uses diagnostic fallback
+PASS cyclic causes terminate safely
+PASS bridge stack alone is not a save failure
+PASS production bridge detects test process-list input: No Man's Sky is running. Exit the game completely, then save again. Nothing was written by this operation.
+Initializing environment...
+Formatting JSON...
+[Cosmos Bridge] 2026-10-11T12:57:34.896-0500 WRITE_FAILED_OR_BLOCKED nomanssave.WCEditorSaveErrorsTest$GuardedSave.wc$original$b : java.io.IOException: No Man's Sky is running. Exit the game completely, then save again. Nothing was written by this operation. (native operation not started)
+PASS actual native save reaches recognized production bridge guard
+PASS native save attempted exactly once
+PASS Blocked native save preserves dirty state
+PASS Blocked native save preserves staged JSON and root identity
+PASS Blocked native save preserves selected revision
+PASS Blocked native save never starts native disk write
+PASS real native Overview Save Changes button is present
+Formatting JSON...
+[Cosmos Bridge] 2026-10-11T12:57:35.670-0500 WRITE_FAILED_OR_BLOCKED nomanssave.WCEditorSaveErrorsTest$GuardedSave.wc$original$b : java.io.IOException: No Man's Sky is running. Exit the game completely, then save again. Nothing was written by this operation. (native operation not started)
+java.lang.IllegalStateException: Cosmos Bridge blocked/failed the write: No Man's Sky is running. Exit the game completely, then save again. Nothing was written by this operation.
+	at nomanssave.WCCosmosBackup.invoke(WCCosmosBackup.java:116)
+	at nomanssave.WCCosmosHooks.writeSave(WCCosmosHooks.java:25)
+	at nomanssave.WCEditorSaveErrorsTest$GuardedSave.b(WCEditorSaveErrorsTest.java:110)
+	at nomanssave.Application.n(Unknown Source)
+	at nomanssave.Application.b(Unknown Source)
+	at java.desktop/javax.swing.AbstractButton.fireActionPerformed(AbstractButton.java:1972)
+	at java.desktop/javax.swing.AbstractButton$Handler.actionPerformed(AbstractButton.java:2313)
+	at java.desktop/javax.swing.DefaultButtonModel.fireActionPerformed(DefaultButtonModel.java:405)
+	at java.desktop/javax.swing.DefaultButtonModel.setPressed(DefaultButtonModel.java:262)
+	at java.desktop/javax.swing.AbstractButton.doClick(AbstractButton.java:374)
+	at java.desktop/javax.swing.AbstractButton.doClick(AbstractButton.java:354)
+	at nomanssave.WCEditorSaveErrorsTest.lambda$6(WCEditorSaveErrorsTest.java:230)
+	at java.desktop/java.awt.event.InvocationEvent.dispatch(InvocationEvent.java:318)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:773)
+	at java.desktop/java.awt.EventQueue$4.run(EventQueue.java:720)
+	at java.desktop/java.awt.EventQueue$4.run(EventQueue.java:714)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:399)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:86)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:742)
+	at nomanssave.WCEditorSaveErrors$1.dispatchEvent(WCEditorSaveErrors.java:26)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)
+Caused by: java.io.IOException: No Man's Sky is running. Exit the game completely, then save again. Nothing was written by this operation.
+	at nomanssave.WCCosmosBackup.requireGameClosed(WCCosmosBackup.java:72)
+	at nomanssave.WCCosmosBackup.invoke(WCCosmosBackup.java:99)
+	... 25 more
+PASS Overview save shows useful error dialog
+PASS Overview save preserves dirty state
+PASS Overview save preserves staged JSON and root identity
+PASS Overview save preserves selected revision
+PASS Overview save never starts native disk write
+PASS Overview save keeps editor window available
+PASS Overview save does not retry the write automatically
+PASS Overview save leaves EDT responsive
+Formatting JSON...
+[Cosmos Bridge] 2026-10-11T12:57:35.842-0500 WRITE_FAILED_OR_BLOCKED nomanssave.WCEditorSaveErrorsTest$GuardedSave.wc$original$b : java.io.IOException: No Man's Sky is running. Exit the game completely, then save again. Nothing was written by this operation. (native operation not started)
+java.lang.IllegalStateException: Cosmos Bridge blocked/failed the write: No Man's Sky is running. Exit the game completely, then save again. Nothing was written by this operation.
+	at nomanssave.WCCosmosBackup.invoke(WCCosmosBackup.java:116)
+	at nomanssave.WCCosmosHooks.writeSave(WCCosmosHooks.java:25)
+	at nomanssave.WCEditorSaveErrorsTest$GuardedSave.b(WCEditorSaveErrorsTest.java:110)
+	at nomanssave.Application.n(Unknown Source)
+	at nomanssave.Application.k(Unknown Source)
+	at nomanssave.B.windowClosing(Unknown Source)
+	at java.desktop/java.awt.AWTEventMulticaster.windowClosing(AWTEventMulticaster.java:359)
+	at java.desktop/java.awt.AWTEventMulticaster.windowClosing(AWTEventMulticaster.java:359)
+	at java.desktop/java.awt.Window.processWindowEvent(Window.java:2085)
+	at java.desktop/javax.swing.JFrame.processWindowEvent(JFrame.java:298)
+	at java.desktop/java.awt.Window.processEvent(Window.java:2044)
+	at java.desktop/java.awt.Component.dispatchEventImpl(Component.java:5001)
+	at java.desktop/java.awt.Container.dispatchEventImpl(Container.java:2324)
+	at java.desktop/java.awt.Window.dispatchEventImpl(Window.java:2780)
+	at java.desktop/java.awt.Component.dispatchEvent(Component.java:4833)
+	at java.desktop/java.awt.EventQueue.dispatchEventImpl(EventQueue.java:775)
+	at java.desktop/java.awt.EventQueue$4.run(EventQueue.java:720)
+	at java.desktop/java.awt.EventQueue$4.run(EventQueue.java:714)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:399)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:86)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:97)
+	at java.desktop/java.awt.EventQueue$5.run(EventQueue.java:747)
+	at java.desktop/java.awt.EventQueue$5.run(EventQueue.java:745)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:399)
+	at java.base/java.security.ProtectionDomain$JavaSecurityAccessImpl.doIntersectionPrivilege(ProtectionDomain.java:86)
+	at java.desktop/java.awt.EventQueue.dispatchEvent(EventQueue.java:744)
+	at nomanssave.WCEditorSaveErrors$1.dispatchEvent(WCEditorSaveErrors.java:26)
+	at java.desktop/java.awt.EventDispatchThread.pumpOneEventForFilters(EventDispatchThread.java:203)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForFilter(EventDispatchThread.java:124)
+	at java.desktop/java.awt.EventDispatchThread.pumpEventsForHierarchy(EventDispatchThread.java:113)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:109)
+	at java.desktop/java.awt.EventDispatchThread.pumpEvents(EventDispatchThread.java:101)
+	at java.desktop/java.awt.EventDispatchThread.run(EventDispatchThread.java:90)
+Caused by: java.io.IOException: No Man's Sky is running. Exit the game completely, then save again. Nothing was written by this operation.
+	at nomanssave.WCCosmosBackup.requireGameClosed(WCCosmosBackup.java:72)
+	at nomanssave.WCCosmosBackup.invoke(WCCosmosBackup.java:99)
+	... 32 more
+PASS Window-close save shows useful error dialog
+PASS Window-close save preserves dirty state
+PASS Window-close save preserves staged JSON and root identity
+PASS Window-close save preserves selected revision
+PASS Window-close save never starts native disk write
+PASS Window-close save keeps editor window available
+PASS Window-close save does not retry the write automatically
+PASS Window-close save leaves EDT responsive
+PASS unrelated EDT error reaches normal uncaught handler
+Formatting JSON...
+[Cosmos Bridge] 2026-10-11T12:57:35.919-0500 BACKUP_VERIFIED before-20261011-125735-911-6e6b6711.zip files=1 bytes=30
+[Cosmos Bridge] 2026-10-11T12:57:35.921-0500 WRITE_AUTHORISED nomanssave.WCEditorSaveErrorsTest$GuardedSave.wc$original$b backup=before-20261011-125735-911-6e6b6711.zip
+[Cosmos Bridge] 2026-10-11T12:57:35.921-0500 NATIVE_WRITE_RETURNED_OK nomanssave.WCEditorSaveErrorsTest$GuardedSave.wc$original$b; game-load validation still required
+Finished.
+PASS explicit retry enters native write exactly once after guard clears
+PASS successful native retry clears dirty state
+PASS successful retry writes staged synthetic JSON
+PASS successful retry creates verified backup
+SAVE_ERRORS PASS 42 checks; headless=false
