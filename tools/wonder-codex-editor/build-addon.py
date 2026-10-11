@@ -18,7 +18,7 @@ import tempfile
 import urllib.request
 import zipfile
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 RELEASE_SHA = "26e3873c725f9510fcc51652835c33560a5b71efc1ad047722520e7b407aace9"
 BRIDGE_SHA = "7cebd0ae928e571fd340543bbc2eb3c9fe3cf6cada4be6e1d4dbd5f9061889e8"
 ENGINE_SHA = "ef898af4e1c4c0c25a6c6529dfea52520cda243383544d8d358ad10aae3a178c"
@@ -30,6 +30,7 @@ TEST_NAMES = (
     "WCEditorTazRunPreferenceTest", "WCEditorTazOptimizerTest", "WCEditorTazToolTest",
     "WCEditorBasesTest", "WCEditorInventoryActionsTest", "WCEditorCodexScanTest",
     "WCEditorCodexClientTest",
+    "WCEditorSaveErrorsTest",
 )
 
 
@@ -128,7 +129,7 @@ def main():
     parser.add_argument("--java", default="java", help="Java 17+ executable for ECJ and verification")
     parser.add_argument("--output", type=Path, required=True, help="New build directory; must not already exist")
     parser.add_argument("--cache", type=Path, default=Path(__file__).resolve().parent / "build" / "dependencies")
-    parser.add_argument("--tests", action="store_true", help="Run seven synthetic/headless offline test suites")
+    parser.add_argument("--tests", action="store_true", help="Run eight synthetic/headless offline test suites")
     args = parser.parse_args()
     root = Path(__file__).resolve().parent
     app = root / "app"

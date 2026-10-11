@@ -1,9 +1,13 @@
-# Wonder Codex Editor v1.0.0
+# Wonder Codex Editor v1.0.1
 
 Public source and release-review materials for the Wonder Codex Editor desktop
 extension, published with the Wonder Codex project.
 
-This snapshot corresponds to the **Direct UI Windows release** uploaded as
+Version 1.0.1 adds visible feedback for blocked or failed native save actions.
+It preserves the game-running guard and existing editing behavior. See
+[the patch notes](app/RELEASE-NOTES-1.0.1.txt) and [BUILD.md](BUILD.md).
+
+The original v1.0.0 **Direct UI Windows release** was uploaded as
 `Wonder-Codex-Editor-v1.0.0.zip`:
 
 ```text
@@ -17,14 +21,14 @@ not change its contents or fingerprint.
 
 ## Source and build coverage
 
-- [app/source](app/source): the Java source and mission data shipped with v1.0.0.
+- [app/source](app/source): the current Java source and mission data, including the 1.0.1 save feedback fix.
 - [app/tests](app/tests): regression tests, synthetic fixtures and the recorded
   release test results. Some older GUI probes require a Windows desktop or
   external fixtures; the build guide identifies the self-contained checks.
 - [app/assets](app/assets): Wonder Codex branding resources.
 - [app/integrations](app/integrations): the PowerShell bridge to TAZmd's separately
   installed Corvette Optimizer.
-- Installer and launcher scripts are preserved as shipped, for inspection.
+- Installer scripts target the side-by-side 1.0.1 folder; launcher behavior is retained.
 - [BUILD.md](BUILD.md): a checksum-verified build of the desktop extension.
 - [RELEASE-REVIEW.md](RELEASE-REVIEW.md): release identity, component provenance,
   scan evidence and limitations.
@@ -39,8 +43,11 @@ CosmosBridge or the bundled Java runtime.
 The source checkout is not an installable Windows package: binary dependencies,
 the Java runtime and its large upstream source archive are omitted. Do not run
 `SETUP.bat` from this checkout. Use the complete release package for installation.
-The original [app/BUILD.txt](app/BUILD.txt) and [release packager](app/tests/build-release.py)
-are retained for provenance; the packager expects a complete extracted setup ZIP.
+The [historical release packager](app/tests/build-release.py) is retained for
+provenance. The current [save-fix packager](app/tests/package-save-fix.py) overlays
+a tested addon onto the exact original setup ZIP, retaining its unchanged bridge,
+runtime and third-party source archive. The source-snapshot manifest and
+release-evidence directory describe the original v1.0.0 release.
 
 ## Credits and ownership
 
