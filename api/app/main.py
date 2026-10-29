@@ -17,6 +17,8 @@ from .routers import accounts, admin, admin_apps, analytics, assets, captures, d
 from .services.error_incidents import record_request_error
 from .routers import capture_auth
 from .routers import editor_auth, editor_imports
+from .routers import ffc_control
+from .services.ffc_control import start_cloud_service
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -41,7 +43,12 @@ def run_migrations_safely() -> None:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     run_migrations_safely()
-    yield
+    supervisor = await start_cloud_service()
+    try:
+        yield
+    finally:
+        if supervisor is not None:
+            await supervisor.stop()
 
 
 settings = get_settings()
@@ -97,6 +104,18 @@ async def request_size_limit(request: Request, call_next):
         request_too_large = True
     if request_too_large:
         return JSONResponse(status_code=413, content={"detail": "Request body is too large."})
+    if request_path.startswith(("/ffc/control/", "/api/ffc/control/")):
+        # Bound streamed/chunked control requests before parsing JSON too.
+        # The owner handoff can accept a bounded canonical save. Bot credentials
+        # are never accepted on any route.
+        control_limit = 20 * 1024 * 1024 if request_path.endswith("/ffc/control/handoff/import") else 8192
+        parts, total = [], 0
+        async for part in request.stream():
+            total += len(part)
+            if total > control_limit:
+                return JSONResponse(status_code=413, content={"detail": "FFC control request is too large."})
+            parts.append(part)
+        request._body = b"".join(parts)
     if request.method == "POST" and request_path in {"/editor/imports", "/api/editor/imports"}:
         # Bound chunked bodies too, before JSON parsing (Content-Length is optional).
         parts, total = [], 0
@@ -107,7 +126,7 @@ async def request_size_limit(request: Request, call_next):
             parts.append(part)
         request._body = b"".join(parts)
     response = await call_next(request)
-    if "/auth/capture/" in request_path or "/auth/editor/" in request_path or "/editor/" in request_path:
+    if "/auth/capture/" in request_path or "/auth/editor/" in request_path or "/editor/" in request_path or "/ffc/control/" in request_path:
         response.headers["Cache-Control"] = "no-store"
         response.headers["Pragma"] = "no-cache"
     return response
@@ -171,6 +190,7 @@ app.include_router(accounts.router)
 app.include_router(capture_auth.router)
 app.include_router(editor_auth.router)
 app.include_router(editor_imports.router)
+app.include_router(ffc_control.router)
 app.include_router(pegasus.router)
 app.include_router(admin_apps.router)
 app.include_router(daedalus.router)

@@ -66,6 +66,10 @@ class Settings(BaseSettings):
     pegasus_active_dispatch_ttl_minutes: int = 180
     pegasus_worker_lease_minutes: int = 5
 
+    # Starts the prepared FFC control service; actual game activation remains
+    # FALSE in its separate database until the explicit host handoff.
+    ffc_cloud_prepared: bool = True
+
     spaces_access_key: str = ""
     spaces_secret_key: str = ""
     spaces_region: str = ""

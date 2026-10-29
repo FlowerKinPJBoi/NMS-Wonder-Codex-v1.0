@@ -1,0 +1,1178 @@
+{
+  "schema_version": 1,
+  "title": "No Man's Sky galaxy roster for FFC Wilds",
+  "researched_at": "2026-10-29",
+  "numbering": "One-based display numbers, 1 through 256. The game's internal indices are zero-based 0 through 255.",
+  "galaxies": [
+    {
+      "number": 1,
+      "name": "Euclid"
+    },
+    {
+      "number": 2,
+      "name": "Hilbert Dimension"
+    },
+    {
+      "number": 3,
+      "name": "Calypso"
+    },
+    {
+      "number": 4,
+      "name": "Hesperius Dimension"
+    },
+    {
+      "number": 5,
+      "name": "Hyades"
+    },
+    {
+      "number": 6,
+      "name": "Ickjamatew"
+    },
+    {
+      "number": 7,
+      "name": "Budullangr"
+    },
+    {
+      "number": 8,
+      "name": "Kikolgallr"
+    },
+    {
+      "number": 9,
+      "name": "Eltiensleen"
+    },
+    {
+      "number": 10,
+      "name": "Eissentam"
+    },
+    {
+      "number": 11,
+      "name": "Elkupalos"
+    },
+    {
+      "number": 12,
+      "name": "Aptarkaba"
+    },
+    {
+      "number": 13,
+      "name": "Ontiniangp"
+    },
+    {
+      "number": 14,
+      "name": "Odiwagiri"
+    },
+    {
+      "number": 15,
+      "name": "Ogtialabi"
+    },
+    {
+      "number": 16,
+      "name": "Muhacksonto"
+    },
+    {
+      "number": 17,
+      "name": "Hitonskyer"
+    },
+    {
+      "number": 18,
+      "name": "Rerasmutul"
+    },
+    {
+      "number": 19,
+      "name": "Isdoraijung"
+    },
+    {
+      "number": 20,
+      "name": "Doctinawyra"
+    },
+    {
+      "number": 21,
+      "name": "Loychazinq"
+    },
+    {
+      "number": 22,
+      "name": "Zukasizawa"
+    },
+    {
+      "number": 23,
+      "name": "Ekwathore"
+    },
+    {
+      "number": 24,
+      "name": "Yeberhahne"
+    },
+    {
+      "number": 25,
+      "name": "Twerbetek"
+    },
+    {
+      "number": 26,
+      "name": "Sivarates"
+    },
+    {
+      "number": 27,
+      "name": "Eajerandal"
+    },
+    {
+      "number": 28,
+      "name": "Aldukesci"
+    },
+    {
+      "number": 29,
+      "name": "Wotyarogii"
+    },
+    {
+      "number": 30,
+      "name": "Sudzerbal"
+    },
+    {
+      "number": 31,
+      "name": "Maupenzhay"
+    },
+    {
+      "number": 32,
+      "name": "Sugueziume"
+    },
+    {
+      "number": 33,
+      "name": "Brogoweldian"
+    },
+    {
+      "number": 34,
+      "name": "Ehbogdenbu"
+    },
+    {
+      "number": 35,
+      "name": "Ijsenufryos"
+    },
+    {
+      "number": 36,
+      "name": "Nipikulha"
+    },
+    {
+      "number": 37,
+      "name": "Autsurabin"
+    },
+    {
+      "number": 38,
+      "name": "Lusontrygiamh"
+    },
+    {
+      "number": 39,
+      "name": "Rewmanawa"
+    },
+    {
+      "number": 40,
+      "name": "Ethiophodhe"
+    },
+    {
+      "number": 41,
+      "name": "Urastrykle"
+    },
+    {
+      "number": 42,
+      "name": "Xobeurindj"
+    },
+    {
+      "number": 43,
+      "name": "Oniijialdu"
+    },
+    {
+      "number": 44,
+      "name": "Wucetosucc"
+    },
+    {
+      "number": 45,
+      "name": "Ebyeloof"
+    },
+    {
+      "number": 46,
+      "name": "Odyavanta"
+    },
+    {
+      "number": 47,
+      "name": "Milekistri"
+    },
+    {
+      "number": 48,
+      "name": "Waferganh"
+    },
+    {
+      "number": 49,
+      "name": "Agnusopwit"
+    },
+    {
+      "number": 50,
+      "name": "Teyaypilny"
+    },
+    {
+      "number": 51,
+      "name": "Zalienkosm"
+    },
+    {
+      "number": 52,
+      "name": "Ladgudiraf"
+    },
+    {
+      "number": 53,
+      "name": "Mushonponte"
+    },
+    {
+      "number": 54,
+      "name": "Amsentisz"
+    },
+    {
+      "number": 55,
+      "name": "Fladiselm"
+    },
+    {
+      "number": 56,
+      "name": "Laanawemb"
+    },
+    {
+      "number": 57,
+      "name": "Ilkerloor"
+    },
+    {
+      "number": 58,
+      "name": "Davanossi"
+    },
+    {
+      "number": 59,
+      "name": "Ploehrliou"
+    },
+    {
+      "number": 60,
+      "name": "Corpinyaya"
+    },
+    {
+      "number": 61,
+      "name": "Leckandmeram"
+    },
+    {
+      "number": 62,
+      "name": "Quulngais"
+    },
+    {
+      "number": 63,
+      "name": "Nokokipsechl"
+    },
+    {
+      "number": 64,
+      "name": "Rinblodesa"
+    },
+    {
+      "number": 65,
+      "name": "Loydporpen"
+    },
+    {
+      "number": 66,
+      "name": "Ibtrevskip"
+    },
+    {
+      "number": 67,
+      "name": "Elkowaldb"
+    },
+    {
+      "number": 68,
+      "name": "Heholhofsko"
+    },
+    {
+      "number": 69,
+      "name": "Yebrilowisod"
+    },
+    {
+      "number": 70,
+      "name": "Husalvangewi"
+    },
+    {
+      "number": 71,
+      "name": "Ovna'uesed"
+    },
+    {
+      "number": 72,
+      "name": "Bahibusey"
+    },
+    {
+      "number": 73,
+      "name": "Nuybeliaure"
+    },
+    {
+      "number": 74,
+      "name": "Doshawchuc"
+    },
+    {
+      "number": 75,
+      "name": "Ruckinarkh"
+    },
+    {
+      "number": 76,
+      "name": "Thorettac"
+    },
+    {
+      "number": 77,
+      "name": "Nuponoparau"
+    },
+    {
+      "number": 78,
+      "name": "Moglaschil"
+    },
+    {
+      "number": 79,
+      "name": "Uiweupose"
+    },
+    {
+      "number": 80,
+      "name": "Nasmilete"
+    },
+    {
+      "number": 81,
+      "name": "Ekdaluskin"
+    },
+    {
+      "number": 82,
+      "name": "Hakapanasy"
+    },
+    {
+      "number": 83,
+      "name": "Dimonimba"
+    },
+    {
+      "number": 84,
+      "name": "Cajaccari"
+    },
+    {
+      "number": 85,
+      "name": "Olonerovo"
+    },
+    {
+      "number": 86,
+      "name": "Umlanswick"
+    },
+    {
+      "number": 87,
+      "name": "Henayliszm"
+    },
+    {
+      "number": 88,
+      "name": "Utzenmate"
+    },
+    {
+      "number": 89,
+      "name": "Umirpaiya"
+    },
+    {
+      "number": 90,
+      "name": "Paholiang"
+    },
+    {
+      "number": 91,
+      "name": "Iaereznika"
+    },
+    {
+      "number": 92,
+      "name": "Yudukagath"
+    },
+    {
+      "number": 93,
+      "name": "Boealalosnj"
+    },
+    {
+      "number": 94,
+      "name": "Yaevarcko"
+    },
+    {
+      "number": 95,
+      "name": "Coellosipp"
+    },
+    {
+      "number": 96,
+      "name": "Wayndohalou"
+    },
+    {
+      "number": 97,
+      "name": "Smoduraykl"
+    },
+    {
+      "number": 98,
+      "name": "Apmaneessu"
+    },
+    {
+      "number": 99,
+      "name": "Hicanpaav"
+    },
+    {
+      "number": 100,
+      "name": "Akvasanta"
+    },
+    {
+      "number": 101,
+      "name": "Tuychelisaor"
+    },
+    {
+      "number": 102,
+      "name": "Rivskimbe"
+    },
+    {
+      "number": 103,
+      "name": "Daksanquix"
+    },
+    {
+      "number": 104,
+      "name": "Kissonlin"
+    },
+    {
+      "number": 105,
+      "name": "Aediabiel"
+    },
+    {
+      "number": 106,
+      "name": "Ulosaginyik"
+    },
+    {
+      "number": 107,
+      "name": "Roclaytonycar"
+    },
+    {
+      "number": 108,
+      "name": "Kichiaroa"
+    },
+    {
+      "number": 109,
+      "name": "Irceauffey"
+    },
+    {
+      "number": 110,
+      "name": "Nudquathsenfe"
+    },
+    {
+      "number": 111,
+      "name": "Getaizakaal"
+    },
+    {
+      "number": 112,
+      "name": "Hansolmien"
+    },
+    {
+      "number": 113,
+      "name": "Bloytisagra"
+    },
+    {
+      "number": 114,
+      "name": "Ladsenlay"
+    },
+    {
+      "number": 115,
+      "name": "Luyugoslasr"
+    },
+    {
+      "number": 116,
+      "name": "Ubredhatk"
+    },
+    {
+      "number": 117,
+      "name": "Cidoniana"
+    },
+    {
+      "number": 118,
+      "name": "Jasinessa"
+    },
+    {
+      "number": 119,
+      "name": "Torweierf"
+    },
+    {
+      "number": 120,
+      "name": "Saffneckm"
+    },
+    {
+      "number": 121,
+      "name": "Thnistner"
+    },
+    {
+      "number": 122,
+      "name": "Dotusingg"
+    },
+    {
+      "number": 123,
+      "name": "Luleukous"
+    },
+    {
+      "number": 124,
+      "name": "Jelmandan"
+    },
+    {
+      "number": 125,
+      "name": "Otimanaso"
+    },
+    {
+      "number": 126,
+      "name": "Enjaxusanto"
+    },
+    {
+      "number": 127,
+      "name": "Sezviktorew"
+    },
+    {
+      "number": 128,
+      "name": "Zikehpm"
+    },
+    {
+      "number": 129,
+      "name": "Bephembah"
+    },
+    {
+      "number": 130,
+      "name": "Broomerrai"
+    },
+    {
+      "number": 131,
+      "name": "Meximicka"
+    },
+    {
+      "number": 132,
+      "name": "Venessika"
+    },
+    {
+      "number": 133,
+      "name": "Gaiteseling"
+    },
+    {
+      "number": 134,
+      "name": "Zosakasiro"
+    },
+    {
+      "number": 135,
+      "name": "Drajayanes"
+    },
+    {
+      "number": 136,
+      "name": "Ooibekuar"
+    },
+    {
+      "number": 137,
+      "name": "Urckiansi"
+    },
+    {
+      "number": 138,
+      "name": "Dozivadido"
+    },
+    {
+      "number": 139,
+      "name": "Emiekereks"
+    },
+    {
+      "number": 140,
+      "name": "Meykinunukur"
+    },
+    {
+      "number": 141,
+      "name": "Kimycuristh"
+    },
+    {
+      "number": 142,
+      "name": "Roansfien"
+    },
+    {
+      "number": 143,
+      "name": "Isgarmeso"
+    },
+    {
+      "number": 144,
+      "name": "Daitibeli"
+    },
+    {
+      "number": 145,
+      "name": "Gucuttarik"
+    },
+    {
+      "number": 146,
+      "name": "Enlaythie"
+    },
+    {
+      "number": 147,
+      "name": "Drewweste"
+    },
+    {
+      "number": 148,
+      "name": "Akbulkabi"
+    },
+    {
+      "number": 149,
+      "name": "Homskiw"
+    },
+    {
+      "number": 150,
+      "name": "Zavainlani"
+    },
+    {
+      "number": 151,
+      "name": "Jewijkmas"
+    },
+    {
+      "number": 152,
+      "name": "Itlhotagra"
+    },
+    {
+      "number": 153,
+      "name": "Podalicess"
+    },
+    {
+      "number": 154,
+      "name": "Hiviusauer"
+    },
+    {
+      "number": 155,
+      "name": "Halsebenk"
+    },
+    {
+      "number": 156,
+      "name": "Puikitoac"
+    },
+    {
+      "number": 157,
+      "name": "Gaybakuaria"
+    },
+    {
+      "number": 158,
+      "name": "Grbodubhe"
+    },
+    {
+      "number": 159,
+      "name": "Rycempler"
+    },
+    {
+      "number": 160,
+      "name": "Indjalala"
+    },
+    {
+      "number": 161,
+      "name": "Fontenikk"
+    },
+    {
+      "number": 162,
+      "name": "Pasycihelwhee"
+    },
+    {
+      "number": 163,
+      "name": "Ikbaksmit"
+    },
+    {
+      "number": 164,
+      "name": "Telicianses"
+    },
+    {
+      "number": 165,
+      "name": "Oyleyzhan"
+    },
+    {
+      "number": 166,
+      "name": "Uagerosat"
+    },
+    {
+      "number": 167,
+      "name": "Impoxectin"
+    },
+    {
+      "number": 168,
+      "name": "Twoodmand"
+    },
+    {
+      "number": 169,
+      "name": "Hilfsesorbs"
+    },
+    {
+      "number": 170,
+      "name": "Ezdaranit"
+    },
+    {
+      "number": 171,
+      "name": "Wiensanshe"
+    },
+    {
+      "number": 172,
+      "name": "Ewheelonc"
+    },
+    {
+      "number": 173,
+      "name": "Litzmantufa"
+    },
+    {
+      "number": 174,
+      "name": "Emarmatosi"
+    },
+    {
+      "number": 175,
+      "name": "Mufimbomacvi"
+    },
+    {
+      "number": 176,
+      "name": "Wongquarum"
+    },
+    {
+      "number": 177,
+      "name": "Hapirajua"
+    },
+    {
+      "number": 178,
+      "name": "Igbinduina"
+    },
+    {
+      "number": 179,
+      "name": "Wepaitvas"
+    },
+    {
+      "number": 180,
+      "name": "Sthatigudi"
+    },
+    {
+      "number": 181,
+      "name": "Yekathsebehn"
+    },
+    {
+      "number": 182,
+      "name": "Ebedeagurst"
+    },
+    {
+      "number": 183,
+      "name": "Nolisonia"
+    },
+    {
+      "number": 184,
+      "name": "Ulexovitab"
+    },
+    {
+      "number": 185,
+      "name": "Iodhinxois"
+    },
+    {
+      "number": 186,
+      "name": "Irroswitzs"
+    },
+    {
+      "number": 187,
+      "name": "Bifredait"
+    },
+    {
+      "number": 188,
+      "name": "Beiraghedwe"
+    },
+    {
+      "number": 189,
+      "name": "Yeonatlak"
+    },
+    {
+      "number": 190,
+      "name": "Cugnatachh"
+    },
+    {
+      "number": 191,
+      "name": "Nozoryenki"
+    },
+    {
+      "number": 192,
+      "name": "Ebralduri"
+    },
+    {
+      "number": 193,
+      "name": "Evcickcandj"
+    },
+    {
+      "number": 194,
+      "name": "Ziybosswin"
+    },
+    {
+      "number": 195,
+      "name": "Heperclait"
+    },
+    {
+      "number": 196,
+      "name": "Sugiuniam"
+    },
+    {
+      "number": 197,
+      "name": "Aaseertush"
+    },
+    {
+      "number": 198,
+      "name": "Uglyestemaa"
+    },
+    {
+      "number": 199,
+      "name": "Horeroedsh"
+    },
+    {
+      "number": 200,
+      "name": "Drundemiso"
+    },
+    {
+      "number": 201,
+      "name": "Ityanianat"
+    },
+    {
+      "number": 202,
+      "name": "Purneyrine"
+    },
+    {
+      "number": 203,
+      "name": "Dokiessmat"
+    },
+    {
+      "number": 204,
+      "name": "Nupiacheh"
+    },
+    {
+      "number": 205,
+      "name": "Dihewsonj"
+    },
+    {
+      "number": 206,
+      "name": "Rudrailhik"
+    },
+    {
+      "number": 207,
+      "name": "Tweretnort"
+    },
+    {
+      "number": 208,
+      "name": "Snatreetze"
+    },
+    {
+      "number": 209,
+      "name": "Iwundaracos"
+    },
+    {
+      "number": 210,
+      "name": "Digarlewena"
+    },
+    {
+      "number": 211,
+      "name": "Erquagsta"
+    },
+    {
+      "number": 212,
+      "name": "Logovoloin"
+    },
+    {
+      "number": 213,
+      "name": "Boyaghosganh"
+    },
+    {
+      "number": 214,
+      "name": "Kuolungau"
+    },
+    {
+      "number": 215,
+      "name": "Pehneldept"
+    },
+    {
+      "number": 216,
+      "name": "Yevettiiqidcon"
+    },
+    {
+      "number": 217,
+      "name": "Sahliacabru"
+    },
+    {
+      "number": 218,
+      "name": "Noggalterpor"
+    },
+    {
+      "number": 219,
+      "name": "Chmageaki"
+    },
+    {
+      "number": 220,
+      "name": "Veticueca"
+    },
+    {
+      "number": 221,
+      "name": "Vittesbursul"
+    },
+    {
+      "number": 222,
+      "name": "Nootanore"
+    },
+    {
+      "number": 223,
+      "name": "Innebdjerah"
+    },
+    {
+      "number": 224,
+      "name": "Kisvarcini"
+    },
+    {
+      "number": 225,
+      "name": "Cuzcogipper"
+    },
+    {
+      "number": 226,
+      "name": "Pamanhermonsu"
+    },
+    {
+      "number": 227,
+      "name": "Brotoghek"
+    },
+    {
+      "number": 228,
+      "name": "Mibittara"
+    },
+    {
+      "number": 229,
+      "name": "Huruahili"
+    },
+    {
+      "number": 230,
+      "name": "Raldwicarn"
+    },
+    {
+      "number": 231,
+      "name": "Ezdartlic"
+    },
+    {
+      "number": 232,
+      "name": "Badesclema"
+    },
+    {
+      "number": 233,
+      "name": "Isenkeyan"
+    },
+    {
+      "number": 234,
+      "name": "Iadoitesu"
+    },
+    {
+      "number": 235,
+      "name": "Yagrovoisi"
+    },
+    {
+      "number": 236,
+      "name": "Ewcomechio"
+    },
+    {
+      "number": 237,
+      "name": "Inunnunnoda"
+    },
+    {
+      "number": 238,
+      "name": "Dischiutun"
+    },
+    {
+      "number": 239,
+      "name": "Yuwarugha"
+    },
+    {
+      "number": 240,
+      "name": "Ialmendra"
+    },
+    {
+      "number": 241,
+      "name": "Reponudrle"
+    },
+    {
+      "number": 242,
+      "name": "Rinjanagrbo"
+    },
+    {
+      "number": 243,
+      "name": "Zeziceloh"
+    },
+    {
+      "number": 244,
+      "name": "Oeileutasc"
+    },
+    {
+      "number": 245,
+      "name": "Zicniijinis"
+    },
+    {
+      "number": 246,
+      "name": "Dugnowarilda"
+    },
+    {
+      "number": 247,
+      "name": "Neuxoisan"
+    },
+    {
+      "number": 248,
+      "name": "Ilmenhorn"
+    },
+    {
+      "number": 249,
+      "name": "Rukwatsuku"
+    },
+    {
+      "number": 250,
+      "name": "Nepitzaspru"
+    },
+    {
+      "number": 251,
+      "name": "Chcehoemig"
+    },
+    {
+      "number": 252,
+      "name": "Haffneyrin"
+    },
+    {
+      "number": 253,
+      "name": "Uliciawai"
+    },
+    {
+      "number": 254,
+      "name": "Tuhgrespod"
+    },
+    {
+      "number": 255,
+      "name": "Iousongola"
+    },
+    {
+      "number": 256,
+      "name": "Odyalutai"
+    }
+  ],
+  "sources": [
+    {
+      "id": "nms_wiki_galaxy",
+      "url": "https://nomanssky.fandom.com/wiki/Galaxy",
+      "title": "Galaxy — No Man's Sky Wiki",
+      "role": "Canonical community reference for ordered names and normal galaxy-core progression.",
+      "retrieval": "Complete numbered list extracted from public search index; direct page fetch was blocked by robots.txt.",
+      "page_stated_update": "2026-05-26 (Xeno Arena)",
+      "verified_number_name_pairs": 256
+    },
+    {
+      "id": "settlement_atlas_data",
+      "url": "https://github.com/steamedeo/no-mans-sky-base-catalogue/blob/main/packages/shared/src/galaxies.ts",
+      "title": "SettlementAtlas galaxy names data",
+      "role": "Machine-readable name extraction and complete roster cross-check; factual names only, no application code copied.",
+      "git_commit": "74a5ce325c97cb2703af66f500de2b58e3b1f933",
+      "git_blob_sha": "cb0e3fcc1e0652e5ff094396e4e7dc76362edcba",
+      "verified_number_name_pairs": 256
+    },
+    {
+      "id": "galactic_map_data",
+      "url": "https://github.com/elegra1965-source/nms-galactic-map/blob/main/preview.js",
+      "title": "NMS Galactic Map GALAXIES array",
+      "role": "Second machine-readable complete roster cross-check; factual names only, no application code copied.",
+      "git_commit": "0ff295cdeb76a7d577c5b73c854c14798df92bc0",
+      "git_blob_sha": "64a4e462c374562ca193dbeebce02eb28e2bf4ad",
+      "verified_number_name_pairs": 256
+    },
+    {
+      "id": "nms_wiki_odyalutai",
+      "url": "https://nomanssky.fandom.com/wiki/Odyalutai",
+      "title": "Odyalutai — No Man's Sky Wiki",
+      "role": "Special status of galaxy 256, access methods, and next core destination.",
+      "page_stated_update": "2025-10-21 (Voyagers)"
+    },
+    {
+      "id": "nms_resources_travel",
+      "url": "https://www.nomansskyresources.com/guide-pages/changing-galaxies",
+      "title": "Changing Galaxies — No Man's Sky Resources",
+      "role": "Independent confirmation of the normal 255-to-1 core loop."
+    }
+  ],
+  "provenance": {
+    "method": "Parsed the two public JavaScript/TypeScript name arrays as data without executing their code. Compared all 256 ordered names exactly with the Wiki's public numbered list. Compared all named Finding Nemo entries against the resulting roster.",
+    "confidence": "All 256 number/name pairs agree in three published lists. These are community-maintained references, not a direct extraction from the user's installed game.",
+    "copied_content": "Galaxy number/name facts only. No source application logic, images, prose, or wiki markup copied.",
+    "optional_galaxy_types": "Omitted. NMS galaxy types (Norm, Lush, Empty, Harsh) are separate from the workbook's weekly FFC Finding Nemo planet-biome assignments; no type-to-weekly-biome mapping is inferred."
+  },
+  "navigation": {
+    "actual_nms": {
+      "normal_core_loop_start": 1,
+      "normal_core_loop_end": 255,
+      "normal_next_after_255": 1,
+      "special_galaxy": 256,
+      "special_name": "Odyalutai",
+      "special_next_core_destination": 2,
+      "explanation": "Normal core progression loops from Iousongola (#255) back to Euclid (#1). Odyalutai (#256) is outside that progression; community documentation describes access by joining a player there, visiting a player base there through the Nexus, or a save editor. Its core leads to Hilbert Dimension (#2).",
+      "source_ids": [
+        "nms_wiki_galaxy",
+        "nms_wiki_odyalutai",
+        "nms_resources_travel"
+      ]
+    },
+    "ffc_rule": {
+      "origin": "User-selected Discord game rule, not the normal No Man's Sky core-travel rule.",
+      "total_galaxies": 256,
+      "next_after_255": 256,
+      "next_after_256": 1,
+      "previous_before_1": 256,
+      "next_formula": "(number % 256) + 1",
+      "previous_formula": "((number + 254) % 256) + 1",
+      "applies_to": "FFC Wilds next/previous galaxy navigation only."
+    }
+  },
+  "workbook_comparison": {
+    "source": "/workspace/scratch/d96876d5f77f/coordinates-extracted.json",
+    "sheet": "Finding Nemo",
+    "named_galaxies": 130,
+    "canonical_name_differences": [
+      {
+        "number": 2,
+        "workbook_name": "Hilbert",
+        "canonical_name": "Hilbert Dimension",
+        "note": "Expand abbreviated galaxy name."
+      },
+      {
+        "number": 4,
+        "workbook_name": "Hesperius",
+        "canonical_name": "Hesperius Dimension",
+        "note": "Expand abbreviated galaxy name."
+      },
+      {
+        "number": 21,
+        "workbook_name": "Loychazing",
+        "canonical_name": "Loychazinq",
+        "note": "Correct final letter to match all three published lists."
+      },
+      {
+        "number": 93,
+        "workbook_name": "Boealalosni",
+        "canonical_name": "Boealalosnj",
+        "note": "Correct final letter to match all three published lists."
+      }
+    ],
+    "blank_name_range_to_complete": {
+      "first": 131,
+      "last": 256
+    },
+    "notes": "This research artifact does not edit the workbook, its portal glyphs, planet data, or weekly biome assignments."
+  },
+  "validation": {
+    "entry_count": 256,
+    "unique_number_count": 256,
+    "unique_name_count": 256,
+    "numbers_contiguous": true,
+    "exact_agreement_between_three_lists": true,
+    "required_spot_checks": [
+      {
+        "number": 1,
+        "name": "Euclid"
+      },
+      {
+        "number": 2,
+        "name": "Hilbert Dimension"
+      },
+      {
+        "number": 10,
+        "name": "Eissentam"
+      },
+      {
+        "number": 255,
+        "name": "Iousongola"
+      },
+      {
+        "number": 256,
+        "name": "Odyalutai"
+      }
+    ],
+    "unresolved_names": [],
+    "navigation_boundary_checks": {
+      "next_255": 256,
+      "next_256": 1,
+      "previous_1": 256,
+      "previous_256": 255
+    }
+  }
+}
