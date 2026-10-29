@@ -18,6 +18,23 @@ class UncertainHostAction(RuntimeError):
     """The action must be inspected, never automatically submitted again."""
 
 
+async def ensure_host(client):
+    """Use the asynchronous cloud fence; retain small local/fake clients."""
+    check = getattr(client, "ensure_host", None)
+    if check is not None:
+        return await check()
+    client.assert_host()
+
+
+async def game_call(client, operation, *args, **kwargs):
+    """Run a complete synchronous game operation on its single IO worker."""
+    call = getattr(client, "db_call", None)
+    if call is not None:
+        return await call(operation, *args, **kwargs)
+    client.assert_host()
+    return operation(*args, **kwargs)
+
+
 def validate_action(action: str, arguments: dict) -> dict:
     if not isinstance(arguments, dict):
         raise ValueError("Control arguments must be an object.")
@@ -60,7 +77,7 @@ class HostActions:
     async def execute(self, action: str, arguments: dict, *, request_id: str,
                       actor: str = "PJ") -> dict:
         options = validate_action(action, arguments)
-        self.client.assert_host()
+        await ensure_host(self.client)
         if not self.client.channel_ready or not self.client.game_channel:
             raise ValueError("The Discord game connection is not ready yet.")
         if not isinstance(request_id, str) or not 1 <= len(request_id) <= 80:
@@ -76,23 +93,32 @@ class HostActions:
             if self.backup_callback is None:
                 raise ValueError("Cloud backups are not configured yet.")
             result = await self.backup_callback()
+            await ensure_host(self.client)
             return {"ok": True, "message": "A private cloud save backup was verified.", "backup": result}
         async with self.client.game_lock:
-            self.client.assert_host()
             if action in {"start", "pause"}:
-                active = self.engine.active_event(guild, channel)
                 enabled = action == "start"
-                state = self.engine.set_enabled(guild, channel, enabled)
-                self.client.tips.sync_state(guild, channel, enabled)
+
+                def change_enabled():
+                    active = self.engine.active_event(guild, channel)
+                    state = self.engine.set_enabled(guild, channel, enabled)
+                    self.client.tips.sync_state(guild, channel, enabled)
+                    return active, state
+
+                active, state = await game_call(self.client, change_enabled)
                 if not enabled and active:
                     await self.client.close_post(active)
                 return {"ok": True, "enabled": state["enabled"],
                         "message": "Appearances resumed." if enabled else "Appearances paused; collections remain saved."}
             if action == "mode":
                 settings = replace(self.client.settings, mode=options["mode"])
-                self.engine.configure_channel(guild, channel, settings.mode)
-                if self.client.persist_settings:
-                    settings.save()
+
+                def change_mode():
+                    self.engine.configure_channel(guild, channel, settings.mode)
+                    if self.client.persist_settings:
+                        settings.save()
+
+                await game_call(self.client, change_mode)
                 self.client.settings = settings
                 return {"ok": True, "mode": settings.mode,
                         "message": f"Future appearances will use {settings.mode} mode."}
@@ -105,33 +131,40 @@ class HostActions:
         guild, channel = self.client.settings.guild_id, self.client.settings.channel_id
         key = "host:" + request_id
         payload = {"action": action, "arguments": options}
-        with self.engine._transaction() as db:
-            existing = db.execute("SELECT operation,result_json FROM requests WHERE guild_id=? AND request_id=?",
-                                  (guild, key)).fetchone()
-            if existing:
-                result = json.loads(existing["result_json"])
-                if result.get("payload") != payload:
-                    raise ValueError("This request ID belongs to a different control.")
-                if result.get("phase") == "done":
-                    return result["result"]
-                raise UncertainHostAction("This event was already attempted. Its announcement will not be replayed.")
-            now = self.engine._now()
-            state = self.engine._get_channel(db, guild, channel)
-            if not state["enabled"]:
-                raise ValueError("Resume appearances before hosting an event.")
-            busy = db.execute("""SELECT 1 FROM events WHERE guild_id=? AND channel_id=?
-              AND status IN ('pending','open') AND (expires_at IS NULL OR expires_at>?)""",
-              (guild, channel, now)).fetchone()
-            if action == "frenzy":
-                if state["frenzy_until"] > now:
-                    raise ValueError("A Frenzy is already running.")
-                if busy:
-                    raise ValueError("Let the current appearance finish before starting a Frenzy.")
-            if action == "power_drive" and self.engine.activities._active_drive(db, guild, channel, now):
-                raise ValueError("A Power Drive is already running.")
-            reservation = {"payload": payload, "phase": "prepared"}
-            db.execute("INSERT INTO requests(guild_id,request_id,operation,result_json,created_at) VALUES(?,?,?,?,?)",
-                       (guild, key, "host:" + action, json.dumps(reservation), now))
+
+        def prepare():
+            with self.engine._transaction() as db:
+                existing = db.execute("SELECT operation,result_json FROM requests WHERE guild_id=? AND request_id=?",
+                                      (guild, key)).fetchone()
+                if existing:
+                    result = json.loads(existing["result_json"])
+                    if result.get("payload") != payload:
+                        raise ValueError("This request ID belongs to a different control.")
+                    if result.get("phase") == "done":
+                        return result["result"]
+                    raise UncertainHostAction("This event was already attempted. Its announcement will not be replayed.")
+                now = self.engine._now()
+                state = self.engine._get_channel(db, guild, channel)
+                if not state["enabled"]:
+                    raise ValueError("Resume appearances before hosting an event.")
+                busy = db.execute("""SELECT 1 FROM events WHERE guild_id=? AND channel_id=?
+                  AND status IN ('pending','open') AND (expires_at IS NULL OR expires_at>?)""",
+                  (guild, channel, now)).fetchone()
+                if action == "frenzy":
+                    if state["frenzy_until"] > now:
+                        raise ValueError("A Frenzy is already running.")
+                    if busy:
+                        raise ValueError("Let the current appearance finish before starting a Frenzy.")
+                if action == "power_drive" and self.engine.activities._active_drive(db, guild, channel, now):
+                    raise ValueError("A Power Drive is already running.")
+                reservation = {"payload": payload, "phase": "prepared"}
+                db.execute("INSERT INTO requests(guild_id,request_id,operation,result_json,created_at) VALUES(?,?,?,?,?)",
+                           (guild, key, "host:" + action, json.dumps(reservation), now))
+            return None
+
+        previous = await game_call(self.client, prepare)
+        if previous is not None:
+            return previous
         if action == "frenzy":
             seconds = GRADE_SECONDS[options["grade"]]
             announcement = (f"💨 **{clean_name(actor)} is hosting a {options['grade']}-class Community Frenzy!**\n"
@@ -149,8 +182,9 @@ class HostActions:
             # Even a timeout may follow a successful Discord delivery. Keeping
             # the prepared ledger entry makes retries visible and non-replaying.
             raise UncertainHostAction("The event announcement could not be confirmed. The effect was not activated; this request will not be replayed.") from None
-        try:
-            self.client.assert_host()
+        message_id = str(message.id)
+
+        def commit():
             with self.engine._transaction() as db:
                 now = self.engine._now()
                 state = self.engine._get_channel(db, guild, channel)
@@ -169,20 +203,22 @@ class HostActions:
                       VALUES(?,?,?,'drive_start',?,?,?,'sent',?,?,?,?,?)""",
                       ("host_" + request_id, guild, channel, key, now, ends_at,
                        json.dumps({"multiplier": options["multiplier"], "manual": True}),
-                       now, ends_at, now, str(message.id)))
+                       now, ends_at, now, message_id))
                     result = {"ok": True, "message": f"×{options['multiplier']} Power Drive started for 30 minutes.",
                               "multiplier": options["multiplier"], "ends_at": ends_at, "seconds": seconds}
-                result["message_id"] = str(message.id)
+                result["message_id"] = message_id
                 db.execute("UPDATE requests SET result_json=? WHERE guild_id=? AND request_id=?",
                            (json.dumps({"payload": payload, "phase": "done", "result": result}), guild, key))
             return result
+
+        try:
+            return await game_call(self.client, commit)
         except Exception:
             raise UncertainHostAction("Discord received the announcement, but its saved effect could not be confirmed. Check the current game status before hosting another event.") from None
 
 
-def status_snapshot(client) -> dict[str, Any]:
-    """A small owner-only snapshot, with no message text or credentials."""
-    engine, settings = client.engine, client.settings
+def game_snapshot(engine, settings) -> dict[str, Any]:
+    """Read game data without touching the event-loop-owned Discord cache."""
     state = engine.status(settings.guild_id, settings.channel_id)
     journey = engine.progression.status(settings.guild_id, settings.channel_id)
     drive = engine.activities.drive_status(settings.guild_id, settings.channel_id)
@@ -197,15 +233,30 @@ def status_snapshot(client) -> dict[str, Any]:
     activity = []
     for row in recent:
         item = json.loads(row["item_json"])
-        user = client.get_user(int(row["user_id"])) if row["user_id"].isdigit() else None
-        activity.append({"user_id": row["user_id"], "display_name": getattr(user, "display_name", None),
+        activity.append({"user_id": row["user_id"], "display_name": None,
                          "item": item.get("name", "Discovery"), "kind": row["kind"], "grade": row["grade"],
                          "quantity": row["quantity"], "at": row["claimed_at"]})
-    return {"bot_ready": bool(client.is_ready() and client.channel_ready and not client._host_failed),
-            "application_id": settings.application_id, "guild_id": settings.guild_id,
+    return {"application_id": settings.application_id, "guild_id": settings.guild_id,
             "channel_id": settings.channel_id, "channel": {k: v for k, v in state.items() if k != "active_event"},
             "galaxy": journey.get("galaxy", journey.get("current")), "active_event": state.get("active_event"),
             "effects": {"frenzy_until": state.get("frenzy_until", 0),
                         "mineral_until": state.get("mineral_until", 0), "power_drive": drive},
             "counts": counts, "recent_activity": activity,
             "available_actions": ["start", "pause", "mode", "spawn", "frenzy", "power_drive", "backup"]}
+
+
+def render_status_snapshot(client, snapshot) -> dict[str, Any]:
+    """Add connection state and cached names on the Discord event loop."""
+    result = dict(snapshot)
+    result["bot_ready"] = bool(client.is_ready() and client.channel_ready and not client._host_failed)
+    activity = []
+    for row in snapshot["recent_activity"]:
+        user = client.get_user(int(row["user_id"])) if row["user_id"].isdigit() else None
+        activity.append({**row, "display_name": getattr(user, "display_name", None)})
+    result["recent_activity"] = activity
+    return result
+
+
+def status_snapshot(client) -> dict[str, Any]:
+    """Synchronous compatibility helper for local status and small test clients."""
+    return render_status_snapshot(client, game_snapshot(client.engine, client.settings))

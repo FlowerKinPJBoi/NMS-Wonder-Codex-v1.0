@@ -22,7 +22,7 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
 
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 PROTOCOL = 1
 APPLICATION_ID = "1565167975248695456"
 GUILD_ID = "1454806298565808151"
@@ -241,6 +241,24 @@ class ControlStore:
         if row is None or row["protocol"] != PROTOCOL:
             raise ControlUnavailable("Cloud setup has not been prepared yet.")
         return row
+
+    def check_active_session(self, game_connection, generation: int) -> None:
+        """Fence work through the host's existing, externally locked session.
+
+        This is a fresh database read on every call. It avoids opening a TLS
+        connection and loading the full hub status for every game operation.
+        The caller must hold its engine lock and verify its session leader lock
+        first. No transaction is opened, cached state used, or reconnect made.
+        """
+        if type(generation) is not int or generation < 0:
+            raise ControlConflict("Cloud activation generation is invalid.")
+        row = game_connection.execute(
+            f"SELECT protocol,cloud_active,generation FROM {self._prefix}configuration WHERE singleton=1"
+        ).fetchone()
+        if row is None or row["protocol"] != PROTOCOL:
+            raise ControlUnavailable("Cloud setup has not been prepared yet.")
+        if not row["cloud_active"] or row["generation"] != generation:
+            raise ControlConflict("Cloud game activation changed.")
 
     def _worker(self, db, config: dict) -> dict | None:
         return db.execute(f"""SELECT * FROM {self._prefix}workers WHERE generation=%s

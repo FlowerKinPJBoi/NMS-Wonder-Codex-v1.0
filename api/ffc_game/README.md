@@ -1,4 +1,4 @@
-# FFC Wilds cloud runtime 0.3.0
+# FFC Wilds cloud runtime 0.3.1
 
 Vendored game engine, PostgreSQL adapter, bounded save migration, Discord transport, and private control plane for the FFC community. Only the existing Wonder Codex main API service is used. There is no new DigitalOcean component in this change.
 
@@ -9,6 +9,10 @@ The game uses the `ffc_wilds` schema. Controls, expiring hashed hub sessions, wo
 Public readiness: `GET /api/ffc/control/health`. Owner-only handoff and preflight use the existing named owner key. Routine controls exchange that key once for a limited 30-day bearer token; no Discord token is accepted by the control API. The Windows hub stores only its limited bearer using Windows DPAPI.
 
 The separate owner handoff imports a verified canonical save, confirms the PC host stopped, and activates the cloud. Never set activation during a preparatory deployment. Multiple cloud processes share a session-level PostgreSQL ownership lock; a client loses the ability to mutate the game or post publicly when its ownership check fails. Queued commands expire and are bound to a specific host generation. Uncertain deliveries are not replayed.
+
+Version 0.3.1 keeps PostgreSQL work off Discord's event loop. Buttons and commands acknowledge before storage work, then return their result through a private followup. One serialized worker owns the existing game connection; each operation checks the same session's leadership and current activation generation. The first failed ownership check permanently fences queued work. Cancellation drains submitted operations before the connection closes. Control-store queries and backup uploads also run in the background. Control protocol 1 and the installed 0.3.0 Windows hub remain compatible.
+
+Regression checks for interaction deadlines, transaction serialization, cancellation, and fencing are in `api/tests/test_ffc_async_*.py`. They use synthetic data and do not connect to Discord. The full game package also includes real PostgreSQL migration, lifecycle, and failover tests.
 
 Rollback before handoff: revert this API change; the PC game is unaffected. Rollback after handoff: deactivate and verify the game ownership lock has been released, preserve the newest cloud save, restore it to a stopped PC host, then restart there. Do not reuse an obsolete pre-handoff save.
 

@@ -25,6 +25,7 @@ from .config import CATALOG_PATH, DATA_PATH, ROOT, Settings
 from .engine import GameEngine, GRADE_MULTIPLIERS, GRADE_SECONDS, POWERUP_KINDS
 from .progression import WARP_BANK_CAP, WARP_COST, WARP_COOLDOWN_SECONDS
 from .tips import TipSchedule
+from .async_store import GameIO, GuardFailed, _completion_before_cancel
 
 LOG = logging.getLogger("ffc_wilds")
 COLORS = {"C": 0x62D4A2, "B": 0x57B9EF, "A": 0xB28BF5, "S": 0xFFE26F}
@@ -310,43 +311,48 @@ class WarpView(discord.ui.View):
     async def on_timeout(self):
         self.finish()
 
+    async def on_error(self, interaction: discord.Interaction, error: Exception, item):
+        self.client.log_safe_error("warp_callback", error)
+        with contextlib.suppress(discord.HTTPException):
+            await self.client.reply(interaction, "That Warp could not be confirmed. Check /ffc galaxy before choosing another jump.", ephemeral=True)
+
     async def check_owner(self, interaction: discord.Interaction) -> bool:
-        if not await self.client.require_channel(interaction):
-            return False
+        if not self.client.channel_matches(interaction):
+            return await self.client.require_channel(interaction)
         if interaction.user.id != self.user_id:
-            await interaction.response.send_message("This is another explorer's Warp panel. Open **/ffc warp** for your own.", ephemeral=True)
+            await self.client.reply(interaction, "This is another explorer's Warp panel. Open **/ffc warp** for your own.", ephemeral=True)
             return False
         if self.resolved or time.monotonic() >= self.deadline:
-            await interaction.response.send_message("This Warp panel has expired or finished. Open **/ffc warp** again.", ephemeral=True)
+            await self.client.reply(interaction, "This Warp panel has expired or finished. Open **/ffc warp** again.", ephemeral=True)
             return False
-        return True
+        return await self.client.require_channel(interaction)
 
     async def clear_controls(self, interaction: discord.Interaction):
         source = getattr(interaction, "message", None)
         if source:
             with contextlib.suppress(discord.HTTPException):
-                await source.edit(view=None)
+                await self.client.edit_public(source, view=None)
 
     async def cancel(self, interaction: discord.Interaction):
         if not await self.check_owner(interaction):
             return
         self.finish()
-        await interaction.response.send_message("Warp canceled. Your points stay in your bank.", ephemeral=True)
+        await self.client.reply(interaction, "Warp canceled. Your points stay in your bank.", ephemeral=True)
         await self.clear_controls(interaction)
 
     async def choose(self, interaction: discord.Interaction, direction: str):
         if not await self.check_owner(interaction):
             return
         if not self.client.channel_ready or not self.client.game_channel:
-            await interaction.response.send_message("The game channel is reconnecting. No Warp points were spent.", ephemeral=True)
+            await self.client.reply(interaction, "The game channel is reconnecting. No Warp points were spent.", ephemeral=True)
             return
-        await interaction.response.defer(ephemeral=True, thinking=True)
+        await self.client.acknowledge(interaction, force=True)
         async with self.client.game_lock:
-            self.client.assert_host()
+            await self.client.ensure_host()
             if self.resolved or time.monotonic() >= self.deadline:
                 result = {"ok": False, "reason": "duplicate_request"}
             else:
-                result = self.client.engine.progression.warp(
+                result = await self.client.db_call(self.client.engine.progression.warp,
                     str(interaction.guild_id), str(interaction.channel_id), str(interaction.user.id),
                     direction, self.snapshot["revision"], request_id="warp:" + str(interaction.id))
                 self.finish()
@@ -381,10 +387,9 @@ class EncounterView(discord.ui.View):
     async def collect(self, interaction: discord.Interaction):
         if not await self.client.require_channel(interaction):
             return
-        await interaction.response.defer(ephemeral=True, thinking=True)
+        await self.client.acknowledge(interaction, force=True)
         async with self.client.game_lock:
-            self.client.assert_host()
-            result = self.client.engine.claim(str(interaction.guild_id), str(interaction.channel_id),
+            result = await self.client.db_call(self.client.engine.claim, str(interaction.guild_id), str(interaction.channel_id),
                 str(interaction.user.id), self.action, event_id=self.event_id,
                 request_id="interaction:" + str(interaction.id))
         self.client.queue_claim(interaction.user.display_name, result)
@@ -395,6 +400,11 @@ class EncounterView(discord.ui.View):
             # receipt must not leave a claimed powerup's controls active.
             if result.get("event"):
                 await self.client.finish_if_closed(result["event"], refresh=result.get("ok") and result.get("first"))
+
+    async def on_error(self, interaction: discord.Interaction, error: Exception, item):
+        self.client.log_safe_error("collection_callback", error)
+        with contextlib.suppress(discord.HTTPException):
+            await self.client.reply(interaction, "That collection could not be confirmed. Check /ffc inventory before trying again.", ephemeral=True)
 
 
 class WildsCommands(app_commands.Group):
@@ -430,49 +440,54 @@ class WildsCommands(app_commands.Group):
             "**/ffc craft**, **/ffc leaderboard** and **/ffc status**.\n\n"
             "**/ffc galaxy** shows the crew's route and recent jumps. Your collection and travel live in this Discord game."
         ))
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await self.client.reply(interaction, embed=embed, ephemeral=True)
 
     @app_commands.command(name="inventory", description="See your fish, crops, minerals, companions and trophies")
     @app_commands.choices(category=CATEGORY_CHOICES)
     async def inventory(self, interaction: discord.Interaction, category: str | None = None,
                         page: app_commands.Range[int, 1, 20] = 1):
-        rows = self.client.engine.inventory(str(interaction.guild_id), str(interaction.user.id))
+        await self.client.acknowledge(interaction)
+        rows = await self.client.db_call(self.client.engine.inventory, str(interaction.guild_id), str(interaction.user.id))
         if category:
             rows = [row for row in rows if row["kind"] == category]
         pages = max(1, (len(rows) + 9) // 10)
         if page > pages:
-            await interaction.response.send_message(f"That collection has {pages} page(s).", ephemeral=True)
+            await self.client.reply(interaction, f"That collection has {pages} page(s).", ephemeral=True)
             return
         lines = [f"{EMOJI.get(row['kind'], '✨')} **{row['name']}** ×{row['quantity']}" for row in rows[(page-1)*10:page*10]]
         embed = discord.Embed(title=CATEGORY_NAMES.get(category, "Your FFC collection"),
                               description="\n".join(lines) or "Your first discovery is waiting. Watch for an appearance!", color=0x62D4A2)
         embed.set_footer(text=f"Page {page}/{pages} • Ingredients spent on crafting leave your inventory, but remain discovered.")
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await self.client.reply(interaction, embed=embed, ephemeral=True)
 
     @app_commands.command(name="catalog", description="Browse collectible discoveries and see what you have found")
     @app_commands.choices(category=CATEGORY_CHOICES)
     async def catalog(self, interaction: discord.Interaction, category: str | None = None,
                       page: app_commands.Range[int, 1, 20] = 1):
+        await self.client.acknowledge(interaction)
         items = list(self.client.engine.all_items.values())
         if category:
             items = [item for item in items if item["kind"] == category]
-        discovered = set(self.client.engine.profile(str(interaction.guild_id), str(interaction.user.id)).get("discovered_item_ids", []))
+        profile = await self.client.db_call(self.client.engine.profile, str(interaction.guild_id), str(interaction.user.id))
+        discovered = set(profile.get("discovered_item_ids", []))
         pages = max(1, (len(items)+9)//10)
         if page > pages:
-            await interaction.response.send_message(f"That catalog has {pages} page(s).", ephemeral=True)
+            await self.client.reply(interaction, f"That catalog has {pages} page(s).", ephemeral=True)
             return
         lines = [f"{'✓' if item['id'] in discovered else '○'} **{item['name']}** · {item.get('rarity', 'C')}" for item in items[(page-1)*10:page*10]]
         embed = discord.Embed(title="Field guide · " + CATEGORY_NAMES.get(category, "All discoveries"),
                               description="\n".join(lines), color=0x57B9EF)
         embed.set_footer(text=f"Page {page}/{pages} • ✓ discovered · ○ still to find • FFC collection classes")
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await self.client.reply(interaction, embed=embed, ephemeral=True)
 
     @app_commands.command(name="profile", description="Your successful collections, discoveries and powerups")
     async def profile(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True, thinking=True)
-        self.client.assert_host()
-        p = self.client.engine.profile(str(interaction.guild_id), str(interaction.user.id))
-        journey = self.client.engine.progression.status(str(interaction.guild_id), str(interaction.channel_id), str(interaction.user.id))
+        await self.client.acknowledge(interaction, force=True)
+        await self.client.ensure_host()
+        def read_profile():
+            return (self.client.engine.profile(str(interaction.guild_id), str(interaction.user.id)),
+                    self.client.engine.progression.status(str(interaction.guild_id), str(interaction.channel_id), str(interaction.user.id)))
+        p, journey = await self.client.db_call(read_profile)
         embed = discord.Embed(title=f"{clean_name(interaction.user.display_name)} · Explorer level {p['level']}",
             description=(f"**{p['title']}**\n"
                          f"{progress_bar(p['xp_into_level'], p['xp_for_next_level'])} "
@@ -495,9 +510,9 @@ class WildsCommands(app_commands.Group):
                                  (("All badges", "all"), ("Earned badges", "earned"), ("Still to earn", "locked"))])
     async def achievements(self, interaction: discord.Interaction,
                            page: app_commands.Range[int, 1, 20] = 1, filter: str = "all"):
-        await interaction.response.defer(ephemeral=True, thinking=True)
-        self.client.assert_host()
-        state = self.client.engine.honours.status(str(interaction.guild_id), str(interaction.user.id))
+        await self.client.acknowledge(interaction, force=True)
+        await self.client.ensure_host()
+        state = await self.client.db_call(self.client.engine.honours.status, str(interaction.guild_id), str(interaction.user.id))
         badges = [badge for badge in state["achievements"]
                   if filter == "all" or (filter == "earned" and badge["unlocked"])
                   or (filter == "locked" and not badge["unlocked"])]
@@ -524,10 +539,13 @@ class WildsCommands(app_commands.Group):
 
     @app_commands.command(name="status", description="Check your charge and the channel's shared powerups")
     async def status(self, interaction: discord.Interaction):
-        s = self.client.engine.status(str(interaction.guild_id), str(interaction.channel_id), str(interaction.user.id))
+        await self.client.acknowledge(interaction)
+        def read_status():
+            return (self.client.engine.status(str(interaction.guild_id), str(interaction.channel_id), str(interaction.user.id)),
+                    self.client.engine.progression.status(str(interaction.guild_id), str(interaction.channel_id), str(interaction.user.id)),
+                    self.client.engine.activities.drive_status(str(interaction.guild_id), str(interaction.channel_id)))
+        s, journey, drive = await self.client.db_call(read_status)
         b = s.get("boost", {"remaining": 0, "multiplier": 1})
-        journey = self.client.engine.progression.status(str(interaction.guild_id), str(interaction.channel_id), str(interaction.user.id))
-        drive = self.client.engine.activities.drive_status(str(interaction.guild_id), str(interaction.channel_id))
         lines = ["Game: **" + ("running" if s["enabled"] else "paused") + "** · " + s.get("mode", "community"),
                  f"Crew galaxy: **{galaxy_label(journey['galaxy'])}**.",
                  f"Your Warp bank: **{journey['balance']}/{WARP_BANK_CAP} points** · **{journey['charges']}** jump(s). Use **/ffc warp**.",
@@ -544,7 +562,7 @@ class WildsCommands(app_commands.Group):
                 lines.append("Waiting for the first successful claim.")
             else:
                 lines.append(f"Collection closes <t:{int(active['expires_at'])}:R>.")
-        await interaction.response.send_message("\n".join(lines), ephemeral=True)
+        await self.client.reply(interaction, "\n".join(lines), ephemeral=True)
 
     @app_commands.command(name="recipes", description="Find a use for duplicates: craft FFC cosmetic trophies")
     async def recipes(self, interaction: discord.Interaction):
@@ -552,13 +570,13 @@ class WildsCommands(app_commands.Group):
         for recipe in self.client.engine.recipes.values():
             ingredients = ", ".join(f"{self.client.engine.all_items[item]['name']} ×{count}" for item, count in recipe["ingredients"].items())
             embed.add_field(name=recipe["name"], value=ingredients + f"\n`/ffc craft recipe:{recipe['id']}`", inline=False)
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await self.client.reply(interaction, embed=embed, ephemeral=True)
 
     @app_commands.command(name="craft", description="Spend ingredients to make a cosmetic FFC trophy")
     async def craft(self, interaction: discord.Interaction, recipe: str):
-        await interaction.response.defer(ephemeral=True, thinking=True)
-        self.client.assert_host()
-        result = self.client.engine.craft(str(interaction.guild_id), str(interaction.user.id), recipe,
+        await self.client.acknowledge(interaction, force=True)
+        await self.client.ensure_host()
+        result = await self.client.db_call(self.client.engine.craft, str(interaction.guild_id), str(interaction.user.id), recipe,
                                           request_id="interaction:" + str(interaction.id))
         if result["ok"]:
             text = f"🛠️ Crafted **{result['item']['name']} ×{result['quantity']}**! Find it in your inventory."
@@ -584,12 +602,13 @@ class WildsCommands(app_commands.Group):
         period=[app_commands.Choice(name=name, value=key) for key, name in {
             "all": "All time", "today": "Today", "week": "This week"}.items()])
     async def leaderboard(self, interaction: discord.Interaction, metric: str = "catches", period: str = "all"):
+        await self.client.acknowledge(interaction)
         if period == "all":
-            rows = self.client.engine.leaderboard(str(interaction.guild_id), metric=metric)
+            rows = await self.client.db_call(self.client.engine.leaderboard, str(interaction.guild_id), metric=metric)
         elif metric in ("catches", "units"):
-            rows = self.client.engine.activities.leaderboard(str(interaction.guild_id), str(interaction.channel_id), period=period, metric=metric)
+            rows = await self.client.db_call(self.client.engine.activities.leaderboard, str(interaction.guild_id), str(interaction.channel_id), period=period, metric=metric)
         else:
-            await interaction.response.send_message("Daily and weekly boards track **Successful collections** or **Items gathered**. Choose **All time** for the other statistics.", ephemeral=True)
+            await self.client.reply(interaction, "Daily and weekly boards track **Successful collections** or **Items gathered**. Choose **All time** for the other statistics.", ephemeral=True)
             return
         title = {"all": "All time", "today": "Today", "week": "This week"}.get(period, period)
         label = {"catches": "collections", "units": "items gathered", "firsts": "first claims", "powerups": "powerups", "crafts": "trophies", "xp": "Discovery XP"}.get(metric, metric)
@@ -598,7 +617,7 @@ class WildsCommands(app_commands.Group):
         embed = discord.Embed(title=f"FFC leaderboard · {title} · {label}", description=lines, color=0xFFE26F)
         if period != "all":
             embed.set_footer(text="America/New_York days • Week starts Monday • Current totals")
-        await interaction.response.send_message(embed=embed, ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
+        await self.client.reply(interaction, embed=embed, ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
 
     @app_commands.command(name="warp", description="Spend earned Warp points to take the crew forward or backward")
     async def warp(self, interaction: discord.Interaction):
@@ -620,33 +639,36 @@ class AdminCommands(app_commands.Group):
         self.client = client
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if not await self.client.require_channel(interaction):
-            return False
+        if not self.client.channel_matches(interaction):
+            return await self.client.require_channel(interaction)
         if not interaction.permissions.manage_guild:
-            await interaction.response.send_message("Hosting controls require Manage Server permission.", ephemeral=True)
+            await self.client.reply(interaction, "Hosting controls require Manage Server permission.", ephemeral=True)
             return False
-        return True
+        return await self.client.require_channel(interaction)
 
     @app_commands.command(name="start", description="Start or resume encounters in this game channel")
     async def start(self, interaction: discord.Interaction):
         if not self.client.channel_ready:
-            await interaction.response.send_message("The bot cannot use this channel yet. Check its console for missing permissions.", ephemeral=True)
+            await self.client.reply(interaction, "The bot cannot use this channel yet. Check its console for missing permissions.", ephemeral=True)
             return
-        await interaction.response.defer(ephemeral=True, thinking=True)
+        await self.client.acknowledge(interaction, force=True)
         async with self.client.game_lock:
-            self.client.assert_host()
-            self.client.engine.set_enabled(str(interaction.guild_id), str(interaction.channel_id), True)
-            self.client.tips.sync_state(str(interaction.guild_id), str(interaction.channel_id), True)
+            def resume():
+                self.client.engine.set_enabled(str(interaction.guild_id), str(interaction.channel_id), True)
+                self.client.tips.sync_state(str(interaction.guild_id), str(interaction.channel_id), True)
+            await self.client.db_call(resume)
         await interaction.followup.send("FFC Wilds is running. The first appearance will arrive shortly.", ephemeral=True)
 
     @app_commands.command(name="pause", description="Pause appearances and close the current one")
     async def pause(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True, thinking=True)
+        await self.client.acknowledge(interaction, force=True)
         async with self.client.game_lock:
-            self.client.assert_host()
-            active = self.client.engine.active_event(str(interaction.guild_id), str(interaction.channel_id))
-            self.client.engine.set_enabled(str(interaction.guild_id), str(interaction.channel_id), False)
-            self.client.tips.sync_state(str(interaction.guild_id), str(interaction.channel_id), False)
+            def pause():
+                active = self.client.engine.active_event(str(interaction.guild_id), str(interaction.channel_id))
+                self.client.engine.set_enabled(str(interaction.guild_id), str(interaction.channel_id), False)
+                self.client.tips.sync_state(str(interaction.guild_id), str(interaction.channel_id), False)
+                return active
+            active = await self.client.db_call(pause)
         await interaction.followup.send("FFC Wilds paused. Collections are saved. Timed shared effects still use real time.", ephemeral=True)
         if active:
             await self.client.close_post(active)
@@ -655,21 +677,23 @@ class AdminCommands(app_commands.Group):
     @app_commands.choices(mode=[app_commands.Choice(name="Community: everyone can collect once", value="community"),
                                app_commands.Choice(name="Classic: first player wins", value="classic")])
     async def mode(self, interaction: discord.Interaction, mode: str):
-        self.client.assert_host()
+        await self.client.acknowledge(interaction)
         settings = replace(self.client.settings, mode=mode)
-        if self.client.persist_settings:
-            settings.save()
-        self.client.engine.configure_channel(str(interaction.guild_id), str(interaction.channel_id), mode)
+        def change_mode():
+            if self.client.persist_settings:
+                settings.save()
+            self.client.engine.configure_channel(str(interaction.guild_id), str(interaction.channel_id), mode)
+        await self.client.db_call(change_mode)
         self.client.settings = settings
         text = f"New appearances will use **{mode}** mode. Frenzies always let everyone collect."
         if mode == "classic":
             text += " Mineral boosts extend the deadline, but do not reopen an appearance after its winner."
-        await interaction.response.send_message(text, ephemeral=True)
+        await self.client.reply(interaction, text, ephemeral=True)
 
     @app_commands.command(name="spawn", description="Host one encounter now; an existing encounter must finish first")
     @app_commands.choices(kind=KIND_CHOICES, grade=[app_commands.Choice(name=c, value=c) for c in "CBAS"])
     async def spawn(self, interaction: discord.Interaction, kind: str = "random", grade: str | None = None):
-        await interaction.response.defer(ephemeral=True, thinking=True)
+        await self.client.acknowledge(interaction, force=True)
         try:
             if grade and kind not in POWERUP_KINDS:
                 raise ValueError("Choose a hotspot type to set its class. Collectibles use their catalog class.")
@@ -703,6 +727,7 @@ class WildsBot(discord.Client):
         self.automatic_backups = automatic_backups
         self._host_failed = False
         self.engine = engine or GameEngine(DATA_PATH / "wilds.sqlite", CATALOG_PATH)
+        self.io = GameIO(self.engine, self._storage_guard)
         self.tips = TipSchedule(self.engine)
         with self.engine._transaction() as db:
             db.execute("""CREATE TABLE IF NOT EXISTS channel_interludes (
@@ -722,6 +747,86 @@ class WildsBot(discord.Client):
         self._last_flush = 0.0
         self._last_backup = 0.0
         self._closed_engine = False
+        self._closing = False
+        self._close_task = None
+        self._acknowledged_interactions: dict[int, float] = {}
+
+    def _storage_guard(self) -> None:
+        """Executed by GameIO on its storage worker; never mutates Discord state."""
+        if self._host_failed:
+            raise RuntimeError("host_already_fenced")
+        if self.operation_guard is not None:
+            self.operation_guard()
+
+    def _fence_host(self) -> None:
+        if not self._host_failed:
+            self._host_failed = True
+            self.channel_ready = False
+            self.acknowledgments.clear()
+            try:
+                asyncio.get_running_loop().create_task(self.close())
+            except RuntimeError:
+                pass
+
+    async def db_call(self, operation, *args, **kwargs):
+        """Run guarded storage work without occupying Discord's event loop."""
+        if self._host_failed or self._closing:
+            raise HostLeadershipLost("Cloud ownership was lost; this game connection is closing.")
+        try:
+            return await self.io.run(operation, *args, **kwargs)
+        except GuardFailed:
+            self._fence_host()
+            raise HostLeadershipLost("Cloud ownership could not be verified; this game connection is closing.") from None
+
+    async def ensure_host(self) -> None:
+        await self.db_call(lambda: None)
+
+    @staticmethod
+    def log_safe_error(stage: str, error: Exception) -> None:
+        # Only caller-controlled stages, type names and numeric codes; never
+        # stringify exceptions, interaction objects, tokens, headers or bodies.
+        code = getattr(error, "code", None)
+        status = getattr(error, "status", None)
+        LOG.warning("FFC operation failed stage=%s type=%s code=%s status=%s",
+                    stage[:40], type(error).__name__[:60],
+                    code if type(code) is int else 0,
+                    status if type(status) is int else 0)
+
+    def channel_matches(self, interaction: discord.Interaction) -> bool:
+        return (str(interaction.guild_id) == self.settings.guild_id and
+                str(interaction.channel_id) == self.settings.channel_id and not interaction.user.bot)
+
+    def response_done(self, interaction: discord.Interaction) -> bool:
+        return bool(interaction.response.is_done() or interaction.id in self._acknowledged_interactions)
+
+    async def acknowledge(self, interaction: discord.Interaction, *, force: bool = False) -> None:
+        """Cloud interactions acknowledge before any network-backed storage call."""
+        if getattr(interaction, "type", None) == discord.InteractionType.autocomplete:
+            return
+        if (not force and getattr(self.engine, "backend", "sqlite") != "postgresql") or self.response_done(interaction):
+            return
+        started = time.monotonic()
+        try:
+            await interaction.response.defer(ephemeral=True, thinking=True)
+        except Exception as error:
+            self.log_safe_error("interaction_defer", error)
+            raise
+        self._acknowledged_interactions[interaction.id] = time.monotonic()
+        if len(self._acknowledged_interactions) > 2048:
+            now = time.monotonic()
+            self._acknowledged_interactions = {
+                key: value for key, value in self._acknowledged_interactions.items() if now - value < 900
+            }
+            while len(self._acknowledged_interactions) > 2048:
+                self._acknowledged_interactions.pop(next(iter(self._acknowledged_interactions)))
+        elapsed = time.monotonic() - started
+        if elapsed > 1:
+            LOG.warning("FFC interaction acknowledgement slow duration_ms=%d", min(int(elapsed * 1000), 3600000))
+
+    async def reply(self, interaction: discord.Interaction, *args, **kwargs):
+        if self.response_done(interaction):
+            return await interaction.followup.send(*args, **kwargs)
+        return await interaction.response.send_message(*args, **kwargs)
 
     def assert_host(self) -> None:
         """Fence cloud work using the same PostgreSQL session as game writes.
@@ -737,17 +842,11 @@ class WildsBot(discord.Client):
         try:
             self.operation_guard()
         except Exception:
-            self._host_failed = True
-            self.channel_ready = False
-            self.acknowledgments.clear()
-            try:
-                asyncio.get_running_loop().create_task(self.close())
-            except RuntimeError:
-                pass
+            self._fence_host()
             raise HostLeadershipLost("Cloud ownership could not be verified; this game connection is closing.") from None
 
     async def send_public(self, *args, **kwargs):
-        self.assert_host()
+        await self.ensure_host()
         channel = self.game_channel
         if (not self.channel_ready or not channel
                 or str(channel.id) != self.settings.channel_id
@@ -755,17 +854,34 @@ class WildsBot(discord.Client):
             raise ValueError("The configured game channel is not ready.")
         kwargs.setdefault("silent", True)
         kwargs["allowed_mentions"] = discord.AllowedMentions.none()
+        cancelled = False
         try:
             return await channel.send(*args, **kwargs)
+        except asyncio.CancelledError:
+            cancelled = True
+            raise
         finally:
-            self.assert_host()
+            await self._verify_after_public_send(cancelled)
 
     async def edit_public(self, message, **kwargs):
-        self.assert_host()
+        await self.ensure_host()
+        cancelled = False
         try:
             return await message.edit(**kwargs)
+        except asyncio.CancelledError:
+            cancelled = True
+            raise
         finally:
-            self.assert_host()
+            await self._verify_after_public_send(cancelled)
+
+    async def _verify_after_public_send(self, cancelled: bool):
+        try:
+            await self.ensure_host()
+        except HostLeadershipLost:
+            # A failed guard still fences the client. Preserve cancellation so
+            # a scheduler cannot swallow it as a routine retryable exception.
+            if not cancelled:
+                raise
 
     def queue_acknowledgment(self, text: str):
         """Enqueue a public receipt only; rewards have already committed."""
@@ -776,7 +892,7 @@ class WildsBot(discord.Client):
             self.queue_acknowledgment(public_claim_text(display_name, result))
 
     async def flush_acknowledgments(self, now: float | None = None):
-        self.assert_host()
+        await self.ensure_host()
         now = time.monotonic() if now is None else now
         channel = self.game_channel
         if (not self.acknowledgments or now - self._last_flush < RECEIPT_INTERVAL_SECONDS
@@ -810,26 +926,27 @@ class WildsBot(discord.Client):
             LOG.warning("A collection acknowledgment could not be confirmed; collections and milestones remain saved. The receipt will not be replayed.")
 
     async def setup_hook(self):
-        self.assert_host()
         if self.settings.application_id and self.user and str(self.user.id) != self.settings.application_id:
             raise RuntimeError("This token belongs to a different bot than the configured application. Check your game bot settings.")
-        self.engine.configure_channel(self.settings.guild_id, self.settings.channel_id, self.settings.mode)
-        state = self.engine.status(self.settings.guild_id, self.settings.channel_id)
-        self.tips.sync_state(self.settings.guild_id, self.settings.channel_id, state["enabled"])
-        self.engine.recover_pending(max_age_seconds=0)
+        def prepare_game():
+            self.engine.configure_channel(self.settings.guild_id, self.settings.channel_id, self.settings.mode)
+            state = self.engine.status(self.settings.guild_id, self.settings.channel_id)
+            self.tips.sync_state(self.settings.guild_id, self.settings.channel_id, state["enabled"])
+            self.engine.recover_pending(max_age_seconds=0)
+        await self.db_call(prepare_game)
         guild = discord.Object(id=int(self.settings.guild_id))
         self.tree.add_command(WildsCommands(self), guild=guild)
         self.tree.add_command(AdminCommands(self), guild=guild)
         await self.tree.sync(guild=guild)
-        self.assert_host()
+        await self.ensure_host()
         self.scheduler.start()
 
     async def on_ready(self):
-        self.assert_host()
+        await self.ensure_host()
         self.channel_ready = False
         try:
             channel = self.get_channel(int(self.settings.channel_id)) or await self.fetch_channel(int(self.settings.channel_id))
-            self.assert_host()
+            await self.ensure_host()
             if not isinstance(channel, discord.TextChannel) or str(channel.guild.id) != self.settings.guild_id:
                 raise ValueError("Game channel must be a text channel in the configured server.")
             member = channel.guild.me
@@ -841,20 +958,19 @@ class WildsBot(discord.Client):
             if missing:
                 raise ValueError("Game channel permissions missing: " + ", ".join(missing))
             self.game_channel = channel
-            for event in self.engine.expire_events():
+            for event in await self.db_call(self.engine.expire_events):
                 await self.close_post(event)
-            event = self.engine.active_event(self.settings.guild_id, self.settings.channel_id)
+            event = await self.db_call(self.engine.active_event, self.settings.guild_id, self.settings.channel_id)
             if event:
                 try:
                     post = await channel.fetch_message(int(event["message_id"]))
                 except discord.NotFound:
-                    self.assert_host()
-                    self.engine.cancel_event(event["id"])
+                    await self.db_call(self.engine.cancel_event, event["id"])
                     previous = self.views.pop(event["id"], None)
                     if previous:
                         previous.stop()
                 else:
-                    self.assert_host()
+                    await self.ensure_host()
                     previous = self.views.pop(event["id"], None)
                     if previous:
                         previous.stop()
@@ -865,13 +981,17 @@ class WildsBot(discord.Client):
                     # first-claim countdown whose previous edit failed.
                     with contextlib.suppress(discord.HTTPException):
                         await self.edit_public(post, embed=event_embed(event))
-            self.assert_host()
+            await self.ensure_host()
             self.channel_ready = True
-            state = self.engine.status(self.settings.guild_id, self.settings.channel_id)
-            self.tips.sync_state(self.settings.guild_id, self.settings.channel_id, state["enabled"])
+            def sync_ready():
+                state = self.engine.status(self.settings.guild_id, self.settings.channel_id)
+                self.tips.sync_state(self.settings.guild_id, self.settings.channel_id, state["enabled"])
+                return state
+            state = await self.db_call(sync_ready)
             LOG.info("FFC Wilds v%s ready in configured channel. Game %s.", __version__, "running" if state["enabled"] else "paused; use /ffc-admin start")
-        except (discord.HTTPException, ValueError):
-            LOG.exception("Unable to use the configured game channel")
+        except (discord.HTTPException, ValueError) as error:
+            self.channel_ready = False
+            self.log_safe_error("channel_ready", error)
 
     async def on_disconnect(self):
         self.channel_ready = False
@@ -881,25 +1001,32 @@ class WildsBot(discord.Client):
         await self.on_ready()
 
     async def require_channel(self, interaction: discord.Interaction) -> bool:
-        try:
-            self.assert_host()
-        except HostLeadershipLost:
-            return False
-        okay = (str(interaction.guild_id) == self.settings.guild_id and
-                str(interaction.channel_id) == self.settings.channel_id and not interaction.user.bot)
+        okay = self.channel_matches(interaction)
         if not okay:
-            text = "FFC Wilds runs only in its configured game channel."
-            if interaction.response.is_done():
-                await interaction.followup.send(text, ephemeral=True)
-            else:
-                await interaction.response.send_message(text, ephemeral=True)
-        return okay
+            await self.reply(interaction, "FFC Wilds runs only in its configured game channel.", ephemeral=True)
+            return False
+        if getattr(interaction, "type", None) == discord.InteractionType.autocomplete:
+            # Recipe completion reads static catalog metadata only and cannot
+            # defer using the regular command response type.
+            return not self._host_failed and not self._closing
+        # Acknowledge before even the leadership check: cloud ownership uses
+        # remote storage, while this acknowledgement cannot award anything.
+        await self.acknowledge(interaction)
+        try:
+            await self.ensure_host()
+        except HostLeadershipLost:
+            with contextlib.suppress(discord.HTTPException):
+                await self.reply(interaction, "The cloud game is reconnecting. No collection or Warp was started by this request.", ephemeral=True)
+            return False
+        return True
 
     async def show_warp(self, interaction: discord.Interaction):
         if not await self.require_channel(interaction):
             return
-        journey = self.engine.progression.status(str(interaction.guild_id), str(interaction.channel_id), str(interaction.user.id))
-        state = self.engine.status(str(interaction.guild_id), str(interaction.channel_id))
+        def read_warp():
+            return (self.engine.progression.status(str(interaction.guild_id), str(interaction.channel_id), str(interaction.user.id)),
+                    self.engine.status(str(interaction.guild_id), str(interaction.channel_id)))
+        journey, state = await self.db_call(read_warp)
         embed = discord.Embed(title="🚀 Choose the crew's next jump", color=0xB28BF5,
             description=(f"Current galaxy: **{galaxy_label(journey['galaxy'])}**\n"
                 f"Your bank: **{journey['balance']}/{WARP_BANK_CAP} Warp points** · **{journey['charges']}** jump(s).\n\n"
@@ -920,7 +1047,7 @@ class WildsBot(discord.Client):
                 button.disabled = True
         self.warp_views.add(view)
         try:
-            await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+            await self.reply(interaction, embed=embed, view=view, ephemeral=True)
         except BaseException:
             view.finish()
             raise
@@ -928,7 +1055,7 @@ class WildsBot(discord.Client):
     async def show_galaxy(self, interaction: discord.Interaction):
         if not await self.require_channel(interaction):
             return
-        journey = self.engine.progression.status(str(interaction.guild_id), str(interaction.channel_id), str(interaction.user.id))
+        journey = await self.db_call(self.engine.progression.status, str(interaction.guild_id), str(interaction.channel_id), str(interaction.user.id))
         embed = discord.Embed(title="🪐 " + galaxy_label(journey["galaxy"]), color=0x57B9EF,
             description=("The crew's shared FFC Wilds destination. Earn points by collecting and use **/ffc warp** to choose the next jump.\n"
                          f"Your bank: **{journey['balance']}/{WARP_BANK_CAP} points** · **{journey['charges']}** jump(s)."))
@@ -939,17 +1066,19 @@ class WildsBot(discord.Client):
         lines = [f"<@{entry['user_id']}> · {galaxy_label(entry['from_galaxy'])} → **{galaxy_label(entry['to_galaxy'])}** · <t:{int(entry['at'])}:R>" for entry in history]
         embed.add_field(name="Recent jumps", value="\n".join(lines) or "The crew's journey begins here.", inline=False)
         embed.set_footer(text="FFC game route: 1–256, wrapping both ways • Collections stay with their explorers")
-        await interaction.response.send_message(embed=embed, ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
+        await self.reply(interaction, embed=embed, ephemeral=True, allowed_mentions=discord.AllowedMentions.none())
 
     async def show_missions(self, interaction: discord.Interaction):
         if not await self.require_channel(interaction):
             return
-        state = self.engine.activities.missions(str(interaction.guild_id), str(interaction.channel_id), str(interaction.user.id))
-        drive = self.engine.activities.drive_status(str(interaction.guild_id), str(interaction.channel_id))
-        await interaction.response.send_message(embed=mission_embed(state, drive), ephemeral=True)
+        def read_missions():
+            return (self.engine.activities.missions(str(interaction.guild_id), str(interaction.channel_id), str(interaction.user.id)),
+                    self.engine.activities.drive_status(str(interaction.guild_id), str(interaction.channel_id)))
+        state, drive = await self.db_call(read_missions)
+        await self.reply(interaction, embed=mission_embed(state, drive), ephemeral=True)
 
     async def announce_warp(self, display_name: str, result: dict):
-        self.assert_host()
+        await self.ensure_host()
         channel = self.game_channel
         if (not self.channel_ready or not channel or str(channel.id) != self.settings.channel_id
                 or str(channel.guild.id) != self.settings.guild_id):
@@ -992,40 +1121,47 @@ class WildsBot(discord.Client):
         action = message.content.strip().casefold()
         if action not in ACTIONS:
             return
-        self.assert_host()
+        await self.ensure_host()
         now = time.monotonic()
         if now - self.last_attempt.get(message.author.id, -100) < 0.5:
             return
         self.last_attempt[message.author.id] = now
         async with self.game_lock:
-            self.assert_host()
-            event = self.engine.active_event(self.settings.guild_id, self.settings.channel_id)
-            if not event:
-                return
-            # A delayed/replayed gateway message or a reply to an old appearance
-            # must never claim a newly spawned collectible.
-            if message.id <= int(event["message_id"]):
-                return
-            if message.reference and str(message.reference.message_id) != str(event["message_id"]):
-                return
-            result = self.engine.claim(self.settings.guild_id, self.settings.channel_id, str(message.author.id), action,
-                                       event_id=event["id"], request_id="message:" + str(message.id))
+            message_id, user_id = str(message.id), str(message.author.id)
+            reply_to = str(message.reference.message_id) if message.reference else None
+            def claim_message():
+                event = self.engine.active_event(self.settings.guild_id, self.settings.channel_id)
+                if not event:
+                    return None
+                # A delayed/replayed message must never claim a new discovery.
+                if int(message_id) <= int(event["message_id"]):
+                    return None
+                if reply_to and reply_to != str(event["message_id"]):
+                    return None
+                return self.engine.claim(self.settings.guild_id, self.settings.channel_id, user_id, action,
+                                         event_id=event["id"], request_id="message:" + message_id)
+            result = await self.db_call(claim_message)
+        if result is None:
+            return
         if result.get("ok"):
             self.queue_claim(message.author.display_name, result)
         elif result.get("reason") == "wrong_action" and now - self.last_feedback.get(message.author.id, -100) > 10:
             self.last_feedback[message.author.id] = now
             with contextlib.suppress(discord.HTTPException):
-                await message.reply(claim_text(result), mention_author=False, delete_after=8)
+                await self.ensure_host()
+                try:
+                    await message.reply(claim_text(result), mention_author=False, delete_after=8)
+                finally:
+                    await self.ensure_host()
         if result.get("event"):
             await self.finish_if_closed(result["event"], refresh=result.get("ok") and result.get("first"))
 
     async def publish_encounter(self, kind: str | None = None, grade: str | None = None) -> dict:
-        self.assert_host()
+        await self.ensure_host()
         if not self.channel_ready or not self.game_channel:
             raise ValueError("The game channel is not ready. Check the bot console.")
         async with self.game_lock:
-            self.assert_host()
-            event = self.engine.spawn(self.settings.guild_id, self.settings.channel_id, kind=kind, grade=grade)
+            event = await self.db_call(self.engine.spawn, self.settings.guild_id, self.settings.channel_id, kind=kind, grade=grade)
             view = None
             message = None
             file = None
@@ -1037,8 +1173,7 @@ class WildsBot(discord.Client):
                 if file:
                     kwargs["file"] = file
                 message = await self.send_public(**kwargs)
-                self.assert_host()
-                event = self.engine.bind_message(event["id"], str(message.id))
+                event = await self.db_call(self.engine.bind_message, event["id"], str(message.id))
                 if event["status"] != "open":
                     view.stop()
                     await self.edit_public(message, embed=event_embed(event, closed=True), view=None)
@@ -1048,11 +1183,11 @@ class WildsBot(discord.Client):
                     await self.edit_public(message, embed=event_embed(event))
                 return event
             except BaseException:
-                if not self._host_failed:
-                    self.engine.cancel_event(event["id"])
+                if not self._host_failed and not self._closing:
+                    await self.db_call(self.engine.cancel_event, event["id"])
                 if view:
                     view.stop()
-                if message and not self._host_failed:
+                if message and not self._host_failed and not self._closing:
                     with contextlib.suppress(discord.HTTPException):
                         await self.edit_public(message, embed=event_embed(event, closed=True), view=None)
                 raise
@@ -1061,19 +1196,19 @@ class WildsBot(discord.Client):
                     file.close()
 
     async def finish_if_closed(self, event: dict, *, refresh: bool = False):
-        self.assert_host()
+        await self.ensure_host()
         if event["status"] != "open":
             await self.close_post(event)
         elif refresh and not event["frenzy"] and self.game_channel and event.get("message_id"):
             # Only the first claim changes the deadline. Later claims do not
             # generate repeated card edits or extend the shared window.
-            current = self.engine.event(event["id"])
+            current = await self.db_call(self.engine.event, event["id"])
             if current and current["status"] == "open":
                 with contextlib.suppress(discord.HTTPException):
                     await self.edit_public(self.game_channel.get_partial_message(int(current["message_id"])), embed=event_embed(current))
 
     async def close_post(self, event: dict):
-        self.assert_host()
+        await self.ensure_host()
         view = self.views.pop(event["id"], None)
         if view:
             view.stop()
@@ -1086,24 +1221,26 @@ class WildsBot(discord.Client):
 
     async def maybe_publish_tip(self):
         """Send one due channel tip without interrupting a timed collection."""
-        self.assert_host()
+        await self.ensure_host()
         channel = self.game_channel
         if (not self.is_ready() or not self.channel_ready or not channel
                 or str(channel.id) != self.settings.channel_id
                 or str(channel.guild.id) != self.settings.guild_id):
             return
         async with self.game_lock:
-            self.assert_host()
-            if not self.interlude_available():
-                return
-            state = self.engine.status(self.settings.guild_id, self.settings.channel_id)
-            active = state.get("active_event")
-            blocked = bool(state["frenzy_remaining"] or
-                           (active and (active.get("frenzy") or active.get("expires_at") is not None)))
-            reservation = self.tips.reserve(self.settings.guild_id, self.settings.channel_id,
-                                            enabled=state["enabled"], blocked=blocked)
-            if reservation is not None:
-                self.mark_interlude_attempt()
+            def reserve_tip():
+                if not self.interlude_available():
+                    return None, None
+                state = self.engine.status(self.settings.guild_id, self.settings.channel_id)
+                active = state.get("active_event")
+                blocked = bool(state["frenzy_remaining"] or
+                               (active and (active.get("frenzy") or active.get("expires_at") is not None)))
+                reservation = self.tips.reserve(self.settings.guild_id, self.settings.channel_id,
+                                                enabled=state["enabled"], blocked=blocked)
+                if reservation is not None:
+                    self.mark_interlude_attempt()
+                return reservation, active
+            reservation, active = await self.db_call(reserve_tip)
         if reservation is None:
             return
         text = "💡 **FFC tip** · " + reservation.text
@@ -1114,36 +1251,38 @@ class WildsBot(discord.Client):
             message = await self.send_public(text)
         except (discord.HTTPException, OSError, asyncio.TimeoutError) as exc:
             if isinstance(exc, discord.HTTPException) and 400 <= exc.status < 500:
-                self.tips.failed(reservation)
+                await self.db_call(self.tips.failed, reservation)
                 LOG.warning("Player tip was rejected; retrying in five minutes: %s", type(exc).__name__)
             else:
                 LOG.warning("Player tip delivery is uncertain; keeping its reserved hourly slot to avoid a duplicate: %s", type(exc).__name__)
             return
-        self.tips.sent(reservation, str(message.id))
+        await self.db_call(self.tips.sent, reservation, str(message.id))
 
     async def maybe_publish_activity(self):
         """Publish one durable crew notice between collection windows."""
-        self.assert_host()
+        await self.ensure_host()
         channel = self.game_channel
         if (not self.is_ready() or not self.channel_ready or not channel
                 or str(channel.id) != self.settings.channel_id
                 or str(channel.guild.id) != self.settings.guild_id):
             return
         async with self.game_lock:
-            self.assert_host()
-            if not self.interlude_available():
-                return
-            state = self.engine.status(self.settings.guild_id, self.settings.channel_id)
-            if not state["enabled"]:
-                return
-            active = state.get("active_event")
-            blocked = bool(state["frenzy_remaining"] or
-                           self.engine.activities.drive_status(self.settings.guild_id, self.settings.channel_id)["active"] or
-                           (active and (active.get("frenzy") or active.get("expires_at") is not None)))
-            reservation = self.engine.activities.reserve_notice(self.settings.guild_id, self.settings.channel_id,
-                                                                  blocked=blocked)
-            if reservation is not None:
-                self.mark_interlude_attempt()
+            def reserve_activity():
+                if not self.interlude_available():
+                    return None, None
+                state = self.engine.status(self.settings.guild_id, self.settings.channel_id)
+                if not state["enabled"]:
+                    return None, None
+                active = state.get("active_event")
+                blocked = bool(state["frenzy_remaining"] or
+                               self.engine.activities.drive_status(self.settings.guild_id, self.settings.channel_id)["active"] or
+                               (active and (active.get("frenzy") or active.get("expires_at") is not None)))
+                reservation = self.engine.activities.reserve_notice(self.settings.guild_id, self.settings.channel_id,
+                                                                    blocked=blocked)
+                if reservation is not None:
+                    self.mark_interlude_attempt()
+                return reservation, active
+            reservation, active = await self.db_call(reserve_activity)
         if reservation is None:
             return
         embed = activity_embed(reservation)
@@ -1154,22 +1293,22 @@ class WildsBot(discord.Client):
             message = await self.send_public(embed=embed)
         except (discord.HTTPException, OSError, asyncio.TimeoutError) as exc:
             if isinstance(exc, discord.HTTPException) and 400 <= exc.status < 500:
-                self.engine.activities.notice_failed(reservation)
+                await self.db_call(self.engine.activities.notice_failed, reservation)
                 LOG.warning("Crew notice was rejected; its persisted retry policy applies: %s", type(exc).__name__)
             else:
                 LOG.warning("Crew notice delivery is uncertain; preserving the reservation to avoid a duplicate: %s", type(exc).__name__)
             return
-        self.engine.activities.notice_sent(reservation, str(message.id))
+        await self.db_call(self.engine.activities.notice_sent, reservation, str(message.id))
 
     @tasks.loop(seconds=1)
     async def scheduler(self):
         if not self.is_ready() or not self.channel_ready:
             return
         try:
-            self.assert_host()
-            for event in self.engine.expire_events():
+            await self.ensure_host()
+            for event in await self.db_call(self.engine.expire_events):
                 await self.close_post(event)
-            for channel in self.engine.due_channels():
+            for channel in await self.db_call(self.engine.due_channels):
                 if channel["guild_id"] == self.settings.guild_id and channel["channel_id"] == self.settings.channel_id:
                     try:
                         await self.publish_encounter()
@@ -1184,13 +1323,13 @@ class WildsBot(discord.Client):
                     await self.backup_callback()
                 else:
                     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
-                    self.engine.backup(DATA_PATH / "backups" / f"wilds-{stamp}.sqlite")
+                    await self.db_call(self.engine.backup, DATA_PATH / "backups" / f"wilds-{stamp}.sqlite")
                 self._last_backup = now
             if len(self.last_attempt) > 2000:
                 self.last_attempt = {k: v for k, v in self.last_attempt.items() if now-v < 300}
                 self.last_feedback = {k: v for k, v in self.last_feedback.items() if now-v < 300}
-        except Exception:
-            LOG.exception("Game tick failed; the scheduler will retry on its next tick")
+        except Exception as error:
+            self.log_safe_error("scheduler", error)
 
     @scheduler.before_loop
     async def before_scheduler(self):
@@ -1199,28 +1338,54 @@ class WildsBot(discord.Client):
     async def command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
         if isinstance(error, app_commands.CheckFailure):
             return
-        LOG.error("Command failed: %s", type(error).__name__)
+        self.log_safe_error("slash_command", error)
         text = "That action could not complete. Your saved collection is safe; check the bot console."
         with contextlib.suppress(discord.HTTPException):
-            if interaction.response.is_done():
-                await interaction.followup.send(text, ephemeral=True)
-            else:
-                await interaction.response.send_message(text, ephemeral=True)
+            await self.reply(interaction, text, ephemeral=True)
+
+    async def on_error(self, event_method: str, *args, **kwargs):
+        # discord.Client's default handler prints traceback/local exception text.
+        # Report only the fixed event-method name and exception class instead.
+        import sys
+        error = sys.exception()
+        if error is not None:
+            self.log_safe_error("gateway_" + event_method[:25], error)
 
     async def close(self):
-        task = self.scheduler.get_task()
-        self.scheduler.cancel()
-        if task and task is not asyncio.current_task():
-            with contextlib.suppress(asyncio.CancelledError):
-                await task
-        for view in self.views.values():
-            view.stop()
-        for view in list(self.warp_views):
-            view.finish()
-        await super().close()
-        if not self._closed_engine:
-            self.engine.close()
-            self._closed_engine = True
+        if self._close_task is None:
+            self._closing = True
+            self._close_task = asyncio.create_task(self._close_resources(), name="ffc-discord-close")
+        if asyncio.current_task() is self._close_task:
+            return
+        await _completion_before_cancel(self._close_task)
+
+    async def _close_resources(self):
+        try:
+            task = self.scheduler.get_task()
+            self.scheduler.stop()
+            self.scheduler.cancel()
+            if task and task is not asyncio.current_task():
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
+                except Exception as error:
+                    self.log_safe_error("scheduler_shutdown", error)
+            for view in self.views.values():
+                view.stop()
+            for view in list(self.warp_views):
+                view.finish()
+            await super().close()
+        finally:
+            # A transport-close error must not abandon an in-flight commit or
+            # allow runtime cleanup to close its connection prematurely.
+            if not self._closed_engine:
+                await self.io.close()
+                if getattr(self.engine, "backend", "sqlite") == "postgresql":
+                    await asyncio.to_thread(self.engine.close)
+                else:
+                    self.engine.close()
+                self._closed_engine = True
 
 
 def run_bot(settings: Settings, token: str):

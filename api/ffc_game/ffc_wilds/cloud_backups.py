@@ -16,6 +16,7 @@ from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_ope
 
 from .cloud_control import APPLICATION_ID, GUILD_ID, CHANNEL_ID
 from .migration import export_snapshot
+from .async_store import _completion_before_cancel
 
 PREFIX = "ffc-wilds/backups/v1/"
 KEEP_BACKUPS = 32
@@ -57,6 +58,16 @@ class CloudBackups:
         self._client = client
         self._lock = asyncio.Lock()
         self._anonymous_read = anonymous_read or anonymous_status
+        self._game_call = None
+
+    def bind_client(self, client):
+        """Share the host's one serialized game IO worker for save exports."""
+        from .host_actions import game_call
+
+        async def export_call(operation, *args, **kwargs):
+            return await game_call(client, operation, *args, **kwargs)
+
+        self._game_call = export_call
 
     def _settings(self):
         region = self.env.get("SPACES_REGION", "").strip()
@@ -178,6 +189,15 @@ class CloudBackups:
 
     async def create(self):
         async with self._lock:
-            snapshot = export_snapshot(self.engine, application_id=APPLICATION_ID,
-                expected_guild_id=GUILD_ID, expected_channel_id=CHANNEL_ID)
-            return await asyncio.to_thread(self._upload, snapshot)
+            options = {"application_id": APPLICATION_ID,
+                       "expected_guild_id": GUILD_ID, "expected_channel_id": CHANNEL_ID}
+            if self._game_call is not None:
+                snapshot = await self._game_call(export_snapshot, self.engine, **options)
+            else:
+                # Standalone/local callers have no concurrently running host.
+                # Export itself holds the engine transaction lock throughout.
+                snapshot = export_snapshot(self.engine, **options)
+            # Do not release this lock while a cancelled upload is still doing
+            # verification, retention, or last-backup metadata writes.
+            upload = asyncio.create_task(asyncio.to_thread(self._upload, snapshot))
+            return await _completion_before_cancel(upload)
